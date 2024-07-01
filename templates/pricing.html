@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RATER Pricing</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #F8F8F8;
+    }
+
+    .navbar {
+      background-color: #007AFF;
+      color: white;
+    }
+
+    .navbar-brand {
+      font-family: "San Francisco", sans-serif;
+      font-size: 36px;
+      color: white;
+    }
+
+    .navbar-nav .nav-item .nav-link {
+      color: white;
+      font-size: 18px;
+    }
+
+    .navbar-nav .nav-item .nav-link:hover {
+      color: #D1D1D6;
+    }
+
+    .container {
+      margin-top: 50px;
+    }
+
+    .pricing-container {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .pricing-box {
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+      width: 30%;
+      text-align: center;
+      transition: transform 0.3s, box-shadow 0.3s;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-sizing: border-box;
+      min-height: 450px;
+    }
+
+    .pricing-box:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .pricing-box h3 {
+      margin-bottom: 15px;
+      font-weight: bold;
+      color: #007AFF;
+    }
+
+    .pricing-box img {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+      margin: 20px 0;
+    }
+
+    .pricing-box p {
+      margin: 10px 0;
+      font-size: 16px;
+      color: #333;
+    }
+
+    .btn-custom {
+      background-color: #007AFF;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      text-align: center;
+      cursor: pointer;
+      border-radius: 12px;
+      margin-top: 20px;
+      transition: background-color 0.3s, transform 0.3s;
+    }
+
+    .btn-custom:hover {
+      background-color: #005BB5;
+      transform: translateY(-2px);
+    }
+
+    .btn-container {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      margin-top: auto;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg">
+    <a class="navbar-brand" href="#">RATER - Empowering teams with Data-Driven Insights</a>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="/dashboard">Temporary button</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h2 class="text-center">Choose Your Plan</h2>
+    <div class="pricing-container">
+      <div class="pricing-box">
+        <h3>Basic</h3>
+        <img src="{{ url_for('static', filename='images/basic.png') }}" alt="Basic Package">
+        <p>Single User</p>
+        <p>One Team (up to 10 team members)</p>
+        <p>Standard, non-editable settings</p>
+        <p>Basic reporting and analytics</p>
+        <p>Email notifications for evaluations</p>
+        <p>Access to standard evaluation parameters</p>
+        <p>Suitable for small teams or individual managers</p>
+        <p>Only 9.99$ / month</p>
+        <div class="btn-container">
+          <a href="https://buy.stripe.com/28odUog67b6Uec0eUW" class="btn-custom">Buy Now</a>
+        </div>
+      </div>
+      <div class="pricing-box">
+        <h3>Professional</h3>
+        <img src="{{ url_for('static', filename='images/professional.png') }}" alt="Professional Package">
+        <p>Up to 5 Users</p>
+        <p>Multiple Teams (up to 50 team members each)</p>
+        <p>Customizable settings</p>
+        <p>Advanced AI reporting and analytics</p>
+        <p>Email notifications for evaluations</p>
+        <p>Access to advanced evaluation parameters</p>
+        <p>Historical data analysis and trend reports</p>
+        <p>Suitable for growing organizations or mid-sized teams</p>
+        <p>Only 29.99$ / month</p>
+        <div class="btn-container">
+          <a href="https://buy.stripe.com/4gw9E87zB1wk8RG6or" class="btn-custom">Buy Now</a>
+        </div>
+      </div>
+      <div class="pricing-box">
+        <h3>Enterprise</h3>
+        <img src="{{ url_for('static', filename='images/enterprise.png') }}" alt="Enterprise Package">
+        <p>Unlimited Users</p>
+        <p>Unlimited Teams (no member limit)</p>
+        <p>Fully customizable settings</p>
+        <p>Comprehensive AI reporting and analytics</p>
+        <p>Email notifications for evaluations</p>
+        <p>Access to all evaluation parameters and tools</p>
+        <p>Dedicated account manager</p>
+        <p>Priority customer support</p>
+        <p>Suitable for large organizations or enterprises needing extensive customization and support</p>
+        <div class="btn-container">
+          <a href="/contact/sales" class="btn-custom">Contact Sales</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

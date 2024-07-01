@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Historical Data</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #D9F2D0;
+    }
+
+    h2 {
+      font-family: "Agency FB", cursive;
+      font-size: 50px;
+      color: #F1A983;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .container {
+      width: 80%;
+      margin: 0 auto;
+    }
+
+    .dropdown-container {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    select {
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    .button-container {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .btn-custom {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 10px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .btn-custom:hover {
+      background-color: #6da1ee;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Historical Ratings</h2>
+    <div class="dropdown-container">
+      <label for="team-select">Select a Team:</label>
+      <select id="team-select" class="form-control" onchange="fetchTeamMembers()">
+        <!-- Options will be populated dynamically -->
+      </select>
+    </div>
+    <canvas id="myChart" width="400" height="200"></canvas>
+    <div class="button-container">
+      <a href="/rate_team" class="btn btn-custom">Rate</a>
+      <a href="/" class="btn btn-custom">Home</a>
+    </div>
+  </div>
+
+  <script>
+    let myChart = null;
+
+    function fetchTeams() {
+      fetch('/rate_team/get_teams')
+        .then(response => response.json())
+        .then(data => {
+          const teamSelect = document.getElementById('team-select');
+          teamSelect.innerHTML = '<option value="">Select a team</option>';
+          data.teams.forEach(team => {
+            const option = document.createElement('option');
+            option.value = team.id;
+            option.textContent = team.name;
+            teamSelect.appendChild(option);
+          });
+        });
+    }
+
+    function fetchTeamMembers() {
+      const teamId = document.getElementById('team-select').value;
+      if (!teamId) return;
+
+      fetch(`/rate_team/get_team_members/${teamId}`)
+        .then(response => response.json())
+        .then(data => {
+          const members = data.members.map(member => ({
+            id: member.id,
+            name: `${member.first_name} ${member.surname} (Total Score: ${member.total_score})`
+          }));
+          fetchHistoricalData(members);
+        });
+    }
+
+    function fetchHistoricalData(members) {
+      Promise.all(members.map(member =>
+        fetch(`/rate_team/get_historical_data/${member.id}`)
+          .then(response => response.json())
+          .then(data => ({ ...member, data }))
+      ))
+      .then(results => {
+        const labels = results.length > 0 ? results[0].data.map(entry => new Date(entry.timestamp).toLocaleDateString()) : [];
+        const datasets = results.map(result => {
+          const memberData = result.data;
+          const scores = memberData.map(entry => entry.score);
+          return {
+            label: result.name,
+            data: scores,
+            fill: false,
+            borderColor: getRandomColor(),
+            tension: 0.1
+          };
+        });
+        displayChart(labels, datasets);
+      });
+    }
+
+    function displayChart(labels, datasets) {
+      const ctx = document.getElementById('myChart').getContext('2d');
+
+      if (!myChart) {
+        myChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: datasets
+          },
+          options: {
+            scales: {
+              x: {
+                type: 'time',
+                time: {
+                  unit: 'day'
+                }
+              },
+              y: {
+                beginAtZero: true,
+                max: 10
+              }
+            }
+          }
+        });
+      } else {
+        myChart.data.labels = labels;
+        myChart.data.datasets = datasets;
+        myChart.update();
+      }
+    }
+
+    function getRandomColor() {
+      const letters = '0123456789ABCDEF';
+      let color = '#';
+      for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+      }
+      return color;
+    }
+
+    document.addEventListener('DOMContentLoaded', fetchTeams);
+  </script>
+</body>
+</html>

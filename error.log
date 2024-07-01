@@ -1,0 +1,834 @@
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+ERROR:app:Error during Auth0 callback: mismatching_state: CSRF Warning! State not equal in request and response.
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:34:53] "[35m[1mGET /callback?code=00-wcLRQ56q-PCeMms4lhNdoNL4tWVVc1w3nV_SqVpZD4&state=VUt1S0pILnFkOUF1MXp2aExLUDhkOXBSRE1lVHZZUjhmeThWTUdnSWZmdw%3D%3D HTTP/1.1[0m" 500 -
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+ERROR:app:Error during Auth0 callback: mismatching_state: CSRF Warning! State not equal in request and response.
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:35:57] "[35m[1mGET /callback?code=Q2MN1S7z6vWMLybb67OI7JaiwTut52yAg_SF_YXl2nNt8&state=ZzhPNGYzOFN5Zn5UNGlOeTFkdVhGbmVHUjByektFbnIubTdOUHJLRy5JWQ%3D%3D HTTP/1.1[0m" 500 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:04] "GET /pricing/ HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:04] "[36mGET /static/images/basic.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:04] "[36mGET /static/images/enterprise.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:04] "[36mGET /static/images/professional.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:05] "GET /dashboard/ HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:05] "GET /team_management/get_teams HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:05] "GET /rate_team/get_team_members/1 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 6: [<Rating 248>, <Rating 242>, <Rating 233>, <Rating 230>, <Rating 219>, <Rating 217>, <Rating 205>, <Rating 202>, <Rating 195>, <Rating 188>, <Rating 182>, <Rating 175>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:05] "GET /rate_team/get_historical_data/6 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 3: [<Rating 252>, <Rating 245>, <Rating 236>, <Rating 228>, <Rating 222>, <Rating 213>, <Rating 210>, <Rating 200>, <Rating 194>, <Rating 186>, <Rating 177>, <Rating 170>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:05] "GET /rate_team/get_historical_data/3 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 1: [<Rating 246>, <Rating 239>, <Rating 232>, <Rating 225>, <Rating 218>, <Rating 211>, <Rating 204>, <Rating 197>, <Rating 190>, <Rating 183>, <Rating 176>, <Rating 169>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:05] "GET /rate_team/get_historical_data/1 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 2: [<Rating 247>, <Rating 244>, <Rating 238>, <Rating 231>, <Rating 224>, <Rating 216>, <Rating 206>, <Rating 201>, <Rating 196>, <Rating 184>, <Rating 181>, <Rating 173>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:05] "GET /rate_team/get_historical_data/2 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 4: [<Rating 250>, <Rating 240>, <Rating 235>, <Rating 227>, <Rating 221>, <Rating 212>, <Rating 209>, <Rating 198>, <Rating 193>, <Rating 189>, <Rating 179>, <Rating 174>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:05] "GET /rate_team/get_historical_data/4 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 7: [<Rating 249>, <Rating 241>, <Rating 234>, <Rating 229>, <Rating 220>, <Rating 214>, <Rating 208>, <Rating 199>, <Rating 191>, <Rating 185>, <Rating 178>, <Rating 171>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:05] "GET /rate_team/get_historical_data/7 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 6: [<Rating 248>, <Rating 242>, <Rating 233>, <Rating 230>, <Rating 219>, <Rating 217>, <Rating 205>, <Rating 202>, <Rating 195>, <Rating 188>, <Rating 182>, <Rating 175>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:05] "GET /rate_team/get_historical_data/6 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 3: [<Rating 252>, <Rating 245>, <Rating 236>, <Rating 228>, <Rating 222>, <Rating 213>, <Rating 210>, <Rating 200>, <Rating 194>, <Rating 186>, <Rating 177>, <Rating 170>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:05] "GET /rate_team/get_historical_data/3 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 1: [<Rating 246>, <Rating 239>, <Rating 232>, <Rating 225>, <Rating 218>, <Rating 211>, <Rating 204>, <Rating 197>, <Rating 190>, <Rating 183>, <Rating 176>, <Rating 169>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:05] "GET /rate_team/get_historical_data/1 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 5: [<Rating 251>, <Rating 243>, <Rating 237>, <Rating 226>, <Rating 223>, <Rating 215>, <Rating 207>, <Rating 203>, <Rating 192>, <Rating 187>, <Rating 180>, <Rating 172>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:05] "GET /rate_team/get_historical_data/5 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 7: [<Rating 249>, <Rating 241>, <Rating 234>, <Rating 229>, <Rating 220>, <Rating 214>, <Rating 208>, <Rating 199>, <Rating 191>, <Rating 185>, <Rating 178>, <Rating 171>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:05] "GET /rate_team/get_historical_data/7 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 4: [<Rating 250>, <Rating 240>, <Rating 235>, <Rating 227>, <Rating 221>, <Rating 212>, <Rating 209>, <Rating 198>, <Rating 193>, <Rating 189>, <Rating 179>, <Rating 174>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:05] "GET /rate_team/get_historical_data/4 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 2: [<Rating 247>, <Rating 244>, <Rating 238>, <Rating 231>, <Rating 224>, <Rating 216>, <Rating 206>, <Rating 201>, <Rating 196>, <Rating 184>, <Rating 181>, <Rating 173>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:05] "GET /rate_team/get_historical_data/2 HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:07] "GET /rate_team/ HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:07] "GET /setup/get_settings HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:07] "GET /rate_team/get_team_members/1 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 1: [<Rating 246>, <Rating 239>, <Rating 232>, <Rating 225>, <Rating 218>, <Rating 211>, <Rating 204>, <Rating 197>, <Rating 190>, <Rating 183>, <Rating 176>, <Rating 169>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:07] "GET /rate_team/get_historical_data/1 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 2: [<Rating 247>, <Rating 244>, <Rating 238>, <Rating 231>, <Rating 224>, <Rating 216>, <Rating 206>, <Rating 201>, <Rating 196>, <Rating 184>, <Rating 181>, <Rating 173>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:07] "GET /rate_team/get_historical_data/2 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 3: [<Rating 252>, <Rating 245>, <Rating 236>, <Rating 228>, <Rating 222>, <Rating 213>, <Rating 210>, <Rating 200>, <Rating 194>, <Rating 186>, <Rating 177>, <Rating 170>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:07] "GET /rate_team/get_historical_data/3 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 5: [<Rating 251>, <Rating 243>, <Rating 237>, <Rating 226>, <Rating 223>, <Rating 215>, <Rating 207>, <Rating 203>, <Rating 192>, <Rating 187>, <Rating 180>, <Rating 172>]
+DEBUG:root:Retrieved historical data for member 4: [<Rating 250>, <Rating 240>, <Rating 235>, <Rating 227>, <Rating 221>, <Rating 212>, <Rating 209>, <Rating 198>, <Rating 193>, <Rating 189>, <Rating 179>, <Rating 174>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:07] "GET /rate_team/get_historical_data/5 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 6: [<Rating 248>, <Rating 242>, <Rating 233>, <Rating 230>, <Rating 219>, <Rating 217>, <Rating 205>, <Rating 202>, <Rating 195>, <Rating 188>, <Rating 182>, <Rating 175>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:07] "GET /rate_team/get_historical_data/4 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 7: [<Rating 249>, <Rating 241>, <Rating 234>, <Rating 229>, <Rating 220>, <Rating 214>, <Rating 208>, <Rating 199>, <Rating 191>, <Rating 185>, <Rating 178>, <Rating 171>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:07] "GET /rate_team/get_historical_data/6 HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:07] "GET /rate_team/get_historical_data/7 HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:10] "GET /dashboard/ HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:10] "GET /team_management/get_teams HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:10] "GET /rate_team/get_team_members/1 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 3: [<Rating 252>, <Rating 245>, <Rating 236>, <Rating 228>, <Rating 222>, <Rating 213>, <Rating 210>, <Rating 200>, <Rating 194>, <Rating 186>, <Rating 177>, <Rating 170>]
+DEBUG:root:Retrieved historical data for member 6: [<Rating 248>, <Rating 242>, <Rating 233>, <Rating 230>, <Rating 219>, <Rating 217>, <Rating 205>, <Rating 202>, <Rating 195>, <Rating 188>, <Rating 182>, <Rating 175>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:10] "GET /rate_team/get_historical_data/3 HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:10] "GET /rate_team/get_historical_data/6 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 1: [<Rating 246>, <Rating 239>, <Rating 232>, <Rating 225>, <Rating 218>, <Rating 211>, <Rating 204>, <Rating 197>, <Rating 190>, <Rating 183>, <Rating 176>, <Rating 169>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:10] "GET /rate_team/get_historical_data/1 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 2: [<Rating 247>, <Rating 244>, <Rating 238>, <Rating 231>, <Rating 224>, <Rating 216>, <Rating 206>, <Rating 201>, <Rating 196>, <Rating 184>, <Rating 181>, <Rating 173>]
+DEBUG:root:Retrieved historical data for member 4: [<Rating 250>, <Rating 240>, <Rating 235>, <Rating 227>, <Rating 221>, <Rating 212>, <Rating 209>, <Rating 198>, <Rating 193>, <Rating 189>, <Rating 179>, <Rating 174>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:10] "GET /rate_team/get_historical_data/2 HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:10] "GET /rate_team/get_historical_data/4 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 7: [<Rating 249>, <Rating 241>, <Rating 234>, <Rating 229>, <Rating 220>, <Rating 214>, <Rating 208>, <Rating 199>, <Rating 191>, <Rating 185>, <Rating 178>, <Rating 171>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:10] "GET /rate_team/get_historical_data/7 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 6: [<Rating 248>, <Rating 242>, <Rating 233>, <Rating 230>, <Rating 219>, <Rating 217>, <Rating 205>, <Rating 202>, <Rating 195>, <Rating 188>, <Rating 182>, <Rating 175>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:10] "GET /rate_team/get_historical_data/6 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 3: [<Rating 252>, <Rating 245>, <Rating 236>, <Rating 228>, <Rating 222>, <Rating 213>, <Rating 210>, <Rating 200>, <Rating 194>, <Rating 186>, <Rating 177>, <Rating 170>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:10] "GET /rate_team/get_historical_data/3 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 1: [<Rating 246>, <Rating 239>, <Rating 232>, <Rating 225>, <Rating 218>, <Rating 211>, <Rating 204>, <Rating 197>, <Rating 190>, <Rating 183>, <Rating 176>, <Rating 169>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:10] "GET /rate_team/get_historical_data/1 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 5: [<Rating 251>, <Rating 243>, <Rating 237>, <Rating 226>, <Rating 223>, <Rating 215>, <Rating 207>, <Rating 203>, <Rating 192>, <Rating 187>, <Rating 180>, <Rating 172>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:10] "GET /rate_team/get_historical_data/5 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 7: [<Rating 249>, <Rating 241>, <Rating 234>, <Rating 229>, <Rating 220>, <Rating 214>, <Rating 208>, <Rating 199>, <Rating 191>, <Rating 185>, <Rating 178>, <Rating 171>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:10] "GET /rate_team/get_historical_data/7 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 4: [<Rating 250>, <Rating 240>, <Rating 235>, <Rating 227>, <Rating 221>, <Rating 212>, <Rating 209>, <Rating 198>, <Rating 193>, <Rating 189>, <Rating 179>, <Rating 174>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:10] "GET /rate_team/get_historical_data/4 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 2: [<Rating 247>, <Rating 244>, <Rating 238>, <Rating 231>, <Rating 224>, <Rating 216>, <Rating 206>, <Rating 201>, <Rating 196>, <Rating 184>, <Rating 181>, <Rating 173>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:10] "GET /rate_team/get_historical_data/2 HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:11] "GET /team_management/ HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:11] "GET /team_management/get_teams HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:12] "GET /dashboard/ HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:12] "GET /team_management/get_teams HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:12] "GET /rate_team/get_team_members/1 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 6: [<Rating 248>, <Rating 242>, <Rating 233>, <Rating 230>, <Rating 219>, <Rating 217>, <Rating 205>, <Rating 202>, <Rating 195>, <Rating 188>, <Rating 182>, <Rating 175>]
+DEBUG:root:Retrieved historical data for member 3: [<Rating 252>, <Rating 245>, <Rating 236>, <Rating 228>, <Rating 222>, <Rating 213>, <Rating 210>, <Rating 200>, <Rating 194>, <Rating 186>, <Rating 177>, <Rating 170>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:12] "GET /rate_team/get_historical_data/6 HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:12] "GET /rate_team/get_historical_data/3 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 1: [<Rating 246>, <Rating 239>, <Rating 232>, <Rating 225>, <Rating 218>, <Rating 211>, <Rating 204>, <Rating 197>, <Rating 190>, <Rating 183>, <Rating 176>, <Rating 169>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:12] "GET /rate_team/get_historical_data/1 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 2: [<Rating 247>, <Rating 244>, <Rating 238>, <Rating 231>, <Rating 224>, <Rating 216>, <Rating 206>, <Rating 201>, <Rating 196>, <Rating 184>, <Rating 181>, <Rating 173>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:12] "GET /rate_team/get_historical_data/2 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 4: [<Rating 250>, <Rating 240>, <Rating 235>, <Rating 227>, <Rating 221>, <Rating 212>, <Rating 209>, <Rating 198>, <Rating 193>, <Rating 189>, <Rating 179>, <Rating 174>]
+DEBUG:root:Retrieved historical data for member 7: [<Rating 249>, <Rating 241>, <Rating 234>, <Rating 229>, <Rating 220>, <Rating 214>, <Rating 208>, <Rating 199>, <Rating 191>, <Rating 185>, <Rating 178>, <Rating 171>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:12] "GET /rate_team/get_historical_data/4 HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:12] "GET /rate_team/get_historical_data/7 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 6: [<Rating 248>, <Rating 242>, <Rating 233>, <Rating 230>, <Rating 219>, <Rating 217>, <Rating 205>, <Rating 202>, <Rating 195>, <Rating 188>, <Rating 182>, <Rating 175>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:12] "GET /rate_team/get_historical_data/6 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 3: [<Rating 252>, <Rating 245>, <Rating 236>, <Rating 228>, <Rating 222>, <Rating 213>, <Rating 210>, <Rating 200>, <Rating 194>, <Rating 186>, <Rating 177>, <Rating 170>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:12] "GET /rate_team/get_historical_data/3 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 1: [<Rating 246>, <Rating 239>, <Rating 232>, <Rating 225>, <Rating 218>, <Rating 211>, <Rating 204>, <Rating 197>, <Rating 190>, <Rating 183>, <Rating 176>, <Rating 169>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:12] "GET /rate_team/get_historical_data/1 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 5: [<Rating 251>, <Rating 243>, <Rating 237>, <Rating 226>, <Rating 223>, <Rating 215>, <Rating 207>, <Rating 203>, <Rating 192>, <Rating 187>, <Rating 180>, <Rating 172>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:12] "GET /rate_team/get_historical_data/5 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 7: [<Rating 249>, <Rating 241>, <Rating 234>, <Rating 229>, <Rating 220>, <Rating 214>, <Rating 208>, <Rating 199>, <Rating 191>, <Rating 185>, <Rating 178>, <Rating 171>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:12] "GET /rate_team/get_historical_data/7 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 4: [<Rating 250>, <Rating 240>, <Rating 235>, <Rating 227>, <Rating 221>, <Rating 212>, <Rating 209>, <Rating 198>, <Rating 193>, <Rating 189>, <Rating 179>, <Rating 174>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:12] "GET /rate_team/get_historical_data/4 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 2: [<Rating 247>, <Rating 244>, <Rating 238>, <Rating 231>, <Rating 224>, <Rating 216>, <Rating 206>, <Rating 201>, <Rating 196>, <Rating 184>, <Rating 181>, <Rating 173>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:12] "GET /rate_team/get_historical_data/2 HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:15] "GET /dashboard/ HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:15] "GET /team_management/get_teams HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:15] "GET /rate_team/get_team_members/1 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 6: [<Rating 248>, <Rating 242>, <Rating 233>, <Rating 230>, <Rating 219>, <Rating 217>, <Rating 205>, <Rating 202>, <Rating 195>, <Rating 188>, <Rating 182>, <Rating 175>]
+DEBUG:root:Retrieved historical data for member 3: [<Rating 252>, <Rating 245>, <Rating 236>, <Rating 228>, <Rating 222>, <Rating 213>, <Rating 210>, <Rating 200>, <Rating 194>, <Rating 186>, <Rating 177>, <Rating 170>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:15] "GET /rate_team/get_historical_data/6 HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:15] "GET /rate_team/get_historical_data/3 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 1: [<Rating 246>, <Rating 239>, <Rating 232>, <Rating 225>, <Rating 218>, <Rating 211>, <Rating 204>, <Rating 197>, <Rating 190>, <Rating 183>, <Rating 176>, <Rating 169>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:15] "GET /rate_team/get_historical_data/1 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 4: [<Rating 250>, <Rating 240>, <Rating 235>, <Rating 227>, <Rating 221>, <Rating 212>, <Rating 209>, <Rating 198>, <Rating 193>, <Rating 189>, <Rating 179>, <Rating 174>]
+DEBUG:root:Retrieved historical data for member 2: [<Rating 247>, <Rating 244>, <Rating 238>, <Rating 231>, <Rating 224>, <Rating 216>, <Rating 206>, <Rating 201>, <Rating 196>, <Rating 184>, <Rating 181>, <Rating 173>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:15] "GET /rate_team/get_historical_data/4 HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:15] "GET /rate_team/get_historical_data/2 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 7: [<Rating 249>, <Rating 241>, <Rating 234>, <Rating 229>, <Rating 220>, <Rating 214>, <Rating 208>, <Rating 199>, <Rating 191>, <Rating 185>, <Rating 178>, <Rating 171>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:15] "GET /rate_team/get_historical_data/7 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 6: [<Rating 248>, <Rating 242>, <Rating 233>, <Rating 230>, <Rating 219>, <Rating 217>, <Rating 205>, <Rating 202>, <Rating 195>, <Rating 188>, <Rating 182>, <Rating 175>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:15] "GET /rate_team/get_historical_data/6 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 3: [<Rating 252>, <Rating 245>, <Rating 236>, <Rating 228>, <Rating 222>, <Rating 213>, <Rating 210>, <Rating 200>, <Rating 194>, <Rating 186>, <Rating 177>, <Rating 170>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:15] "GET /rate_team/get_historical_data/3 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 1: [<Rating 246>, <Rating 239>, <Rating 232>, <Rating 225>, <Rating 218>, <Rating 211>, <Rating 204>, <Rating 197>, <Rating 190>, <Rating 183>, <Rating 176>, <Rating 169>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:15] "GET /rate_team/get_historical_data/1 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 5: [<Rating 251>, <Rating 243>, <Rating 237>, <Rating 226>, <Rating 223>, <Rating 215>, <Rating 207>, <Rating 203>, <Rating 192>, <Rating 187>, <Rating 180>, <Rating 172>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:15] "GET /rate_team/get_historical_data/5 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 7: [<Rating 249>, <Rating 241>, <Rating 234>, <Rating 229>, <Rating 220>, <Rating 214>, <Rating 208>, <Rating 199>, <Rating 191>, <Rating 185>, <Rating 178>, <Rating 171>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:15] "GET /rate_team/get_historical_data/7 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 4: [<Rating 250>, <Rating 240>, <Rating 235>, <Rating 227>, <Rating 221>, <Rating 212>, <Rating 209>, <Rating 198>, <Rating 193>, <Rating 189>, <Rating 179>, <Rating 174>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:15] "GET /rate_team/get_historical_data/4 HTTP/1.1" 200 -
+DEBUG:root:Retrieved historical data for member 2: [<Rating 247>, <Rating 244>, <Rating 238>, <Rating 231>, <Rating 224>, <Rating 216>, <Rating 206>, <Rating 201>, <Rating 196>, <Rating 184>, <Rating 181>, <Rating 173>]
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:15] "GET /rate_team/get_historical_data/2 HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:18] "GET / HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:18] "[36mGET /static/images/objective-evaluations.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:19] "[36mGET /static/images/flexible.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:19] "[36mGET /static/images/Identify-Training.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:19] "[36mGET /static/images/timely.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:19] "[36mGET /static/images/Progress.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:19] "[36mGET /static/images/Decisions.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:19] "[36mGET /static/images/Boost.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:19] "[36mGET /static/images/Features1.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:19] "[36mGET /static/images/Features2.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:19] "[36mGET /static/images/benefit.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:19] "[36mGET /static/images/Transform.png HTTP/1.1[0m" 304 -
+ERROR:app:Error during Auth0 callback: mismatching_state: CSRF Warning! State not equal in request and response.
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:36:21] "[35m[1mGET /callback?code=FVB3feb47iVvscGzZaJQtHnJi8N5imf_N46v036e4U-hI&state=RnhaS3EwdlRRR09iLkJaVUgya0RNdGtVY2x5UUNSUmQwYm5wbDJEeXJNeQ%3D%3D HTTP/1.1[0m" 500 -
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+ERROR:app:Error during Auth0 callback: The session is unavailable because no secret key was set.  Set the secret_key on the application to something unique and secret.
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:38:06] "[35m[1mGET /callback?code=FzYPbYf_S2sbJVcUa_PwnJ_MeubFxYkSkGQMXWfoRc5T2&state=U3hqdGx5VjhaZG9IY2NKSEtWbDE5UkdvRzVFQnVRcFNSSUh1ZzRORERvVQ%3D%3D HTTP/1.1[0m" 500 -
+ERROR:app:Error during Auth0 callback: The session is unavailable because no secret key was set.  Set the secret_key on the application to something unique and secret.
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:38:55] "[35m[1mGET /callback?code=BDsqQGei2Whbr16ow-KXRnlfUaAROyUy7wVTNGh1yrlLd&state=ellYS202Z3pVZWdLS1dnM2VZSUJVNH5BcXZOUzFyWko2NHEyZTloYkkyRQ%3D%3D HTTP/1.1[0m" 500 -
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+ERROR:app:Error during Auth0 callback: The session is unavailable because no secret key was set.  Set the secret_key on the application to something unique and secret.
+ERROR:app:Exception during Auth0 callback
+Traceback (most recent call last):
+  File "C:\Rater\app.py", line 63, in callback_handling
+    auth0.authorize_access_token()
+  File "C:\Rater\venv\Lib\site-packages\authlib\integrations\flask_client\apps.py", line 99, in authorize_access_token
+    self.framework.clear_state_data(session, params.get('state'))
+  File "C:\Rater\venv\Lib\site-packages\authlib\integrations\base_client\framework_integration.py", line 56, in clear_state_data
+    session.pop(key, None)
+  File "C:\Rater\venv\Lib\site-packages\flask\sessions.py", line 102, in _fail
+    raise RuntimeError(
+RuntimeError: The session is unavailable because no secret key was set.  Set the secret_key on the application to something unique and secret.
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:41:22] "[35m[1mGET /callback?code=UGHvDRceI7fIohnGql21BpmeU7dPdAMbRgNX3MyWxMCuv&state=bWVSWXdUTXk1WC1qSXZtcC5fcllQakcyakxSNWN0NTFpMk9%2BNzZra3hhbA%3D%3D HTTP/1.1[0m" 500 -
+ERROR:app:Error during Auth0 callback: The session is unavailable because no secret key was set.  Set the secret_key on the application to something unique and secret.
+ERROR:app:Exception during Auth0 callback
+Traceback (most recent call last):
+  File "C:\Rater\app.py", line 63, in callback_handling
+    auth0.authorize_access_token()
+  File "C:\Rater\venv\Lib\site-packages\authlib\integrations\flask_client\apps.py", line 99, in authorize_access_token
+    self.framework.clear_state_data(session, params.get('state'))
+  File "C:\Rater\venv\Lib\site-packages\authlib\integrations\base_client\framework_integration.py", line 56, in clear_state_data
+    session.pop(key, None)
+  File "C:\Rater\venv\Lib\site-packages\flask\sessions.py", line 102, in _fail
+    raise RuntimeError(
+RuntimeError: The session is unavailable because no secret key was set.  Set the secret_key on the application to something unique and secret.
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:41:26] "[35m[1mGET /callback?code=8ifNry9b2FFQRIThfDyZV7aN_M7lwi-6k0sebfTGCsQ9w&state=OTk5cU8wcW5DfjhYR3JEb0pVaEZ5aUVRWn5VM1M0bFpqWWoxYUFfdzZQdg%3D%3D HTTP/1.1[0m" 500 -
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+ERROR:app:Error during Auth0 callback: The session is unavailable because no secret key was set.  Set the secret_key on the application to something unique and secret.
+ERROR:app:Exception during Auth0 callback
+Traceback (most recent call last):
+  File "C:\Rater\app.py", line 63, in callback_handling
+    auth0.authorize_access_token()
+  File "C:\Rater\venv\Lib\site-packages\authlib\integrations\flask_client\apps.py", line 99, in authorize_access_token
+    self.framework.clear_state_data(session, params.get('state'))
+  File "C:\Rater\venv\Lib\site-packages\authlib\integrations\base_client\framework_integration.py", line 56, in clear_state_data
+    session.pop(key, None)
+  File "C:\Rater\venv\Lib\site-packages\flask\sessions.py", line 102, in _fail
+    raise RuntimeError(
+RuntimeError: The session is unavailable because no secret key was set.  Set the secret_key on the application to something unique and secret.
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:42:14] "[35m[1mGET /callback?code=nWTXb4AOXMQqGUHlf29ynMT4-NipS9zfOoFoQPk10e4wr&state=UzFUbl9jbkRIZ0hWRHRRcjUzbGttZ2pzbmxsUXJIZmx0QnMzRFA4VGkxYQ%3D%3D HTTP/1.1[0m" 500 -
+ERROR:app:Error during Auth0 callback: The session is unavailable because no secret key was set.  Set the secret_key on the application to something unique and secret.
+ERROR:app:Exception during Auth0 callback
+Traceback (most recent call last):
+  File "C:\Rater\app.py", line 63, in callback_handling
+    auth0.authorize_access_token()
+  File "C:\Rater\venv\Lib\site-packages\authlib\integrations\flask_client\apps.py", line 99, in authorize_access_token
+    self.framework.clear_state_data(session, params.get('state'))
+  File "C:\Rater\venv\Lib\site-packages\authlib\integrations\base_client\framework_integration.py", line 56, in clear_state_data
+    session.pop(key, None)
+  File "C:\Rater\venv\Lib\site-packages\flask\sessions.py", line 102, in _fail
+    raise RuntimeError(
+RuntimeError: The session is unavailable because no secret key was set.  Set the secret_key on the application to something unique and secret.
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:44:13] "[35m[1mGET /callback?code=Vehh1M_w9n09UYRX5UY37pyX8eWsODsXhtKYbG7-LX6aB&state=TVo4WGlGTVZJQjRQdUNGUnJCOXJYenZodW5WT1ZIS3JlOEdLNmZiWnVBaw%3D%3D HTTP/1.1[0m" 500 -
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:46:28] "GET / HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:46:28] "[36mGET /static/images/objective-evaluations.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:46:28] "[36mGET /static/images/Boost.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:46:28] "[36mGET /static/images/Features1.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:46:28] "[36mGET /static/images/Features2.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:46:28] "[36mGET /static/images/benefit.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:46:28] "[36mGET /static/images/Transform.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:46:28] "[36mGET /static/images/Decisions.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:46:28] "[36mGET /static/images/timely.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:46:28] "[36mGET /static/images/Progress.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:46:28] "[36mGET /static/images/flexible.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:46:28] "[36mGET /static/images/Identify-Training.png HTTP/1.1[0m" 304 -
+ERROR:app:Error during Auth0 callback: mismatching_state: CSRF Warning! State not equal in request and response.
+ERROR:app:Exception during Auth0 callback
+Traceback (most recent call last):
+  File "C:\Rater\app.py", line 63, in callback_handling
+    auth0.authorize_access_token()
+  File "C:\Rater\venv\Lib\site-packages\authlib\integrations\flask_client\apps.py", line 100, in authorize_access_token
+    params = self._format_state_params(state_data, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Rater\venv\Lib\site-packages\authlib\integrations\base_client\sync_app.py", line 234, in _format_state_params
+    raise MismatchingStateError()
+authlib.integrations.base_client.errors.MismatchingStateError: mismatching_state: CSRF Warning! State not equal in request and response.
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:46:29] "[35m[1mGET /callback?code=WUC249x8gmLVAs7HJX6AtK-l0KXe6vj4hSe7XCWLJajI5&state=U2tTQXN0bnRTTVZLMVh1YWRDUW9KMXVjX2RQbkllcWRlRUdZclkyZ1BlOQ%3D%3D HTTP/1.1[0m" 500 -
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:47:45] "GET / HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:47:45] "[36mGET /static/images/objective-evaluations.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:47:45] "[36mGET /static/images/Boost.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:47:45] "[36mGET /static/images/Features1.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:47:45] "[36mGET /static/images/Features2.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:47:45] "[36mGET /static/images/benefit.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:47:45] "[36mGET /static/images/Transform.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:47:45] "[36mGET /static/images/flexible.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:47:45] "[36mGET /static/images/timely.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:47:45] "[36mGET /static/images/Decisions.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:47:45] "[36mGET /static/images/Progress.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:47:45] "[36mGET /static/images/Identify-Training.png HTTP/1.1[0m" 304 -
+ERROR:app:Error during Auth0 callback: CSRF Warning! State not equal in request and response.
+ERROR:app:Exception during Auth0 callback
+Traceback (most recent call last):
+  File "C:\Rater\app.py", line 67, in callback_handling
+    raise ValueError("CSRF Warning! State not equal in request and response.")
+ValueError: CSRF Warning! State not equal in request and response.
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:47:46] "[35m[1mGET /callback?code=1REIYiGnkUu_OCy7j9D3eXI_P08hgwYLBQJXYAo-4AvFn&state=TVpLU1QxaEd5Z29VM0hQbjJsTlFjREV6WHRJU3NNUWMtOExZR2R2VlNSWg%3D%3D HTTP/1.1[0m" 500 -
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:49:18] "[31m[1mGET /callback?code=Ydot6izMOPXGbSJhb3z5hhkff1vfsYQ9vtinA9Bz0SzE5&state=WmswUTBZX1BUYUxtcldQcGNEM2l2cjBaM1AwRG1JSE5ub2l6bDZmWjlLLQ%3D%3D HTTP/1.1[0m" 400 -
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+DEBUG:app:State in callback: LXAtRVo1OGNkQXVQMUo2V21aWFFzRGhFd1R2QXZBOUdocjJPaUFxOTZhWA==
+DEBUG:app:State in session: None
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:50:07] "[31m[1mGET /callback?code=Fb4uP11nyS96G8aNtG5kidLwhM3kZoTKfhvBBYniR3uix&state=LXAtRVo1OGNkQXVQMUo2V21aWFFzRGhFd1R2QXZBOUdocjJPaUFxOTZhWA%3D%3D HTTP/1.1[0m" 400 -
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+DEBUG:app:State in callback: M3RxWEJPfmxjaHlRN1RVRFBoRjMxcDNZQzNnWGx1SVJxOWhrb2Jha0c5dg==
+DEBUG:app:State in session: None
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:52:29] "[31m[1mGET /callback?code=XwrlwrMHUDl7v-u0zOwPy7Vwm-Pst5vQVj-FfG8UfiQzX&state=M3RxWEJPfmxjaHlRN1RVRFBoRjMxcDNZQzNnWGx1SVJxOWhrb2Jha0c5dg%3D%3D HTTP/1.1[0m" 400 -
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+DEBUG:app:State in callback: czlacGF+WUZlYjBidE9obEFXWDNrSHhJR1ppdUJtMEhPR1NkRGYwNXpLZA==
+DEBUG:app:State in session: None
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 13:54:53] "[31m[1mGET /callback?code=LjFpMIiFS6sMH1kYHyhB7DAAQUQ3qIrb-rFBCIjbUzEKL&state=czlacGF%2BWUZlYjBidE9obEFXWDNrSHhJR1ppdUJtMEhPR1NkRGYwNXpLZA%3D%3D HTTP/1.1[0m" 400 -
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+DEBUG:app:State in callback: azZOamRUMkNrVnFsX3Z1SWhEMEw2VEcySm42U1N6eXhCZU1LSVdxUDRrLg==
+DEBUG:app:State in session: None
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 14:05:40] "[31m[1mGET /callback?code=fi63wFspp3NqiS7B0xFE1Jhv8LsEohckkiGqnRiuoViP9&state=azZOamRUMkNrVnFsX3Z1SWhEMEw2VEcySm42U1N6eXhCZU1LSVdxUDRrLg%3D%3D HTTP/1.1[0m" 400 -
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 14:08:02] "GET / HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 14:08:02] "[36mGET /static/images/objective-evaluations.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 14:08:02] "[36mGET /static/images/Boost.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 14:08:02] "[36mGET /static/images/Features1.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 14:08:02] "[36mGET /static/images/Features2.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 14:08:02] "[36mGET /static/images/benefit.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 14:08:02] "[36mGET /static/images/Transform.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 14:08:02] "[36mGET /static/images/flexible.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 14:08:02] "[36mGET /static/images/timely.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 14:08:02] "[36mGET /static/images/Identify-Training.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 14:08:02] "[36mGET /static/images/Decisions.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 14:08:02] "[36mGET /static/images/Progress.png HTTP/1.1[0m" 304 -
+DEBUG:app:State in callback: VlJrN2E3RjZRM05QV01JZV9zMjdRNnFVTUhTak9mNGhDWktWWGo5Z3RJRg==
+DEBUG:app:State in session: None
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 14:08:04] "[31m[1mGET /callback?code=TcWjg72rnIxbQg-UGDaliRFcUXEwEqk4jiax82nf3LVt3&state=VlJrN2E3RjZRM05QV01JZV9zMjdRNnFVTUhTak9mNGhDWktWWGo5Z3RJRg%3D%3D HTTP/1.1[0m" 400 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 14:08:06] "GET /pricing/ HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 14:08:06] "[36mGET /static/images/basic.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 14:08:06] "[36mGET /static/images/professional.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 14:08:06] "[36mGET /static/images/enterprise.png HTTP/1.1[0m" 304 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 14:08:07] "[33mGET /contact/sales HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 14:08:10] "[33mGET /buy/professional HTTP/1.1[0m" 404 -
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 14:08:15] "[33mGET /buy/basic HTTP/1.1[0m" 404 -
+DEBUG:app:State in callback: NXdpWWk3ZWJWZUF4QktZRmFNbHlMUHY3aU1rR3ZnNVhJcUU4YWpYTjFRTg==
+DEBUG:app:State in session: None
+INFO:werkzeug:127.0.0.1 - - [22/Jun/2024 14:08:20] "[31m[1mGET /callback?code=ZSD_C7Aw6reUjrqc2dh368xJqm4IY4KpVg7kBtul4IhpQ&state=NXdpWWk3ZWJWZUF4QktZRmFNbHlMUHY3aU1rR3ZnNVhJcUU4YWpYTjFRTg%3D%3D HTTP/1.1[0m" 400 -
+2024-06-22 14:10:25,721 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-22 14:10:25,721 INFO [33mPress CTRL+C to quit[0m
+2024-06-22 14:10:31,819 DEBUG State in callback: S3JOTTUzflNmNVZ3Y1U0Q0RtUzlIWVc0X204RUNfdFgxeEZkamNSTnE1Ug==
+2024-06-22 14:10:31,819 DEBUG State in session: None
+2024-06-22 14:10:31,819 ERROR CSRF error: State mismatch. State in request: S3JOTTUzflNmNVZ3Y1U0Q0RtUzlIWVc0X204RUNfdFgxeEZkamNSTnE1Ug==, State in session: None
+2024-06-22 14:10:31,820 INFO 127.0.0.1 - - [22/Jun/2024 14:10:31] "[31m[1mGET /callback?code=BTKOyUujDOXXvkEr79P4bXUfmgYQkum1aTxCJPjYPdDDG&state=S3JOTTUzflNmNVZ3Y1U0Q0RtUzlIWVc0X204RUNfdFgxeEZkamNSTnE1Ug%3D%3D HTTP/1.1[0m" 400 -
+2024-06-23 15:48:49,213 DEBUG State in callback: QzB0VkpNVUNGamRkS05FanluYVVubW5PbGJoLX5xdFk2Q3hULTI1MzdILg==
+2024-06-23 15:48:49,214 DEBUG State in session: None
+2024-06-23 15:48:49,214 ERROR CSRF error: State mismatch. State in request: QzB0VkpNVUNGamRkS05FanluYVVubW5PbGJoLX5xdFk2Q3hULTI1MzdILg==, State in session: None
+2024-06-23 15:48:49,214 INFO 127.0.0.1 - - [23/Jun/2024 15:48:49] "[31m[1mGET /callback?code=6ubCd--ewrVgOhm23rKRsd0XakgYNRcoQNyJlAECcfzhz&state=QzB0VkpNVUNGamRkS05FanluYVVubW5PbGJoLX5xdFk2Q3hULTI1MzdILg%3D%3D HTTP/1.1[0m" 400 -
+2024-06-23 15:48:52,171 INFO 127.0.0.1 - - [23/Jun/2024 15:48:52] "GET / HTTP/1.1" 200 -
+2024-06-23 15:48:52,276 INFO 127.0.0.1 - - [23/Jun/2024 15:48:52] "[36mGET /static/images/objective-evaluations.png HTTP/1.1[0m" 304 -
+2024-06-23 15:48:52,288 INFO 127.0.0.1 - - [23/Jun/2024 15:48:52] "[36mGET /static/images/Boost.png HTTP/1.1[0m" 304 -
+2024-06-23 15:48:52,298 INFO 127.0.0.1 - - [23/Jun/2024 15:48:52] "[36mGET /static/images/Features1.png HTTP/1.1[0m" 304 -
+2024-06-23 15:48:52,298 INFO 127.0.0.1 - - [23/Jun/2024 15:48:52] "[36mGET /static/images/timely.png HTTP/1.1[0m" 304 -
+2024-06-23 15:48:52,308 INFO 127.0.0.1 - - [23/Jun/2024 15:48:52] "[36mGET /static/images/Features2.png HTTP/1.1[0m" 304 -
+2024-06-23 15:48:52,308 INFO 127.0.0.1 - - [23/Jun/2024 15:48:52] "[36mGET /static/images/benefit.png HTTP/1.1[0m" 304 -
+2024-06-23 15:48:52,310 INFO 127.0.0.1 - - [23/Jun/2024 15:48:52] "[36mGET /static/images/Decisions.png HTTP/1.1[0m" 304 -
+2024-06-23 15:48:52,315 INFO 127.0.0.1 - - [23/Jun/2024 15:48:52] "[36mGET /static/images/flexible.png HTTP/1.1[0m" 304 -
+2024-06-23 15:48:52,318 INFO 127.0.0.1 - - [23/Jun/2024 15:48:52] "[36mGET /static/images/Progress.png HTTP/1.1[0m" 304 -
+2024-06-23 15:48:52,321 INFO 127.0.0.1 - - [23/Jun/2024 15:48:52] "[36mGET /static/images/Transform.png HTTP/1.1[0m" 304 -
+2024-06-23 15:48:52,325 INFO 127.0.0.1 - - [23/Jun/2024 15:48:52] "[36mGET /static/images/Identify-Training.png HTTP/1.1[0m" 304 -
+2024-06-23 15:49:04,426 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-23 15:49:04,426 INFO [33mPress CTRL+C to quit[0m
+2024-06-23 15:49:08,704 INFO 127.0.0.1 - - [23/Jun/2024 15:49:08] "GET / HTTP/1.1" 200 -
+2024-06-23 15:49:08,902 INFO 127.0.0.1 - - [23/Jun/2024 15:49:08] "[36mGET /static/images/objective-evaluations.png HTTP/1.1[0m" 304 -
+2024-06-23 15:49:08,909 INFO 127.0.0.1 - - [23/Jun/2024 15:49:08] "[36mGET /static/images/Boost.png HTTP/1.1[0m" 304 -
+2024-06-23 15:49:08,910 INFO 127.0.0.1 - - [23/Jun/2024 15:49:08] "[36mGET /static/images/Progress.png HTTP/1.1[0m" 304 -
+2024-06-23 15:49:08,911 INFO 127.0.0.1 - - [23/Jun/2024 15:49:08] "[36mGET /static/images/timely.png HTTP/1.1[0m" 304 -
+2024-06-23 15:49:08,915 INFO 127.0.0.1 - - [23/Jun/2024 15:49:08] "[36mGET /static/images/Identify-Training.png HTTP/1.1[0m" 304 -
+2024-06-23 15:49:08,915 INFO 127.0.0.1 - - [23/Jun/2024 15:49:08] "[36mGET /static/images/Features1.png HTTP/1.1[0m" 304 -
+2024-06-23 15:49:08,916 INFO 127.0.0.1 - - [23/Jun/2024 15:49:08] "[36mGET /static/images/flexible.png HTTP/1.1[0m" 304 -
+2024-06-23 15:49:08,916 INFO 127.0.0.1 - - [23/Jun/2024 15:49:08] "[36mGET /static/images/Decisions.png HTTP/1.1[0m" 304 -
+2024-06-23 15:49:08,921 INFO 127.0.0.1 - - [23/Jun/2024 15:49:08] "[36mGET /static/images/Features2.png HTTP/1.1[0m" 304 -
+2024-06-23 15:49:08,925 INFO 127.0.0.1 - - [23/Jun/2024 15:49:08] "[36mGET /static/images/benefit.png HTTP/1.1[0m" 304 -
+2024-06-23 15:49:08,929 INFO 127.0.0.1 - - [23/Jun/2024 15:49:08] "[36mGET /static/images/Transform.png HTTP/1.1[0m" 304 -
+2024-06-23 15:49:09,987 DEBUG State in callback: ZjhLc0FMWEQtbjU2alRFY3Z6NU5oMlo2SXF+bjEwYlJoemstQUVXN29OSQ==
+2024-06-23 15:49:09,987 DEBUG State in session: None
+2024-06-23 15:49:09,988 ERROR CSRF error: State mismatch. State in request: ZjhLc0FMWEQtbjU2alRFY3Z6NU5oMlo2SXF+bjEwYlJoemstQUVXN29OSQ==, State in session: None
+2024-06-23 15:49:09,988 INFO 127.0.0.1 - - [23/Jun/2024 15:49:09] "[31m[1mGET /callback?code=khiM2oQbuGxooDdV10W3FI42DxsbiqnomlcfO0GH5F70V&state=ZjhLc0FMWEQtbjU2alRFY3Z6NU5oMlo2SXF%2BbjEwYlJoemstQUVXN29OSQ%3D%3D HTTP/1.1[0m" 400 -
+2024-06-23 15:52:40,763 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-23 15:52:40,763 INFO [33mPress CTRL+C to quit[0m
+2024-06-23 15:52:46,052 INFO 127.0.0.1 - - [23/Jun/2024 15:52:46] "GET / HTTP/1.1" 200 -
+2024-06-23 15:52:46,162 INFO 127.0.0.1 - - [23/Jun/2024 15:52:46] "[36mGET /static/images/objective-evaluations.png HTTP/1.1[0m" 304 -
+2024-06-23 15:52:46,166 INFO 127.0.0.1 - - [23/Jun/2024 15:52:46] "[36mGET /static/images/Boost.png HTTP/1.1[0m" 304 -
+2024-06-23 15:52:46,170 INFO 127.0.0.1 - - [23/Jun/2024 15:52:46] "[36mGET /static/images/Features1.png HTTP/1.1[0m" 304 -
+2024-06-23 15:52:46,172 INFO 127.0.0.1 - - [23/Jun/2024 15:52:46] "[36mGET /static/images/Features2.png HTTP/1.1[0m" 304 -
+2024-06-23 15:52:46,172 INFO 127.0.0.1 - - [23/Jun/2024 15:52:46] "[36mGET /static/images/benefit.png HTTP/1.1[0m" 304 -
+2024-06-23 15:52:46,172 INFO 127.0.0.1 - - [23/Jun/2024 15:52:46] "[36mGET /static/images/Transform.png HTTP/1.1[0m" 304 -
+2024-06-23 15:52:46,184 INFO 127.0.0.1 - - [23/Jun/2024 15:52:46] "[36mGET /static/images/flexible.png HTTP/1.1[0m" 304 -
+2024-06-23 15:52:46,184 INFO 127.0.0.1 - - [23/Jun/2024 15:52:46] "[36mGET /static/images/Progress.png HTTP/1.1[0m" 304 -
+2024-06-23 15:52:46,202 INFO 127.0.0.1 - - [23/Jun/2024 15:52:46] "[36mGET /static/images/Decisions.png HTTP/1.1[0m" 304 -
+2024-06-23 15:52:46,202 INFO 127.0.0.1 - - [23/Jun/2024 15:52:46] "[36mGET /static/images/Identify-Training.png HTTP/1.1[0m" 304 -
+2024-06-23 15:52:46,202 INFO 127.0.0.1 - - [23/Jun/2024 15:52:46] "[36mGET /static/images/timely.png HTTP/1.1[0m" 304 -
+2024-06-23 15:52:47,605 DEBUG State in callback: N3FjbG1pUkwwfnR2SVRJUDhfdEI5Z2pBTUtBSEJ2UW02SmROWjhNS3BwcQ==
+2024-06-23 15:52:47,605 DEBUG State in session: None
+2024-06-23 15:52:47,605 ERROR CSRF error: State mismatch. State in request: N3FjbG1pUkwwfnR2SVRJUDhfdEI5Z2pBTUtBSEJ2UW02SmROWjhNS3BwcQ==, State in session: None
+2024-06-23 15:52:47,605 INFO 127.0.0.1 - - [23/Jun/2024 15:52:47] "[31m[1mGET /callback?code=2ebKHVioIZJuxxtrPDjfVhHSfoV8BHSHhP1yAWec_Y79r&state=N3FjbG1pUkwwfnR2SVRJUDhfdEI5Z2pBTUtBSEJ2UW02SmROWjhNS3BwcQ%3D%3D HTTP/1.1[0m" 400 -
+2024-06-23 18:48:02,000 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-23 18:48:02,000 INFO [33mPress CTRL+C to quit[0m
+2024-06-23 18:48:09,468 DEBUG State in callback: empNQUJNazdKQW0wYWhHdm02VG5rVWhFMWtpTmh+Ung5RXpfYVZwdWoxeg==
+2024-06-23 18:48:09,468 DEBUG State in session: None
+2024-06-23 18:48:09,468 ERROR CSRF error: State mismatch. State in request: empNQUJNazdKQW0wYWhHdm02VG5rVWhFMWtpTmh+Ung5RXpfYVZwdWoxeg==, State in session: None
+2024-06-23 18:48:09,468 INFO 127.0.0.1 - - [23/Jun/2024 18:48:09] "[31m[1mGET /callback?code=ebpcuSjLLbEdFJVx040vDmr5z2N_K4dC6ZDYUGmX6Ux5W&state=empNQUJNazdKQW0wYWhHdm02VG5rVWhFMWtpTmh%2BUng5RXpfYVZwdWoxeg%3D%3D HTTP/1.1[0m" 400 -
+2024-06-23 18:50:19,281 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-23 18:50:19,281 INFO [33mPress CTRL+C to quit[0m
+2024-06-23 18:50:26,780 ERROR Error during Auth0 callback: mismatching_state: CSRF Warning! State not equal in request and response.
+2024-06-23 18:50:26,780 ERROR Exception during Auth0 callback
+Traceback (most recent call last):
+  File "C:\Rater\app.py", line 78, in callback_handling
+    auth0.authorize_access_token()
+  File "C:\Rater\venv\Lib\site-packages\authlib\integrations\flask_client\apps.py", line 100, in authorize_access_token
+    params = self._format_state_params(state_data, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Rater\venv\Lib\site-packages\authlib\integrations\base_client\sync_app.py", line 234, in _format_state_params
+    raise MismatchingStateError()
+authlib.integrations.base_client.errors.MismatchingStateError: mismatching_state: CSRF Warning! State not equal in request and response.
+2024-06-23 18:50:26,806 INFO 127.0.0.1 - - [23/Jun/2024 18:50:26] "[35m[1mGET /callback?code=ggqrZ4oorb3QdPrbOETQl_H5yL8KbiZDmwPIZjBIBlLQG&state=VX5KallBUUEyZTl2aFd3UHR5VThaeTRfZWV%2BNWNFeDVyb3I0X0t1cmxJUg%3D%3D HTTP/1.1[0m" 500 -
+2024-06-23 18:56:44,972 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-23 18:56:44,972 INFO [33mPress CTRL+C to quit[0m
+2024-06-23 18:56:49,547 DEBUG State in callback: Tk5WWjRETXJxLkpISEJELm0tSC11R3QyaHJlWTA1RzNlM29velBzM1BFUQ==
+2024-06-23 18:56:49,547 DEBUG State in session: None
+2024-06-23 18:56:49,547 INFO 127.0.0.1 - - [23/Jun/2024 18:56:49] "[31m[1mGET /callback?code=C8TpVcxrCii51kVXlqVO2MCd_coevIGMCR44pMX5wDmIL&state=Tk5WWjRETXJxLkpISEJELm0tSC11R3QyaHJlWTA1RzNlM29velBzM1BFUQ%3D%3D HTTP/1.1[0m" 400 -
+2024-06-23 18:58:35,515 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-23 18:58:35,516 INFO [33mPress CTRL+C to quit[0m
+2024-06-23 18:58:40,620 DEBUG State in callback: V01ZbU9ofmJucDVnZ2NsUENDTFFlNDJwMGJfWUxvRGVXWm8xRkVLUWp4Ng==
+2024-06-23 18:58:40,620 DEBUG State in session: None
+2024-06-23 18:58:40,620 INFO 127.0.0.1 - - [23/Jun/2024 18:58:40] "[31m[1mGET /callback?code=I1xzTGfszMk0YBfPCyJt3pKSvogM_QbdehAYq7qyi0Zp0&state=V01ZbU9ofmJucDVnZ2NsUENDTFFlNDJwMGJfWUxvRGVXWm8xRkVLUWp4Ng%3D%3D HTTP/1.1[0m" 400 -
+2024-06-23 19:05:11,545 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-23 19:05:11,545 INFO [33mPress CTRL+C to quit[0m
+2024-06-23 19:05:16,496 DEBUG State in callback: THMydzM3dGU3Yzlwd35YQWtuV1JQd0lMTnV+ZGVJR2Q4MktwSnFlcU53eQ==
+2024-06-23 19:05:16,496 DEBUG State in session: None
+2024-06-23 19:05:16,496 INFO 127.0.0.1 - - [23/Jun/2024 19:05:16] "[31m[1mGET /callback?code=Gy9cNnl57tUWkQUWc7rJjagnwjYeMDxInQf34ms_NFxua&state=THMydzM3dGU3Yzlwd35YQWtuV1JQd0lMTnV%2BZGVJR2Q4MktwSnFlcU53eQ%3D%3D HTTP/1.1[0m" 400 -
+2024-06-23 19:07:07,803 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-23 19:07:07,803 INFO [33mPress CTRL+C to quit[0m
+2024-06-23 19:07:23,550 DEBUG State in callback: aFpELXNwV0dhaDgzSHJabVNJN3NYOTRxemR1Wll0by0yen5ybHdvV2h4dA==
+2024-06-23 19:07:23,550 DEBUG State in session: None
+2024-06-23 19:07:23,550 DEBUG Session in callback: <FileSystemSession {}>
+2024-06-23 19:07:23,550 INFO 127.0.0.1 - - [23/Jun/2024 19:07:23] "[31m[1mGET /callback?code=39-VBewd3DWXN8NOVlZFT86-yTS6InNuzwaBzpyh04-3s&state=aFpELXNwV0dhaDgzSHJabVNJN3NYOTRxemR1Wll0by0yen5ybHdvV2h4dA%3D%3D HTTP/1.1[0m" 400 -
+2024-06-23 19:10:36,325 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-23 19:10:36,325 INFO [33mPress CTRL+C to quit[0m
+2024-06-23 19:10:40,328 INFO 127.0.0.1 - - [23/Jun/2024 19:10:40] "GET / HTTP/1.1" 200 -
+2024-06-23 19:10:40,430 INFO 127.0.0.1 - - [23/Jun/2024 19:10:40] "[36mGET /static/images/objective-evaluations.png HTTP/1.1[0m" 304 -
+2024-06-23 19:10:40,444 INFO 127.0.0.1 - - [23/Jun/2024 19:10:40] "[36mGET /static/images/Boost.png HTTP/1.1[0m" 304 -
+2024-06-23 19:10:40,454 INFO 127.0.0.1 - - [23/Jun/2024 19:10:40] "[36mGET /static/images/Features1.png HTTP/1.1[0m" 304 -
+2024-06-23 19:10:40,463 INFO 127.0.0.1 - - [23/Jun/2024 19:10:40] "[36mGET /static/images/Features2.png HTTP/1.1[0m" 304 -
+2024-06-23 19:10:40,467 INFO 127.0.0.1 - - [23/Jun/2024 19:10:40] "[36mGET /static/images/benefit.png HTTP/1.1[0m" 304 -
+2024-06-23 19:10:40,475 INFO 127.0.0.1 - - [23/Jun/2024 19:10:40] "[36mGET /static/images/Transform.png HTTP/1.1[0m" 304 -
+2024-06-23 19:10:40,485 INFO 127.0.0.1 - - [23/Jun/2024 19:10:40] "[36mGET /static/images/flexible.png HTTP/1.1[0m" 304 -
+2024-06-23 19:10:40,489 INFO 127.0.0.1 - - [23/Jun/2024 19:10:40] "[36mGET /static/images/Decisions.png HTTP/1.1[0m" 304 -
+2024-06-23 19:10:40,490 INFO 127.0.0.1 - - [23/Jun/2024 19:10:40] "[36mGET /static/images/Progress.png HTTP/1.1[0m" 304 -
+2024-06-23 19:10:40,492 INFO 127.0.0.1 - - [23/Jun/2024 19:10:40] "[36mGET /static/images/timely.png HTTP/1.1[0m" 304 -
+2024-06-23 19:10:40,497 INFO 127.0.0.1 - - [23/Jun/2024 19:10:40] "[36mGET /static/images/Identify-Training.png HTTP/1.1[0m" 304 -
+2024-06-23 19:10:41,492 DEBUG State in callback: TWhGZnNFRjc2RlJqTzdPbUoxRTRBZXlsQUY2YUpjWHpwVzZLbTUuZ3hEaA==
+2024-06-23 19:10:41,493 DEBUG State in session: None
+2024-06-23 19:10:41,493 DEBUG Session in callback: <FileSystemSession {}>
+2024-06-23 19:10:41,494 INFO 127.0.0.1 - - [23/Jun/2024 19:10:41] "[31m[1mGET /callback?code=PHJsYRmmOI96j5ULGLxV22HFv7FLaafEpM7nYCTn_gcBQ&state=TWhGZnNFRjc2RlJqTzdPbUoxRTRBZXlsQUY2YUpjWHpwVzZLbTUuZ3hEaA%3D%3D HTTP/1.1[0m" 400 -
+2024-06-23 19:12:15,917 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-23 19:12:15,917 INFO [33mPress CTRL+C to quit[0m
+2024-06-23 19:12:19,075 DEBUG State in callback: VDVfanV2R1lzd1ZxYktWZy5DMXFzZEFneC5WOXpocUpOMy5VdmJRMkdQRQ==
+2024-06-23 19:12:19,075 DEBUG State in session: None
+2024-06-23 19:12:19,075 DEBUG Session in callback: <FileSystemSession {}>
+2024-06-23 19:12:19,075 ERROR CSRF Warning! State not equal in request and response.
+2024-06-23 19:12:19,075 INFO 127.0.0.1 - - [23/Jun/2024 19:12:19] "[31m[1mGET /callback?code=0CE1SUPR3mTWWPmELh_XusLA2aN8A93i-pjJ6zNEoFLcx&state=VDVfanV2R1lzd1ZxYktWZy5DMXFzZEFneC5WOXpocUpOMy5VdmJRMkdQRQ%3D%3D HTTP/1.1[0m" 400 -
+2024-06-23 19:20:20,275 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-23 19:20:20,275 INFO [33mPress CTRL+C to quit[0m
+2024-06-23 19:20:22,960 DEBUG State in callback: b051RDhDSEtRVi1GVWdsaXBqREFycnVQUmxkc2U0Zkx4eWRGc0NSV0syLQ==
+2024-06-23 19:20:22,960 DEBUG State in session: None
+2024-06-23 19:20:22,961 INFO 127.0.0.1 - - [23/Jun/2024 19:20:22] "[31m[1mGET /callback?code=ioKpvseXNrFzDAEkUBihNKapditVuyRyc9gCpuFVenzDh&state=b051RDhDSEtRVi1GVWdsaXBqREFycnVQUmxkc2U0Zkx4eWRGc0NSV0syLQ%3D%3D HTTP/1.1[0m" 400 -
+2024-06-23 19:20:27,037 INFO 127.0.0.1 - - [23/Jun/2024 19:20:27] "GET /pricing/ HTTP/1.1" 200 -
+2024-06-23 19:20:27,111 INFO 127.0.0.1 - - [23/Jun/2024 19:20:27] "[36mGET /static/images/basic.png HTTP/1.1[0m" 304 -
+2024-06-23 19:20:27,131 INFO 127.0.0.1 - - [23/Jun/2024 19:20:27] "[36mGET /static/images/professional.png HTTP/1.1[0m" 304 -
+2024-06-23 19:20:27,133 INFO 127.0.0.1 - - [23/Jun/2024 19:20:27] "[36mGET /static/images/enterprise.png HTTP/1.1[0m" 304 -
+2024-06-23 19:20:28,500 INFO 127.0.0.1 - - [23/Jun/2024 19:20:28] "GET /dashboard/ HTTP/1.1" 200 -
+2024-06-23 19:20:28,578 INFO 127.0.0.1 - - [23/Jun/2024 19:20:28] "GET /team_management/get_teams HTTP/1.1" 200 -
+2024-06-23 19:20:28,598 INFO 127.0.0.1 - - [23/Jun/2024 19:20:28] "GET /rate_team/get_team_members/1 HTTP/1.1" 200 -
+2024-06-23 19:20:28,607 DEBUG Retrieved historical data for member 6: [<Rating 248>, <Rating 242>, <Rating 233>, <Rating 230>, <Rating 219>, <Rating 217>, <Rating 205>, <Rating 202>, <Rating 195>, <Rating 188>, <Rating 182>, <Rating 175>]
+2024-06-23 19:20:28,608 INFO 127.0.0.1 - - [23/Jun/2024 19:20:28] "GET /rate_team/get_historical_data/6 HTTP/1.1" 200 -
+2024-06-23 19:20:28,609 DEBUG Retrieved historical data for member 3: [<Rating 252>, <Rating 245>, <Rating 236>, <Rating 228>, <Rating 222>, <Rating 213>, <Rating 210>, <Rating 200>, <Rating 194>, <Rating 186>, <Rating 177>, <Rating 170>]
+2024-06-23 19:20:28,610 DEBUG Retrieved historical data for member 1: [<Rating 246>, <Rating 239>, <Rating 232>, <Rating 225>, <Rating 218>, <Rating 211>, <Rating 204>, <Rating 197>, <Rating 190>, <Rating 183>, <Rating 176>, <Rating 169>]
+2024-06-23 19:20:28,610 INFO 127.0.0.1 - - [23/Jun/2024 19:20:28] "GET /rate_team/get_historical_data/3 HTTP/1.1" 200 -
+2024-06-23 19:20:28,611 INFO 127.0.0.1 - - [23/Jun/2024 19:20:28] "GET /rate_team/get_historical_data/1 HTTP/1.1" 200 -
+2024-06-23 19:20:28,630 DEBUG Retrieved historical data for member 2: [<Rating 247>, <Rating 244>, <Rating 238>, <Rating 231>, <Rating 224>, <Rating 216>, <Rating 206>, <Rating 201>, <Rating 196>, <Rating 184>, <Rating 181>, <Rating 173>]
+2024-06-23 19:20:28,632 INFO 127.0.0.1 - - [23/Jun/2024 19:20:28] "GET /rate_team/get_historical_data/2 HTTP/1.1" 200 -
+2024-06-23 19:20:28,633 DEBUG Retrieved historical data for member 7: [<Rating 249>, <Rating 241>, <Rating 234>, <Rating 229>, <Rating 220>, <Rating 214>, <Rating 208>, <Rating 199>, <Rating 191>, <Rating 185>, <Rating 178>, <Rating 171>]
+2024-06-23 19:20:28,633 DEBUG Retrieved historical data for member 4: [<Rating 250>, <Rating 240>, <Rating 235>, <Rating 227>, <Rating 221>, <Rating 212>, <Rating 209>, <Rating 198>, <Rating 193>, <Rating 189>, <Rating 179>, <Rating 174>]
+2024-06-23 19:20:28,634 INFO 127.0.0.1 - - [23/Jun/2024 19:20:28] "GET /rate_team/get_historical_data/7 HTTP/1.1" 200 -
+2024-06-23 19:20:28,634 INFO 127.0.0.1 - - [23/Jun/2024 19:20:28] "GET /rate_team/get_historical_data/4 HTTP/1.1" 200 -
+2024-06-23 19:20:28,647 DEBUG Retrieved historical data for member 6: [<Rating 248>, <Rating 242>, <Rating 233>, <Rating 230>, <Rating 219>, <Rating 217>, <Rating 205>, <Rating 202>, <Rating 195>, <Rating 188>, <Rating 182>, <Rating 175>]
+2024-06-23 19:20:28,648 INFO 127.0.0.1 - - [23/Jun/2024 19:20:28] "GET /rate_team/get_historical_data/6 HTTP/1.1" 200 -
+2024-06-23 19:20:28,654 DEBUG Retrieved historical data for member 3: [<Rating 252>, <Rating 245>, <Rating 236>, <Rating 228>, <Rating 222>, <Rating 213>, <Rating 210>, <Rating 200>, <Rating 194>, <Rating 186>, <Rating 177>, <Rating 170>]
+2024-06-23 19:20:28,654 INFO 127.0.0.1 - - [23/Jun/2024 19:20:28] "GET /rate_team/get_historical_data/3 HTTP/1.1" 200 -
+2024-06-23 19:20:28,660 DEBUG Retrieved historical data for member 1: [<Rating 246>, <Rating 239>, <Rating 232>, <Rating 225>, <Rating 218>, <Rating 211>, <Rating 204>, <Rating 197>, <Rating 190>, <Rating 183>, <Rating 176>, <Rating 169>]
+2024-06-23 19:20:28,661 INFO 127.0.0.1 - - [23/Jun/2024 19:20:28] "GET /rate_team/get_historical_data/1 HTTP/1.1" 200 -
+2024-06-23 19:20:28,666 DEBUG Retrieved historical data for member 5: [<Rating 251>, <Rating 243>, <Rating 237>, <Rating 226>, <Rating 223>, <Rating 215>, <Rating 207>, <Rating 203>, <Rating 192>, <Rating 187>, <Rating 180>, <Rating 172>]
+2024-06-23 19:20:28,667 INFO 127.0.0.1 - - [23/Jun/2024 19:20:28] "GET /rate_team/get_historical_data/5 HTTP/1.1" 200 -
+2024-06-23 19:20:28,671 DEBUG Retrieved historical data for member 7: [<Rating 249>, <Rating 241>, <Rating 234>, <Rating 229>, <Rating 220>, <Rating 214>, <Rating 208>, <Rating 199>, <Rating 191>, <Rating 185>, <Rating 178>, <Rating 171>]
+2024-06-23 19:20:28,672 INFO 127.0.0.1 - - [23/Jun/2024 19:20:28] "GET /rate_team/get_historical_data/7 HTTP/1.1" 200 -
+2024-06-23 19:20:28,690 DEBUG Retrieved historical data for member 4: [<Rating 250>, <Rating 240>, <Rating 235>, <Rating 227>, <Rating 221>, <Rating 212>, <Rating 209>, <Rating 198>, <Rating 193>, <Rating 189>, <Rating 179>, <Rating 174>]
+2024-06-23 19:20:28,690 INFO 127.0.0.1 - - [23/Jun/2024 19:20:28] "GET /rate_team/get_historical_data/4 HTTP/1.1" 200 -
+2024-06-23 19:20:28,699 DEBUG Retrieved historical data for member 2: [<Rating 247>, <Rating 244>, <Rating 238>, <Rating 231>, <Rating 224>, <Rating 216>, <Rating 206>, <Rating 201>, <Rating 196>, <Rating 184>, <Rating 181>, <Rating 173>]
+2024-06-23 19:20:28,699 INFO 127.0.0.1 - - [23/Jun/2024 19:20:28] "GET /rate_team/get_historical_data/2 HTTP/1.1" 200 -
+2024-06-23 19:20:35,625 INFO 127.0.0.1 - - [23/Jun/2024 19:20:35] "GET / HTTP/1.1" 200 -
+2024-06-23 19:20:35,642 INFO 127.0.0.1 - - [23/Jun/2024 19:20:35] "[36mGET /static/images/objective-evaluations.png HTTP/1.1[0m" 304 -
+2024-06-23 19:20:35,652 INFO 127.0.0.1 - - [23/Jun/2024 19:20:35] "[36mGET /static/images/flexible.png HTTP/1.1[0m" 304 -
+2024-06-23 19:20:35,653 INFO 127.0.0.1 - - [23/Jun/2024 19:20:35] "[36mGET /static/images/timely.png HTTP/1.1[0m" 304 -
+2024-06-23 19:20:35,654 INFO 127.0.0.1 - - [23/Jun/2024 19:20:35] "[36mGET /static/images/Identify-Training.png HTTP/1.1[0m" 304 -
+2024-06-23 19:20:35,655 INFO 127.0.0.1 - - [23/Jun/2024 19:20:35] "[36mGET /static/images/Progress.png HTTP/1.1[0m" 304 -
+2024-06-23 19:20:35,656 INFO 127.0.0.1 - - [23/Jun/2024 19:20:35] "[36mGET /static/images/Decisions.png HTTP/1.1[0m" 304 -
+2024-06-23 19:20:35,661 INFO 127.0.0.1 - - [23/Jun/2024 19:20:35] "[36mGET /static/images/Boost.png HTTP/1.1[0m" 304 -
+2024-06-23 19:20:35,665 INFO 127.0.0.1 - - [23/Jun/2024 19:20:35] "[36mGET /static/images/Features1.png HTTP/1.1[0m" 304 -
+2024-06-23 19:20:35,668 INFO 127.0.0.1 - - [23/Jun/2024 19:20:35] "[36mGET /static/images/Features2.png HTTP/1.1[0m" 304 -
+2024-06-23 19:20:35,670 INFO 127.0.0.1 - - [23/Jun/2024 19:20:35] "[36mGET /static/images/benefit.png HTTP/1.1[0m" 304 -
+2024-06-23 19:20:35,672 INFO 127.0.0.1 - - [23/Jun/2024 19:20:35] "[36mGET /static/images/Transform.png HTTP/1.1[0m" 304 -
+2024-06-23 19:21:18,946 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-23 19:21:18,946 INFO [33mPress CTRL+C to quit[0m
+2024-06-23 19:21:21,872 DEBUG State in callback: a2RKRDB2bV81SFlUT0MyQnRPZ0xCNWNaVllqUXFSNzVoSnJEdnRzWWpLdg==
+2024-06-23 19:21:21,872 DEBUG State in session: None
+2024-06-23 19:21:21,872 INFO 127.0.0.1 - - [23/Jun/2024 19:21:21] "[31m[1mGET /callback?code=CBFJ730MUEdHeD9E7JskmuKD75OowdYk8Sn91jaAXxwXz&state=a2RKRDB2bV81SFlUT0MyQnRPZ0xCNWNaVllqUXFSNzVoSnJEdnRzWWpLdg%3D%3D HTTP/1.1[0m" 400 -
+2024-06-23 19:21:25,558 DEBUG State in callback: Q2RZS2g4NzdidURqUzNZXzhZOXZTdFQ1OHlHN1VzRHFJUE5iNnNKN0twXw==
+2024-06-23 19:21:25,558 DEBUG State in session: None
+2024-06-23 19:21:25,558 INFO 127.0.0.1 - - [23/Jun/2024 19:21:25] "[31m[1mGET /callback?code=ziERpmArJw_vaTEZWzQUbTcYlS4jpaDeZXjB0K1T-DQvp&state=Q2RZS2g4NzdidURqUzNZXzhZOXZTdFQ1OHlHN1VzRHFJUE5iNnNKN0twXw%3D%3D HTTP/1.1[0m" 400 -
+2024-06-23 19:21:34,971 INFO 127.0.0.1 - - [23/Jun/2024 19:21:34] "GET /pricing/ HTTP/1.1" 200 -
+2024-06-23 19:21:35,052 INFO 127.0.0.1 - - [23/Jun/2024 19:21:35] "[36mGET /static/images/basic.png HTTP/1.1[0m" 304 -
+2024-06-23 19:21:35,058 INFO 127.0.0.1 - - [23/Jun/2024 19:21:35] "[36mGET /static/images/professional.png HTTP/1.1[0m" 304 -
+2024-06-23 19:21:35,058 INFO 127.0.0.1 - - [23/Jun/2024 19:21:35] "[36mGET /static/images/enterprise.png HTTP/1.1[0m" 304 -
+2024-06-23 19:22:00,003 DEBUG State in callback: bzl4R08xWXBtYmdCeU5FaDdZbHJ4ZVJZSnI0WW1sMHZpLn5XSXpUZ0Vsag==
+2024-06-23 19:22:00,003 DEBUG State in session: None
+2024-06-23 19:22:00,003 INFO 127.0.0.1 - - [23/Jun/2024 19:22:00] "[31m[1mGET /callback?code=go3N9uzdU138B3r4Gfi8uD1lC-QZyk7DDToD16PdCAI2M&state=bzl4R08xWXBtYmdCeU5FaDdZbHJ4ZVJZSnI0WW1sMHZpLn5XSXpUZ0Vsag%3D%3D HTTP/1.1[0m" 400 -
+2024-06-23 19:24:57,024 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-23 19:24:57,024 INFO [33mPress CTRL+C to quit[0m
+2024-06-23 19:25:01,310 DEBUG State in callback: aWFsWjlvWFdZTUJBTHJqfm9lQlR6blc4SWxoR25GeFJ+SVZDOENpcDJSNg==
+2024-06-23 19:25:01,310 DEBUG State in session: None
+2024-06-23 19:25:01,310 INFO 127.0.0.1 - - [23/Jun/2024 19:25:01] "[31m[1mGET /callback?code=v1R_1i4ZqsU0EdWOiYmZYXSRecuZwR-B_vp5VI5o13V8_&state=aWFsWjlvWFdZTUJBTHJqfm9lQlR6blc4SWxoR25GeFJ%2BSVZDOENpcDJSNg%3D%3D HTTP/1.1[0m" 400 -
+2024-06-23 19:27:21,356 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-23 19:27:21,356 INFO [33mPress CTRL+C to quit[0m
+2024-06-23 19:27:26,921 DEBUG State in callback: U2VMVmE5b1FvSmlTYU5fYllIcmhkRmk2YTlXeXFNakFwTmZzZ1B1c2xZSw==
+2024-06-23 19:27:26,921 DEBUG State in session: None
+2024-06-23 19:27:26,921 DEBUG Generated state: U2VMVmE5b1FvSmlTYU5fYllIcmhkRmk2YTlXeXFNakFwTmZzZ1B1c2xZSw==
+2024-06-23 19:27:26,921 DEBUG State stored in session: None
+2024-06-23 19:27:26,921 DEBUG State received in request: U2VMVmE5b1FvSmlTYU5fYllIcmhkRmk2YTlXeXFNakFwTmZzZ1B1c2xZSw==
+2024-06-23 19:27:26,921 DEBUG State retrieved from session: None
+2024-06-23 19:27:26,921 INFO 127.0.0.1 - - [23/Jun/2024 19:27:26] "[31m[1mGET /callback?code=3daQ0egAp8S4lHEP17c80tJ49niFs0wR4VXTfLbZ2AW0V&state=U2VMVmE5b1FvSmlTYU5fYllIcmhkRmk2YTlXeXFNakFwTmZzZ1B1c2xZSw%3D%3D HTTP/1.1[0m" 400 -
+2024-06-23 19:32:29,234 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-23 19:32:29,234 INFO [33mPress CTRL+C to quit[0m
+2024-06-23 19:32:33,299 INFO 127.0.0.1 - - [23/Jun/2024 19:32:33] "GET / HTTP/1.1" 200 -
+2024-06-23 19:32:33,409 INFO 127.0.0.1 - - [23/Jun/2024 19:32:33] "GET /static/images/objective-evaluations.png HTTP/1.1" 200 -
+2024-06-23 19:32:33,412 INFO 127.0.0.1 - - [23/Jun/2024 19:32:33] "GET /static/images/Boost.png HTTP/1.1" 200 -
+2024-06-23 19:32:33,415 INFO 127.0.0.1 - - [23/Jun/2024 19:32:33] "GET /static/images/Features1.png HTTP/1.1" 200 -
+2024-06-23 19:32:33,419 INFO 127.0.0.1 - - [23/Jun/2024 19:32:33] "GET /static/images/Features2.png HTTP/1.1" 200 -
+2024-06-23 19:32:33,424 INFO 127.0.0.1 - - [23/Jun/2024 19:32:33] "GET /static/images/benefit.png HTTP/1.1" 200 -
+2024-06-23 19:32:33,428 INFO 127.0.0.1 - - [23/Jun/2024 19:32:33] "GET /static/images/Transform.png HTTP/1.1" 200 -
+2024-06-23 19:32:33,428 INFO 127.0.0.1 - - [23/Jun/2024 19:32:33] "GET /static/images/Decisions.png HTTP/1.1" 200 -
+2024-06-23 19:32:33,439 INFO 127.0.0.1 - - [23/Jun/2024 19:32:33] "GET /static/images/Identify-Training.png HTTP/1.1" 200 -
+2024-06-23 19:32:33,439 INFO 127.0.0.1 - - [23/Jun/2024 19:32:33] "GET /static/images/flexible.png HTTP/1.1" 200 -
+2024-06-23 19:32:33,439 INFO 127.0.0.1 - - [23/Jun/2024 19:32:33] "GET /static/images/Progress.png HTTP/1.1" 200 -
+2024-06-23 19:32:33,439 INFO 127.0.0.1 - - [23/Jun/2024 19:32:33] "GET /static/images/timely.png HTTP/1.1" 200 -
+2024-06-23 19:32:38,795 DEBUG State in callback: b0xjSGU5NWpaVGNJcFN1SGZrc1lSNWlwNS5fbmNQWVlsRHBCcmpEVTdKaw==
+2024-06-23 19:32:38,795 DEBUG State in session: None
+2024-06-23 19:32:38,795 DEBUG Generated state: b0xjSGU5NWpaVGNJcFN1SGZrc1lSNWlwNS5fbmNQWVlsRHBCcmpEVTdKaw==
+2024-06-23 19:32:38,795 DEBUG State stored in session: None
+2024-06-23 19:32:38,795 DEBUG State received in request: b0xjSGU5NWpaVGNJcFN1SGZrc1lSNWlwNS5fbmNQWVlsRHBCcmpEVTdKaw==
+2024-06-23 19:32:38,795 DEBUG State retrieved from session: None
+2024-06-23 19:32:38,795 INFO 127.0.0.1 - - [23/Jun/2024 19:32:38] "[31m[1mGET /callback?code=KiPxw_KkCB7WlBjIhV7I13Plk4S9zU92faNXD5oZ0uTQn&state=b0xjSGU5NWpaVGNJcFN1SGZrc1lSNWlwNS5fbmNQWVlsRHBCcmpEVTdKaw%3D%3D HTTP/1.1[0m" 400 -
+2024-06-23 19:34:16,252 DEBUG State in callback: T1pxclFsY2w0UnpoWVh3bGt5b2FXQzRhOFl3VnRqVFFOeS5jNX5YdFNxbA==
+2024-06-23 19:34:16,252 DEBUG State in session: None
+2024-06-23 19:34:16,252 DEBUG Generated state: T1pxclFsY2w0UnpoWVh3bGt5b2FXQzRhOFl3VnRqVFFOeS5jNX5YdFNxbA==
+2024-06-23 19:34:16,252 DEBUG State stored in session: None
+2024-06-23 19:34:16,252 DEBUG State received in request: T1pxclFsY2w0UnpoWVh3bGt5b2FXQzRhOFl3VnRqVFFOeS5jNX5YdFNxbA==
+2024-06-23 19:34:16,252 DEBUG State retrieved from session: None
+2024-06-23 19:34:16,253 INFO 127.0.0.1 - - [23/Jun/2024 19:34:16] "[31m[1mGET /callback?code=bO2riTQdVc_1rG05bLJc9skjzElAybqfgqVX_sJyourLl&state=T1pxclFsY2w0UnpoWVh3bGt5b2FXQzRhOFl3VnRqVFFOeS5jNX5YdFNxbA%3D%3D HTTP/1.1[0m" 400 -
+2024-06-23 19:37:19,500 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-23 19:37:19,500 INFO [33mPress CTRL+C to quit[0m
+2024-06-23 19:37:35,287 DEBUG State in callback: fkpBRVA0eExzTk9nWHlQVExOV0c5a3ZKMEk5RzFCTFNINUVkVUJEcXBidQ==
+2024-06-23 19:37:35,287 DEBUG State in session: None
+2024-06-23 19:37:35,287 ERROR CSRF Warning! State not equal in request and response.
+2024-06-23 19:37:35,302 INFO 127.0.0.1 - - [23/Jun/2024 19:37:35] "[31m[1mGET /callback?code=71tZ6S4Jf0Lxvp6Hd1YR_0k-XNVJmR2lNt8xu0mQcbxOY&state=fkpBRVA0eExzTk9nWHlQVExOV0c5a3ZKMEk5RzFCTFNINUVkVUJEcXBidQ%3D%3D HTTP/1.1[0m" 400 -
+2024-06-23 19:39:43,789 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-23 19:39:43,789 INFO [33mPress CTRL+C to quit[0m
+2024-06-23 19:39:45,210 INFO 127.0.0.1 - - [23/Jun/2024 19:39:45] "GET / HTTP/1.1" 200 -
+2024-06-23 19:39:45,329 INFO 127.0.0.1 - - [23/Jun/2024 19:39:45] "GET /static/images/flexible.png HTTP/1.1" 200 -
+2024-06-23 19:39:45,333 INFO 127.0.0.1 - - [23/Jun/2024 19:39:45] "GET /static/images/Boost.png HTTP/1.1" 200 -
+2024-06-23 19:39:45,338 INFO 127.0.0.1 - - [23/Jun/2024 19:39:45] "GET /static/images/Features1.png HTTP/1.1" 200 -
+2024-06-23 19:39:45,339 INFO 127.0.0.1 - - [23/Jun/2024 19:39:45] "GET /static/images/objective-evaluations.png HTTP/1.1" 200 -
+2024-06-23 19:39:45,342 INFO 127.0.0.1 - - [23/Jun/2024 19:39:45] "GET /static/images/Features2.png HTTP/1.1" 200 -
+2024-06-23 19:39:45,346 INFO 127.0.0.1 - - [23/Jun/2024 19:39:45] "GET /static/images/benefit.png HTTP/1.1" 200 -
+2024-06-23 19:39:45,349 INFO 127.0.0.1 - - [23/Jun/2024 19:39:45] "GET /static/images/Transform.png HTTP/1.1" 200 -
+2024-06-23 19:39:45,363 INFO 127.0.0.1 - - [23/Jun/2024 19:39:45] "GET /static/images/timely.png HTTP/1.1" 200 -
+2024-06-23 19:39:45,371 INFO 127.0.0.1 - - [23/Jun/2024 19:39:45] "GET /static/images/Identify-Training.png HTTP/1.1" 200 -
+2024-06-23 19:39:45,376 INFO 127.0.0.1 - - [23/Jun/2024 19:39:45] "GET /static/images/Decisions.png HTTP/1.1" 200 -
+2024-06-23 19:39:45,377 INFO 127.0.0.1 - - [23/Jun/2024 19:39:45] "GET /static/images/Progress.png HTTP/1.1" 200 -
+2024-06-23 19:39:50,360 DEBUG State in callback: V0lvX0oyVkM2SmNodVo1WGcycFNCZkFLQWg0MmdUMTF3Nk5rRDMySV9Oag==
+2024-06-23 19:39:50,360 DEBUG State in session: None
+2024-06-23 19:39:50,360 DEBUG Session in callback: {}
+2024-06-23 19:39:50,361 INFO 127.0.0.1 - - [23/Jun/2024 19:39:50] "[31m[1mGET /callback?code=3LM6Ck2mTeaoW2NTSI9DUEnRrPU7Hdfh6LmPwEHN6CXUP&state=V0lvX0oyVkM2SmNodVo1WGcycFNCZkFLQWg0MmdUMTF3Nk5rRDMySV9Oag%3D%3D HTTP/1.1[0m" 400 -
+2024-06-23 19:39:57,722 DEBUG State in callback: b1ZBTFlDcU1+Tm8yeVdHRGdJZE1RT2dmRFFRZVJ2NGZOVmNVNE9MYlA4Tg==
+2024-06-23 19:39:57,722 DEBUG State in session: None
+2024-06-23 19:39:57,722 DEBUG Session in callback: {}
+2024-06-23 19:39:57,722 INFO 127.0.0.1 - - [23/Jun/2024 19:39:57] "[31m[1mGET /callback?code=OJneDclm9PeCN1WptY8KC5VKB_Ke8LLs6toty7L-RGgJT&state=b1ZBTFlDcU1%2BTm8yeVdHRGdJZE1RT2dmRFFRZVJ2NGZOVmNVNE9MYlA4Tg%3D%3D HTTP/1.1[0m" 400 -
+2024-06-23 19:44:52,712 DEBUG State in callback: WkFDY3daUk00N1lWQWRDd0FScEc1UGJfMXM1NnJLTlF5SDMubEpOaDBjcw==
+2024-06-23 19:44:52,712 DEBUG State in session: None
+2024-06-23 19:44:52,712 DEBUG Session in callback: {}
+2024-06-23 19:44:52,712 INFO 127.0.0.1 - - [23/Jun/2024 19:44:52] "[31m[1mGET /callback?code=5E8xH4CC_-1-_BUSbC9Jxmx8HOa473i135bFj0FWyCBNo&state=WkFDY3daUk00N1lWQWRDd0FScEc1UGJfMXM1NnJLTlF5SDMubEpOaDBjcw%3D%3D HTTP/1.1[0m" 400 -
+2024-06-23 19:47:31,995 DEBUG State in callback: YUp+dFF3OEdKTXgydlh0LkNXOGdpejRSQVdHQXhlRERTM0ZzM0JETGx3bw==
+2024-06-23 19:47:31,995 DEBUG State in session: None
+2024-06-23 19:47:31,995 DEBUG Session in callback: {}
+2024-06-23 19:47:31,995 INFO 127.0.0.1 - - [23/Jun/2024 19:47:31] "[31m[1mGET /callback?code=i6jmdaI2_7FkIlXBeZ4J5uIzNZusmdqIkI5F0HZK2_lpe&state=YUp%2BdFF3OEdKTXgydlh0LkNXOGdpejRSQVdHQXhlRERTM0ZzM0JETGx3bw%3D%3D HTTP/1.1[0m" 400 -
+2024-06-23 19:47:40,918 DEBUG State in callback: LmtzV1dNUDAza3ZuYnBMRXdpfmwtaDE1NUR3SWhvdzduazdnZG1UfjBnWQ==
+2024-06-23 19:47:40,918 DEBUG State in session: None
+2024-06-23 19:47:40,918 DEBUG Session in callback: {}
+2024-06-23 19:47:40,918 INFO 127.0.0.1 - - [23/Jun/2024 19:47:40] "[31m[1mGET /callback?code=qeux5qmQtcgLigG5J7g_Ah0IhpuZn9QKn7iitDgUxTp39&state=LmtzV1dNUDAza3ZuYnBMRXdpfmwtaDE1NUR3SWhvdzduazdnZG1UfjBnWQ%3D%3D HTTP/1.1[0m" 400 -
+2024-06-23 19:48:04,134 DEBUG State in callback: MkhjcWhQWDBIaTJtMGJrenc2NmJBaDViUm42ek1zUHFKZkVJaWVZflFkNA==
+2024-06-23 19:48:04,134 DEBUG State in session: None
+2024-06-23 19:48:04,135 DEBUG Session in callback: {}
+2024-06-23 19:48:04,135 INFO 127.0.0.1 - - [23/Jun/2024 19:48:04] "[31m[1mGET /callback?code=Hq1Jjno484GQmpxduIsfjR89Zvs7JJFQ72dCmn-smZmM2&state=MkhjcWhQWDBIaTJtMGJrenc2NmJBaDViUm42ek1zUHFKZkVJaWVZflFkNA%3D%3D HTTP/1.1[0m" 400 -
+2024-06-24 06:48:13,447 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-24 06:48:13,447 INFO [33mPress CTRL+C to quit[0m
+2024-06-24 06:48:53,843 INFO 127.0.0.1 - - [24/Jun/2024 06:48:53] "GET / HTTP/1.1" 200 -
+2024-06-24 06:48:53,909 INFO 127.0.0.1 - - [24/Jun/2024 06:48:53] "GET /static/images/objective-evaluations.png HTTP/1.1" 200 -
+2024-06-24 06:48:53,909 INFO 127.0.0.1 - - [24/Jun/2024 06:48:53] "GET /static/images/flexible.png HTTP/1.1" 200 -
+2024-06-24 06:48:53,927 INFO 127.0.0.1 - - [24/Jun/2024 06:48:53] "GET /static/images/timely.png HTTP/1.1" 200 -
+2024-06-24 06:48:53,927 INFO 127.0.0.1 - - [24/Jun/2024 06:48:53] "GET /static/images/Identify-Training.png HTTP/1.1" 200 -
+2024-06-24 06:48:53,942 INFO 127.0.0.1 - - [24/Jun/2024 06:48:53] "GET /static/images/Progress.png HTTP/1.1" 200 -
+2024-06-24 06:48:53,949 INFO 127.0.0.1 - - [24/Jun/2024 06:48:53] "GET /static/images/Decisions.png HTTP/1.1" 200 -
+2024-06-24 06:48:53,954 INFO 127.0.0.1 - - [24/Jun/2024 06:48:53] "GET /static/images/Boost.png HTTP/1.1" 200 -
+2024-06-24 06:48:53,960 INFO 127.0.0.1 - - [24/Jun/2024 06:48:53] "GET /static/images/Features1.png HTTP/1.1" 200 -
+2024-06-24 06:48:53,966 INFO 127.0.0.1 - - [24/Jun/2024 06:48:53] "GET /static/images/Features2.png HTTP/1.1" 200 -
+2024-06-24 06:48:53,971 INFO 127.0.0.1 - - [24/Jun/2024 06:48:53] "GET /static/images/benefit.png HTTP/1.1" 200 -
+2024-06-24 06:48:53,976 INFO 127.0.0.1 - - [24/Jun/2024 06:48:53] "GET /static/images/Transform.png HTTP/1.1" 200 -
+2024-06-24 06:48:56,191 INFO 127.0.0.1 - - [24/Jun/2024 06:48:56] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2024-06-24 06:48:59,065 DEBUG State in callback: SVlzQXNWanlfXy5SNnZwQW5mZ3RiOXF3QzRCQUxpY2doSEVrb2dYbC41cg==
+2024-06-24 06:48:59,065 DEBUG State in session: None
+2024-06-24 06:48:59,065 DEBUG Session in callback: {}
+2024-06-24 06:48:59,065 INFO 127.0.0.1 - - [24/Jun/2024 06:48:59] "[31m[1mGET /callback?code=dQwKkG7FKJXE35RFbkpNdD0wNA2We9enW0PM3PfldGL2f&state=SVlzQXNWanlfXy5SNnZwQW5mZ3RiOXF3QzRCQUxpY2doSEVrb2dYbC41cg%3D%3D HTTP/1.1[0m" 400 -
+2024-06-24 06:51:09,088 DEBUG State in callback: emlYbWhNZWpCaGlzemFQMS5UeDhua0lwVnBZRmFESnFYTUJSWkc3Q2dCTQ==
+2024-06-24 06:51:09,088 DEBUG State in session: None
+2024-06-24 06:51:09,088 DEBUG Session in callback: {}
+2024-06-24 06:51:09,088 INFO 127.0.0.1 - - [24/Jun/2024 06:51:09] "[31m[1mGET /callback?code=MnLX5qz9soQXqEctvwcSEUmdrvWdf9F2qIZDvGSyfWhfr&state=emlYbWhNZWpCaGlzemFQMS5UeDhua0lwVnBZRmFESnFYTUJSWkc3Q2dCTQ%3D%3D HTTP/1.1[0m" 400 -
+2024-06-24 06:52:57,984 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-24 06:52:57,984 INFO [33mPress CTRL+C to quit[0m
+2024-06-24 06:53:04,361 INFO 127.0.0.1 - - [24/Jun/2024 06:53:04] "GET / HTTP/1.1" 200 -
+2024-06-24 06:53:04,482 INFO 127.0.0.1 - - [24/Jun/2024 06:53:04] "[36mGET /static/images/objective-evaluations.png HTTP/1.1[0m" 304 -
+2024-06-24 06:53:04,495 INFO 127.0.0.1 - - [24/Jun/2024 06:53:04] "[36mGET /static/images/Boost.png HTTP/1.1[0m" 304 -
+2024-06-24 06:53:04,495 INFO 127.0.0.1 - - [24/Jun/2024 06:53:04] "[36mGET /static/images/timely.png HTTP/1.1[0m" 304 -
+2024-06-24 06:53:04,500 INFO 127.0.0.1 - - [24/Jun/2024 06:53:04] "[36mGET /static/images/Features1.png HTTP/1.1[0m" 304 -
+2024-06-24 06:53:04,501 INFO 127.0.0.1 - - [24/Jun/2024 06:53:04] "[36mGET /static/images/Features2.png HTTP/1.1[0m" 304 -
+2024-06-24 06:53:04,501 INFO 127.0.0.1 - - [24/Jun/2024 06:53:04] "[36mGET /static/images/Progress.png HTTP/1.1[0m" 304 -
+2024-06-24 06:53:04,501 INFO 127.0.0.1 - - [24/Jun/2024 06:53:04] "[36mGET /static/images/benefit.png HTTP/1.1[0m" 304 -
+2024-06-24 06:53:04,501 INFO 127.0.0.1 - - [24/Jun/2024 06:53:04] "[36mGET /static/images/Transform.png HTTP/1.1[0m" 304 -
+2024-06-24 06:53:04,501 INFO 127.0.0.1 - - [24/Jun/2024 06:53:04] "[36mGET /static/images/Decisions.png HTTP/1.1[0m" 304 -
+2024-06-24 06:53:04,501 INFO 127.0.0.1 - - [24/Jun/2024 06:53:04] "[36mGET /static/images/Identify-Training.png HTTP/1.1[0m" 304 -
+2024-06-24 06:53:04,501 INFO 127.0.0.1 - - [24/Jun/2024 06:53:04] "[36mGET /static/images/flexible.png HTTP/1.1[0m" 304 -
+2024-06-24 06:53:07,667 DEBUG State in callback: Qm1Da1ZPcGE4LXNJZWJmQTllcXNEbmtzLXlFR0UyQ0lJRGhLTExjRXFsMA==
+2024-06-24 06:53:07,667 DEBUG State in session: None
+2024-06-24 06:53:07,667 DEBUG Session in callback: {}
+2024-06-24 06:53:07,668 INFO 127.0.0.1 - - [24/Jun/2024 06:53:07] "[31m[1mGET /callback?code=ruijO0jLJEhEcAQg_HW6jCqPyVOU8KYFTCz1h2LhQy-M8&state=Qm1Da1ZPcGE4LXNJZWJmQTllcXNEbmtzLXlFR0UyQ0lJRGhLTExjRXFsMA%3D%3D HTTP/1.1[0m" 400 -
+2024-06-24 06:54:35,904 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-24 06:54:35,904 INFO [33mPress CTRL+C to quit[0m
+2024-06-24 06:54:42,413 DEBUG State in callback: NmhwZExaM0xTS3RBbkxVdHByS0NLakYwamlSR1ZXTXltdUZZWUg4dDJlbQ==
+2024-06-24 06:54:42,413 DEBUG State in session: None
+2024-06-24 06:54:42,413 DEBUG Session in callback: {}
+2024-06-24 06:54:42,413 INFO 127.0.0.1 - - [24/Jun/2024 06:54:42] "[31m[1mGET /callback?code=2lIWOP00j1Z1CAhFu2Ft4CsQINehtjkJnM10Ivon49aQM&state=NmhwZExaM0xTS3RBbkxVdHByS0NLakYwamlSR1ZXTXltdUZZWUg4dDJlbQ%3D%3D HTTP/1.1[0m" 400 -
+2024-06-24 06:55:20,645 INFO 127.0.0.1 - - [24/Jun/2024 06:55:20] "GET / HTTP/1.1" 200 -
+2024-06-24 06:55:20,773 INFO 127.0.0.1 - - [24/Jun/2024 06:55:20] "[36mGET /static/images/objective-evaluations.png HTTP/1.1[0m" 304 -
+2024-06-24 06:55:20,777 INFO 127.0.0.1 - - [24/Jun/2024 06:55:20] "[36mGET /static/images/Boost.png HTTP/1.1[0m" 304 -
+2024-06-24 06:55:20,780 INFO 127.0.0.1 - - [24/Jun/2024 06:55:20] "[36mGET /static/images/Features1.png HTTP/1.1[0m" 304 -
+2024-06-24 06:55:20,783 INFO 127.0.0.1 - - [24/Jun/2024 06:55:20] "[36mGET /static/images/Features2.png HTTP/1.1[0m" 304 -
+2024-06-24 06:55:20,783 INFO 127.0.0.1 - - [24/Jun/2024 06:55:20] "[36mGET /static/images/benefit.png HTTP/1.1[0m" 304 -
+2024-06-24 06:55:20,783 INFO 127.0.0.1 - - [24/Jun/2024 06:55:20] "[36mGET /static/images/flexible.png HTTP/1.1[0m" 304 -
+2024-06-24 06:55:20,783 INFO 127.0.0.1 - - [24/Jun/2024 06:55:20] "[36mGET /static/images/Identify-Training.png HTTP/1.1[0m" 304 -
+2024-06-24 06:55:20,783 INFO 127.0.0.1 - - [24/Jun/2024 06:55:20] "[36mGET /static/images/Transform.png HTTP/1.1[0m" 304 -
+2024-06-24 06:55:20,793 INFO 127.0.0.1 - - [24/Jun/2024 06:55:20] "[36mGET /static/images/timely.png HTTP/1.1[0m" 304 -
+2024-06-24 06:55:20,794 INFO 127.0.0.1 - - [24/Jun/2024 06:55:20] "[36mGET /static/images/Progress.png HTTP/1.1[0m" 304 -
+2024-06-24 06:55:20,795 INFO 127.0.0.1 - - [24/Jun/2024 06:55:20] "[36mGET /static/images/Decisions.png HTTP/1.1[0m" 304 -
+2024-06-24 06:55:21,718 DEBUG State in callback: V1NoOU1rLWFnMFBKYWJBdUgwc0dJdEhGdFhmVml0TlJCZy5HWF85NzF1MQ==
+2024-06-24 06:55:21,718 DEBUG State in session: None
+2024-06-24 06:55:21,718 DEBUG Session in callback: {}
+2024-06-24 06:55:21,718 INFO 127.0.0.1 - - [24/Jun/2024 06:55:21] "[31m[1mGET /callback?code=cTwa_f4tGYRGjyVom6LefVo7DYYoYXE-283492S1GkLMm&state=V1NoOU1rLWFnMFBKYWJBdUgwc0dJdEhGdFhmVml0TlJCZy5HWF85NzF1MQ%3D%3D HTTP/1.1[0m" 400 -
+2024-06-24 06:56:21,789 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-24 06:56:21,789 INFO [33mPress CTRL+C to quit[0m
+2024-06-24 06:56:26,607 INFO 127.0.0.1 - - [24/Jun/2024 06:56:26] "GET / HTTP/1.1" 200 -
+2024-06-24 06:56:26,715 INFO 127.0.0.1 - - [24/Jun/2024 06:56:26] "[36mGET /static/images/objective-evaluations.png HTTP/1.1[0m" 304 -
+2024-06-24 06:56:26,730 INFO 127.0.0.1 - - [24/Jun/2024 06:56:26] "[36mGET /static/images/Boost.png HTTP/1.1[0m" 304 -
+2024-06-24 06:56:26,734 INFO 127.0.0.1 - - [24/Jun/2024 06:56:26] "[36mGET /static/images/Features1.png HTTP/1.1[0m" 304 -
+2024-06-24 06:56:26,737 INFO 127.0.0.1 - - [24/Jun/2024 06:56:26] "[36mGET /static/images/Features2.png HTTP/1.1[0m" 304 -
+2024-06-24 06:56:26,737 INFO 127.0.0.1 - - [24/Jun/2024 06:56:26] "[36mGET /static/images/benefit.png HTTP/1.1[0m" 304 -
+2024-06-24 06:56:26,737 INFO 127.0.0.1 - - [24/Jun/2024 06:56:26] "[36mGET /static/images/Transform.png HTTP/1.1[0m" 304 -
+2024-06-24 06:56:26,737 INFO 127.0.0.1 - - [24/Jun/2024 06:56:26] "[36mGET /static/images/Decisions.png HTTP/1.1[0m" 304 -
+2024-06-24 06:56:26,749 INFO 127.0.0.1 - - [24/Jun/2024 06:56:26] "[36mGET /static/images/flexible.png HTTP/1.1[0m" 304 -
+2024-06-24 06:56:26,749 INFO 127.0.0.1 - - [24/Jun/2024 06:56:26] "[36mGET /static/images/Progress.png HTTP/1.1[0m" 304 -
+2024-06-24 06:56:26,749 INFO 127.0.0.1 - - [24/Jun/2024 06:56:26] "[36mGET /static/images/Identify-Training.png HTTP/1.1[0m" 304 -
+2024-06-24 06:56:26,749 INFO 127.0.0.1 - - [24/Jun/2024 06:56:26] "[36mGET /static/images/timely.png HTTP/1.1[0m" 304 -
+2024-06-24 06:56:29,801 DEBUG State in callback: clFnRkFvUFY5d1JTbFB+UFV6VjYxRXl5WFlzb0ZJfnRhaVdXdDRtTUs0Rw==
+2024-06-24 06:56:29,801 DEBUG State in session: None
+2024-06-24 06:56:29,817 DEBUG Session in callback: {}
+2024-06-24 06:56:29,817 INFO 127.0.0.1 - - [24/Jun/2024 06:56:29] "[31m[1mGET /callback?code=syewDvdOARgMHA4MulAkepWSqFt9j_GSJtRwMkpAsx5-q&state=clFnRkFvUFY5d1JTbFB%2BUFV6VjYxRXl5WFlzb0ZJfnRhaVdXdDRtTUs0Rw%3D%3D HTTP/1.1[0m" 400 -
+2024-06-24 07:03:12,184 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-24 07:03:12,184 INFO [33mPress CTRL+C to quit[0m
+2024-06-24 07:32:32,457 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-24 07:32:32,457 INFO [33mPress CTRL+C to quit[0m
+2024-06-24 07:33:17,997 INFO 127.0.0.1 - - [24/Jun/2024 07:33:17] "GET /set_session HTTP/1.1" 200 -
+2024-06-24 07:33:31,744 INFO 127.0.0.1 - - [24/Jun/2024 07:33:31] "GET /get_session HTTP/1.1" 200 -
+2024-06-24 07:34:51,050 DEBUG State in callback: bS04LmNHZVZ2RGNHdjUwSzR4M3lSOXVIMjlaYlU0RHFYLVFiTlp3NUNzcQ==
+2024-06-24 07:34:51,050 DEBUG State in session: None
+2024-06-24 07:34:51,050 DEBUG Session in callback: {'test': 'This is a test'}
+2024-06-24 07:34:51,050 INFO 127.0.0.1 - - [24/Jun/2024 07:34:51] "[31m[1mGET /callback?code=QuKkiX6KDsYmaK5WGGtmuCi57xuhruQdnP06k-M_V8GAR&state=bS04LmNHZVZ2RGNHdjUwSzR4M3lSOXVIMjlaYlU0RHFYLVFiTlp3NUNzcQ%3D%3D HTTP/1.1[0m" 400 -
+2024-06-24 07:35:34,351 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-24 07:35:34,351 INFO [33mPress CTRL+C to quit[0m
+2024-06-24 07:35:48,863 DEBUG State in callback: ZVdJWUQ0Qkx+T3NJRFhnaEpBY0tzbEJaYzJfSVo2aDh0b2VJbUZwQVIwdg==
+2024-06-24 07:35:48,863 DEBUG State in session: None
+2024-06-24 07:35:48,863 DEBUG Session in callback: {'test': 'This is a test'}
+2024-06-24 07:35:48,863 INFO 127.0.0.1 - - [24/Jun/2024 07:35:48] "[31m[1mGET /callback?code=9ZjhB0nBQ7Z5lD2DU_O7rllDs4Rc4H4-DAFLZsI6ahk6g&state=ZVdJWUQ0Qkx%2BT3NJRFhnaEpBY0tzbEJaYzJfSVo2aDh0b2VJbUZwQVIwdg%3D%3D HTTP/1.1[0m" 400 -
+2024-06-24 07:37:16,234 DEBUG State in callback: QURBYng5bnZGa3lGaFJEZ3RMY1pic3NhenpLNVpPam12ZWgzaWNPU0xMag==
+2024-06-24 07:37:16,234 DEBUG State in session: None
+2024-06-24 07:37:16,234 DEBUG Session in callback: {}
+2024-06-24 07:37:16,234 INFO 127.0.0.1 - - [24/Jun/2024 07:37:16] "[31m[1mGET /callback?code=sMcTvrLZYMeYjbNXX4MmMfH20P4JQY7LCgsO840L-PHRU&state=QURBYng5bnZGa3lGaFJEZ3RMY1pic3NhenpLNVpPam12ZWgzaWNPU0xMag%3D%3D HTTP/1.1[0m" 400 -
+2024-06-24 07:41:33,610 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-24 07:41:33,610 INFO [33mPress CTRL+C to quit[0m
+2024-06-24 07:41:39,033 DEBUG State in callback: QURBYng5bnZGa3lGaFJEZ3RMY1pic3NhenpLNVpPam12ZWgzaWNPU0xMag==
+2024-06-24 07:41:39,034 DEBUG State in session: None
+2024-06-24 07:41:39,034 DEBUG Session in callback: {}
+2024-06-24 07:41:39,035 INFO 127.0.0.1 - - [24/Jun/2024 07:41:39] "[31m[1mGET /callback?code=sMcTvrLZYMeYjbNXX4MmMfH20P4JQY7LCgsO840L-PHRU&state=QURBYng5bnZGa3lGaFJEZ3RMY1pic3NhenpLNVpPam12ZWgzaWNPU0xMag%3D%3D HTTP/1.1[0m" 400 -
+2024-06-24 07:42:29,842 DEBUG State in callback: T2VyZklGazRacThXLlNpZ3JHSkE4TDdMRmNUTTl5YmF4OWhoc3JKdEI2VQ==
+2024-06-24 07:42:29,842 DEBUG State in session: None
+2024-06-24 07:42:29,842 DEBUG Session in callback: {}
+2024-06-24 07:42:29,842 INFO 127.0.0.1 - - [24/Jun/2024 07:42:29] "[31m[1mGET /callback?code=rdHAC6NBcjvmDOlNFQHYyjE_2y0mX9XTKAwTHVUYBjWio&state=T2VyZklGazRacThXLlNpZ3JHSkE4TDdMRmNUTTl5YmF4OWhoc3JKdEI2VQ%3D%3D HTTP/1.1[0m" 400 -
+2024-06-24 07:44:33,359 DEBUG State in callback: V1BtRVJWLWhNVjZfTDUzcXFlSFprd0pqd0tqQ091QVF4SGt4cThDYnhvTQ==
+2024-06-24 07:44:33,359 DEBUG State in session: None
+2024-06-24 07:44:33,359 DEBUG Session in callback: {}
+2024-06-24 07:44:33,359 INFO 127.0.0.1 - - [24/Jun/2024 07:44:33] "[31m[1mGET /callback?code=hJQSypdB9uwyHCnPZP5WH-T7swnQ_DbrLTNrT1LncBMYc&state=V1BtRVJWLWhNVjZfTDUzcXFlSFprd0pqd0tqQ091QVF4SGt4cThDYnhvTQ%3D%3D HTTP/1.1[0m" 400 -
+2024-06-24 07:46:40,722 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-24 07:46:40,722 INFO [33mPress CTRL+C to quit[0m
+2024-06-24 07:47:06,853 DEBUG State in callback: ODhDZTRGVm9HcFhpU1o3VFRrSjlKZDRfa1JTc2xsLnNtNkJrcmQtdEx0UQ==
+2024-06-24 07:47:06,853 DEBUG State in session: None
+2024-06-24 07:47:06,853 DEBUG Session in callback: {}
+2024-06-24 07:47:06,868 INFO 127.0.0.1 - - [24/Jun/2024 07:47:06] "[31m[1mGET /callback?code=AkLTzAtUkpX3zh38e_xHzOz0g8dbZehxMngSWF2QUwgen&state=ODhDZTRGVm9HcFhpU1o3VFRrSjlKZDRfa1JTc2xsLnNtNkJrcmQtdEx0UQ%3D%3D HTTP/1.1[0m" 400 -
+2024-06-24 07:47:28,192 INFO 127.0.0.1 - - [24/Jun/2024 07:47:28] "GET / HTTP/1.1" 200 -
+2024-06-24 07:47:28,319 INFO 127.0.0.1 - - [24/Jun/2024 07:47:28] "GET /static/images/flexible.png HTTP/1.1" 200 -
+2024-06-24 07:47:28,319 INFO 127.0.0.1 - - [24/Jun/2024 07:47:28] "GET /static/images/Boost.png HTTP/1.1" 200 -
+2024-06-24 07:47:28,335 INFO 127.0.0.1 - - [24/Jun/2024 07:47:28] "GET /static/images/Features1.png HTTP/1.1" 200 -
+2024-06-24 07:47:28,336 INFO 127.0.0.1 - - [24/Jun/2024 07:47:28] "GET /static/images/objective-evaluations.png HTTP/1.1" 200 -
+2024-06-24 07:47:28,339 INFO 127.0.0.1 - - [24/Jun/2024 07:47:28] "GET /static/images/Features2.png HTTP/1.1" 200 -
+2024-06-24 07:47:28,339 INFO 127.0.0.1 - - [24/Jun/2024 07:47:28] "GET /static/images/benefit.png HTTP/1.1" 200 -
+2024-06-24 07:47:28,339 INFO 127.0.0.1 - - [24/Jun/2024 07:47:28] "GET /static/images/Transform.png HTTP/1.1" 200 -
+2024-06-24 07:47:28,339 INFO 127.0.0.1 - - [24/Jun/2024 07:47:28] "GET /static/images/timely.png HTTP/1.1" 200 -
+2024-06-24 07:47:28,352 INFO 127.0.0.1 - - [24/Jun/2024 07:47:28] "GET /static/images/Identify-Training.png HTTP/1.1" 200 -
+2024-06-24 07:47:28,353 INFO 127.0.0.1 - - [24/Jun/2024 07:47:28] "GET /static/images/Decisions.png HTTP/1.1" 200 -
+2024-06-24 07:47:28,354 INFO 127.0.0.1 - - [24/Jun/2024 07:47:28] "GET /static/images/Progress.png HTTP/1.1" 200 -
+2024-06-24 07:53:07,673 ERROR Error: Directory migrations already exists and is not empty
+2024-06-24 07:53:16,304 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-24 07:53:16,305 INFO [33mPress CTRL+C to quit[0m
+2024-06-24 07:53:23,006 INFO 127.0.0.1 - - [24/Jun/2024 07:53:23] "GET /set_session HTTP/1.1" 200 -
+2024-06-24 07:53:30,994 INFO 127.0.0.1 - - [24/Jun/2024 07:53:30] "GET /get_session HTTP/1.1" 200 -
+2024-06-24 07:54:01,142 DEBUG State in callback: MWN5WVlaOFA4eTdRb3hkUWZjUVYuM3ZxVVRxM35GdXBvOEJTRXp2UTY3cw==
+2024-06-24 07:54:01,142 DEBUG State in session: None
+2024-06-24 07:54:01,142 DEBUG Session in callback: {'test': 'This is a test'}
+2024-06-24 07:54:01,142 INFO 127.0.0.1 - - [24/Jun/2024 07:54:01] "[31m[1mGET /callback?code=y-cqzwfkJhsyPvQZtYZAOFVuEtPnHT3wwyi-5wjqEprb8&state=MWN5WVlaOFA4eTdRb3hkUWZjUVYuM3ZxVVRxM35GdXBvOEJTRXp2UTY3cw%3D%3D HTTP/1.1[0m" 400 -
+2024-06-24 07:58:13,541 ERROR Error: Directory migrations already exists and is not empty
+2024-06-24 07:59:36,168 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-24 07:59:36,168 INFO [33mPress CTRL+C to quit[0m
+2024-06-24 07:59:48,814 INFO 127.0.0.1 - - [24/Jun/2024 07:59:48] "GET /set_session HTTP/1.1" 200 -
+2024-06-24 08:00:03,434 INFO 127.0.0.1 - - [24/Jun/2024 08:00:03] "GET /get_session HTTP/1.1" 200 -
+2024-06-24 08:00:27,343 INFO 127.0.0.1 - - [24/Jun/2024 08:00:27] "GET /set_session HTTP/1.1" 200 -
+2024-06-24 08:00:45,811 DEBUG State in callback: MXNmaG1JSHI2ZmEtbmZxcnB1RWNsVW9oTEhfVlBCT2gyNFFuS1l5R2JfSg==
+2024-06-24 08:00:45,811 DEBUG State in session: None
+2024-06-24 08:00:45,811 DEBUG Session in callback: {'test': 'This is a test'}
+2024-06-24 08:00:45,819 INFO 127.0.0.1 - - [24/Jun/2024 08:00:45] "[31m[1mGET /callback?code=4bOpZtvoZ6XBgAat5Pd8ZOL_HEv2l2uS_ZSQo7NvJRvPQ&state=MXNmaG1JSHI2ZmEtbmZxcnB1RWNsVW9oTEhfVlBCT2gyNFFuS1l5R2JfSg%3D%3D HTTP/1.1[0m" 400 -
+2024-06-24 08:04:27,562 DEBUG State in callback: QVBONUJpVVI1U0EyQVhKVDhMVy5qNkNuVlYtZ0ZTQzFxWGx0c2VlRzA4TA==
+2024-06-24 08:04:27,562 DEBUG State in session: None
+2024-06-24 08:04:27,562 DEBUG Session in callback: {}
+2024-06-24 08:04:27,562 INFO 127.0.0.1 - - [24/Jun/2024 08:04:27] "[31m[1mGET /callback?code=_W8CvJZzBrC4OaGgOLofUTXssje7V1RXsZ0IJLWhQGes2&state=QVBONUJpVVI1U0EyQVhKVDhMVy5qNkNuVlYtZ0ZTQzFxWGx0c2VlRzA4TA%3D%3D HTTP/1.1[0m" 400 -
+2024-06-24 08:07:12,068 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-24 08:07:12,068 INFO [33mPress CTRL+C to quit[0m
+2024-06-24 08:07:39,872 DEBUG State in callback: Wi1qQmZfcW05VHdqc3hEeFRhM2dxcUVGdWJ1Y0JyMzdGZkFaaEloTEYwaw==
+2024-06-24 08:07:39,872 DEBUG State in session: None
+2024-06-24 08:07:39,872 DEBUG Session in callback: {}
+2024-06-24 08:07:39,872 INFO 127.0.0.1 - - [24/Jun/2024 08:07:39] "[31m[1mGET /callback?code=zk5U3nrAUeHvvxrkph4tkHdlpWuPgjlV78fiIz5a8Rx0p&state=Wi1qQmZfcW05VHdqc3hEeFRhM2dxcUVGdWJ1Y0JyMzdGZkFaaEloTEYwaw%3D%3D HTTP/1.1[0m" 400 -
+2024-06-24 08:22:17,318 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-24 08:22:17,318 INFO [33mPress CTRL+C to quit[0m
+2024-06-24 08:22:21,291 INFO 127.0.0.1 - - [24/Jun/2024 08:22:21] "GET / HTTP/1.1" 200 -
+2024-06-24 08:22:21,402 INFO 127.0.0.1 - - [24/Jun/2024 08:22:21] "GET /static/images/flexible.png HTTP/1.1" 200 -
+2024-06-24 08:22:21,420 INFO 127.0.0.1 - - [24/Jun/2024 08:22:21] "GET /static/images/Boost.png HTTP/1.1" 200 -
+2024-06-24 08:22:21,422 INFO 127.0.0.1 - - [24/Jun/2024 08:22:21] "GET /static/images/Features1.png HTTP/1.1" 200 -
+2024-06-24 08:22:21,422 INFO 127.0.0.1 - - [24/Jun/2024 08:22:21] "GET /static/images/objective-evaluations.png HTTP/1.1" 200 -
+2024-06-24 08:22:21,422 INFO 127.0.0.1 - - [24/Jun/2024 08:22:21] "GET /static/images/Features2.png HTTP/1.1" 200 -
+2024-06-24 08:22:21,422 INFO 127.0.0.1 - - [24/Jun/2024 08:22:21] "GET /static/images/benefit.png HTTP/1.1" 200 -
+2024-06-24 08:22:21,436 INFO 127.0.0.1 - - [24/Jun/2024 08:22:21] "GET /static/images/Transform.png HTTP/1.1" 200 -
+2024-06-24 08:22:21,440 INFO 127.0.0.1 - - [24/Jun/2024 08:22:21] "GET /static/images/timely.png HTTP/1.1" 200 -
+2024-06-24 08:22:21,442 INFO 127.0.0.1 - - [24/Jun/2024 08:22:21] "GET /static/images/Identify-Training.png HTTP/1.1" 200 -
+2024-06-24 08:22:21,442 INFO 127.0.0.1 - - [24/Jun/2024 08:22:21] "GET /static/images/Progress.png HTTP/1.1" 200 -
+2024-06-24 08:22:21,442 INFO 127.0.0.1 - - [24/Jun/2024 08:22:21] "GET /static/images/Decisions.png HTTP/1.1" 200 -
+2024-06-24 08:27:29,429 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-06-24 08:27:29,429 INFO [33mPress CTRL+C to quit[0m
+2024-06-24 08:28:22,077 INFO 127.0.0.1 - - [24/Jun/2024 08:28:22] "[32mGET /pricing HTTP/1.1[0m" 308 -
+2024-06-24 08:28:22,094 INFO 127.0.0.1 - - [24/Jun/2024 08:28:22] "GET /pricing/ HTTP/1.1" 200 -
+2024-06-24 08:28:22,169 INFO 127.0.0.1 - - [24/Jun/2024 08:28:22] "GET /static/images/basic.png HTTP/1.1" 200 -
+2024-06-24 08:28:22,179 INFO 127.0.0.1 - - [24/Jun/2024 08:28:22] "GET /static/images/professional.png HTTP/1.1" 200 -
+2024-06-24 08:28:22,180 INFO 127.0.0.1 - - [24/Jun/2024 08:28:22] "GET /static/images/enterprise.png HTTP/1.1" 200 -
+2024-06-24 08:28:27,147 INFO 127.0.0.1 - - [24/Jun/2024 08:28:27] "[32mGET /dashboard HTTP/1.1[0m" 302 -
+2024-06-24 08:28:27,150 DEBUG Generated state: K2byO3RGnBMr-kNYJkyBFw
+2024-06-24 08:28:27,150 DEBUG Session before redirect: {'_permanent': True, 'auth0_state': 'K2byO3RGnBMr-kNYJkyBFw'}
+2024-06-24 08:28:27,161 INFO 127.0.0.1 - - [24/Jun/2024 08:28:27] "[32mGET /login HTTP/1.1[0m" 302 -
+2024-06-24 08:29:23,265 DEBUG State in callback: ZC1jU2lqTU4zZXFKbkZ0SVlKV3pzMFNGS3R5M0s2MGpkelpwWW9SMGdUdw==
+2024-06-24 08:29:23,265 DEBUG State in session: K2byO3RGnBMr-kNYJkyBFw
+2024-06-24 08:29:23,265 DEBUG Session in callback: {'_permanent': True, 'auth0_state': 'K2byO3RGnBMr-kNYJkyBFw', '_state_auth0_K2byO3RGnBMr-kNYJkyBFw': {'data': {'redirect_uri': 'http://127.0.0.1:5000//callback', 'nonce': 'nbSIqvmf8y3JJMBkf2RJ', 'url': 'https://dev-ltmkusi0krsffl3x.eu.auth0.com/authorize?response_type=code&client_id=XYhuec5rL33WZ7b2SspKKQWuGXD3bTF8&redirect_uri=http%3A%2F%2F127.0.0.1%3A5000%2F%2Fcallback&scope=openid+profile+email&state=K2byO3RGnBMr-kNYJkyBFw&nonce=nbSIqvmf8y3JJMBkf2RJ'}, 'exp': 1719214107.1519437}}
+2024-06-24 08:29:23,265 INFO 127.0.0.1 - - [24/Jun/2024 08:29:23] "[31m[1mGET /callback?code=BfOsnQRQE8_1XLvlmBypvTjT-ESR-7Q3m8n6MRQO5A8Hd&state=ZC1jU2lqTU4zZXFKbkZ0SVlKV3pzMFNGS3R5M0s2MGpkelpwWW9SMGdUdw%3D%3D HTTP/1.1[0m" 400 -
