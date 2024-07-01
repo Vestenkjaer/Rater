@@ -1,0 +1,25 @@
+# Ignore environment variables file
+.env
+
+# Ignore other sensitive files
+*.key
+*.pem
+
+# Ignore unnecessary files
+*.log
+*.tmp
+
+# Ignore Python virtual environment
+venv/
+__pycache__/
+
+# Ignore OS generated files
+.DS_Store
+Thumbs.db
+
+# Ignore node modules
+node_modules/
+
+# Ignore archive files
+*.zip
+*.tar.gz
