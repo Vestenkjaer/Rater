@@ -198,17 +198,15 @@ def create_app():
             return redirect(url_for('login'))
         return render_template('landing_page.html')
 
-    @app.route('/logout')
-    def logout():
-        session.clear()
-        auth0_domain = os.getenv('AUTH0_DOMAIN')
-        auth0_api_base_url = f"https://{auth0_domain}"
-        auth0_client_id = os.getenv('AUTH0_CLIENT_ID')
-        app.logger.debug(f"AUTH0_DOMAIN: {auth0_domain}")
-        app.logger.debug(f"AUTH0_CLIENT_ID: {auth0_client_id}")
-        if not auth0_api_base_url or not auth0_client_id:
-            raise ValueError("Missing AUTH0_API_BASE_URL or AUTH0_CLIENT_ID")
-        return redirect(auth0_api_base_url + '/v2/logout?client_id=' + auth0_client_id + '&returnTo=' + url_for('index', _external=True))
+    # @app.route('/logout')
+# def logout():
+#     session.clear()
+#     auth0_domain = os.getenv('AUTH0_DOMAIN')
+#     auth0_api_base_url = f"https://{auth0_domain}"
+#     auth0_client_id = os.getenv('AUTH0_CLIENT_ID')
+#     if not auth0_api_base_url or not auth0_client_id:
+#         raise ValueError("Missing AUTH0_API_BASE_URL or AUTH0_CLIENT_ID")
+#     return redirect(auth0_api_base_url + '/v2/logout?client_id=' + auth0_client_id + '&returnTo=' + url_for('index', _external=True))
 
     @app.route('/')
     def index():
