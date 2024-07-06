@@ -12,6 +12,7 @@ class Client(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)  # Added email to link with Stripe
     users = db.relationship('User', backref='client', lazy=True)
     teams = db.relationship('Team', backref='client', lazy=True)
+    settings = db.relationship('Settings', backref='client', uselist=False, lazy=True)  # One-to-One relationship
 
 class User(db.Model):
     __tablename__ = 'user'
@@ -22,6 +23,7 @@ class User(db.Model):
     is_admin = db.Column(db.Boolean, default=False)
     client_id = db.Column(db.Integer, db.ForeignKey('client.id'), nullable=False)
     teams = db.relationship('Team', backref='user', lazy=True)
+    auth0_id = db.Column(db.String(120), unique=True, nullable=True)  # Add this line
 
     @property
     def password(self):
@@ -34,12 +36,11 @@ class User(db.Model):
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-
 class Team(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)  # Corrected syntax here
     name = db.Column(db.String(100), nullable=False)
     client_id = db.Column(db.Integer, db.ForeignKey('client.id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # user_id can be nullable
     members = db.relationship('TeamMember', backref='team', lazy=True)
 
 class TeamMember(db.Model):
@@ -83,3 +84,24 @@ class Settings(db.Model):
     frequency_bi_weekly = db.Column(db.Boolean, default=False)
     frequency_monthly = db.Column(db.Boolean, default=True)  # Default value as true
     frequency_quarterly = db.Column(db.Boolean, default=False)
+
+    def to_dict(self):
+        return {
+            'score_ranges': {
+                'red': {'min': self.red_min, 'max': self.red_max},
+                'orange': {'min': self.orange_min, 'max': self.orange_max},
+                'white': {'min': self.white_min, 'max': self.white_max},
+                'green': {'min': self.green_min, 'max': self.green_max}
+            },
+            'email_notifications': {
+                '1_week': self.notify_1_week,
+                '3_days': self.notify_3_days,
+                '1_day': self.notify_1_day
+            },
+            'rating_frequency': {
+                'weekly': self.frequency_weekly,
+                'bi_weekly': self.frequency_bi_weekly,
+                'monthly': self.frequency_monthly,
+                'quarterly': self.frequency_quarterly
+            }
+        }

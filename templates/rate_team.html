@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Rate Team</title>
+  <link rel="icon" type="image/x-icon" href="/static/Images/favicon.ico">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
@@ -14,7 +15,7 @@
       padding: 0;
       background-color: #F0F0F5;
     }
-    
+
     h2 {
       font-family: "San Francisco", sans-serif;
       font-size: 36px;
@@ -26,7 +27,7 @@
     .container {
       display: flex;
       width: 200% !important;
-      max-width: 1900px; /* Ensures it's not too wide on large screens */
+      max-width: 1900px;
       margin: 0 auto;
       padding: 20px;
       background-color: #FFFFFF;
@@ -114,7 +115,7 @@
       text-decoration: none;
       display: inline-block;
       font-size: 14px;
-      margin: 10px 15px; /* Added margin for spacing */
+      margin: 10px 15px;
       cursor: pointer;
       border-radius: 10px;
       transition: background-color 0.3s, transform 0.3s;
@@ -178,7 +179,7 @@
 
     th.criteria {
       white-space: normal;
-      position: relative; /* Add this for positioning the tooltip */
+      position: relative;
     }
 
     input[type="number"] {
@@ -197,10 +198,11 @@
     .button-container {
       display: flex;
       justify-content: space-between;
+      align-items: center;
     }
 
     .individual-evaluation {
-      margin-left: 20px; /* Ensures it's on the right side */
+      margin-left: 20px;
     }
 
     .tooltip {
@@ -215,12 +217,13 @@
     }
 
     .last-submission {
-      margin: 20px;
-      padding: 15px;
-      background-color: #FFF;
-      border: 1px solid #E0E0E0;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      margin: 0 20px;
+      padding: 10px 15px;
+      background-color: #FAFAFA;
+      border: 0px solid #E0E0E0;
+      border-radius: 0px;
+      box-shadow: 0 0 0px rgba(0,0,0,0.05);
+      font-size: 14px;
     }
   </style>
 </head>
@@ -258,6 +261,9 @@
         </table>
         <div class="button-container">
           <button type="button" class="btn btn-custom individual-evaluation btn-inverted" id="individual-evaluation">Individual Evaluation</button>
+          <div class="last-submission" id="last-submission">
+            <div id="last-submission-content"></div>
+          </div>
           <button type="submit" class="btn btn-custom" id="submit-ratings" disabled>Submit Ratings</button>
         </div>
       </form>
@@ -266,49 +272,75 @@
       </div>
     </div>
   </div>
-  <div class="last-submission" id="last-submission">
-    <h4>Last Submission</h4>
-    <div id="last-submission-content"></div>
-  </div>
-  <div id="tooltip" class="tooltip">
-    <p><strong>1-3:</strong> Unacceptable Performance</p>
-    <p>Performance that fails to meet the basic job requirements and standards. Immediate improvement is necessary.</p>
-    <p><strong>4-5:</strong> Below Expectations</p>
-    <p>Performance that is below the expected level. Improvement is needed to meet job standards.</p>
-    <p><strong>6-7:</strong> Meets Expectations</p>
-    <p>Performance that consistently meets job expectations and standards. Reliable and competent work.</p>
-    <p><strong>8-9:</strong> Exceeds Expectations</p>
-    <p>Performance that goes beyond job expectations. Demonstrates exceptional skills and initiative.</p>
-    <p><strong>10:</strong> Outstanding Performance</p>
-    <p>Performance that is exceptionally rare and extraordinary. Sets a new benchmark for excellence.</p>
+  <div class="modal fade" id="criteriaModal" tabindex="-1" role="dialog" aria-labelledby="criteriaModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="criteriaModalLabel">Criteria Details</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p><strong>1-3:</strong> Unacceptable Performance</p>
+          <p>Performance that fails to meet the basic job requirements and standards. Immediate improvement is necessary.</p>
+          <p><strong>4-5:</strong> Below Expectations</p>
+          <p>Performance that is below the expected level. Improvement is needed to meet job standards.</p>
+          <p><strong>6-7:</strong> Meets Expectations</p>
+          <p>Performance that consistently meets job expectations and standards. Reliable and competent work.</p>
+          <p><strong>8-9:</strong> Exceeds Expectations</p>
+          <p>Performance that goes beyond job expectations. Demonstrates exceptional skills and initiative.</p>
+          <p><strong>10:</strong> Outstanding Performance</p>
+          <p>Performance that is exceptionally rare and extraordinary. Sets a new benchmark for excellence.</p>
+        </div>
+      </div>
+    </div>
   </div>
   <script>
     let settings = {};
     let tier = {{ tier }};
+    let tooltipTimer;
 
-    function fetchSettings() {
-      return fetch('/setup/get_settings')
-        .then(response => response.json())
-        .then(data => {
-          settings = data;
-          return settings;
-        });
+    async function fetchSettings() {
+      try {
+          const response = await fetch('/setup/get_settings');
+          if (!response.ok) {
+              throw new Error('Network response was not ok');
+          }
+          const data = await response.json();
+          settings = data.settings || {
+              score_ranges: {
+                  red: { min: 0, max: 40 },
+                  orange: { min: 41, max: 55 },
+                  white: { min: 56, max: 70 },
+                  green: { min: 71, max: 80 }
+              }
+          };
+          console.log('Settings loaded:', settings);
+      } catch (error) {
+          console.error('Error fetching settings:', error);
+      }
     }
 
     function applyTotalScoreBackground(memberId) {
       const totalScoreElement = document.getElementById(`total-score-${memberId}`);
       const totalScore = parseInt(totalScoreElement.innerText, 10);
 
-      const scoreRanges = settings.score_ranges;
-
-      if (totalScore <= scoreRanges.red.max) {
-        totalScoreElement.style.backgroundColor = 'red';
-      } else if (totalScore <= scoreRanges.orange.max) {
-        totalScoreElement.style.backgroundColor = 'orange';
-      } else if (totalScore <= scoreRanges.white.max) {
-        totalScoreElement.style.backgroundColor = 'white';
+      if (settings && settings.score_ranges) {
+        const scoreRanges = settings.score_ranges;
+        if (totalScore >= scoreRanges.red.min && totalScore <= scoreRanges.red.max) {
+          totalScoreElement.style.backgroundColor = 'red';
+        } else if (totalScore >= scoreRanges.orange.min && totalScore <= scoreRanges.orange.max) {
+          totalScoreElement.style.backgroundColor = 'orange';
+        } else if (totalScore >= scoreRanges.white.min && totalScore <= scoreRanges.white.max) {
+          totalScoreElement.style.backgroundColor = 'white';
+        } else if (totalScore >= scoreRanges.green.min && totalScore <= scoreRanges.green.max) {
+          totalScoreElement.style.backgroundColor = 'green';
+        } else {
+          totalScoreElement.style.backgroundColor = 'transparent';
+        }
       } else {
-        totalScoreElement.style.backgroundColor = 'green';
+        console.error('score_ranges is not defined in settings.');
       }
     }
 
@@ -326,41 +358,51 @@
     let selectedTeamId = null;
     let teamMembers = [];
 
-    function fetchTeamMembers(teamId) {
-      selectedTeamId = teamId; // Store selected team ID for reload
-      document.getElementById('submit-ratings').disabled = false; // Enable the submit button
-      fetch(`/rate_team/get_team_members/${teamId}`)
-        .then(response => response.json())
-        .then(data => {
-          document.getElementById('team-name-container').innerHTML = `Selected Team: ${data.team_name}`;
-          const criteriaRow = document.getElementById('criteria-row');
-          criteriaRow.innerHTML = '<th class="team-members">Team Members</th>';
-          criteria.forEach(criterion => {
-            const th = document.createElement('th');
-            th.classList.add('criteria');
-            th.innerText = criterion.replace(/_/g, ' ');
-            criteriaRow.appendChild(th);
-          });
-          criteriaRow.innerHTML += '<th>Average Score</th><th>Total Score</th>';
-
-          const container = document.getElementById('members-ratings-container');
-          container.innerHTML = '';
-          teamMembers = data.members;
-          teamMembers.forEach(member => {
-            const tr = document.createElement('tr');
-            tr.dataset.memberId = member.id;
-            tr.innerHTML = `
-              <td class="team-member-name">${member.first_name} ${member.surname}</td>
-              ${createRatingCells(member.id, member.ratings)}
-              <td id="avg-score-${member.id}">${member.avg_score.toFixed(2)}</td>
-              <td id="total-score-${member.id}">${member.total_score}</td>
-            `;
-            container.appendChild(tr);
-            applyTotalScoreBackground(member.id);
-          });
-
-          fetchAllHistoricalData();
+    async function fetchTeamMembers(teamId) {
+      selectedTeamId = teamId;
+      document.getElementById('submit-ratings').disabled = false;
+      try {
+        const response = await fetch(`/rate_team/get_team_members/${teamId}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+        document.getElementById('team-name-container').innerHTML = `Selected Team: ${data.team_name}`;
+        const criteriaRow = document.getElementById('criteria-row');
+        criteriaRow.innerHTML = '<th class="team-members">Team Members</th>';
+        criteria.forEach(criterion => {
+          const th = document.createElement('th');
+          th.classList.add('criteria');
+          th.innerText = criterion.replace(/_/g, ' ');
+          criteriaRow.appendChild(th);
         });
+        criteriaRow.innerHTML += '<th>Average Score</th><th>Total Score</th>';
+
+        const container = document.getElementById('members-ratings-container');
+        container.innerHTML = '';
+        teamMembers = data.members;
+
+        teamMembers.sort((a, b) => a.total_score - b.total_score);
+
+        teamMembers.forEach(member => {
+          const tr = document.createElement('tr');
+          tr.dataset.memberId = member.id;
+          tr.innerHTML = `
+            <td class="team-member-name">${member.first_name} ${member.surname}</td>
+            ${createRatingCells(member.id, member.ratings)}
+            <td id="avg-score-${member.id}">${member.avg_score.toFixed(2)}</td>
+            <td id="total-score-${member.id}">${member.total_score}</td>
+          `;
+          container.appendChild(tr);
+          applyTotalScoreBackground(member.id);
+        });
+
+        fetchAllHistoricalData();
+        fetchLastSubmission(); // Fetch last submission details after fetching team members
+      } catch (error) {
+        console.error('Error fetching team members:', error);
+        alert('An error occurred while fetching team members.');
+      }
     }
 
     function createRatingCells(memberId, ratings) {
@@ -392,7 +434,7 @@
       applyTotalScoreBackground(memberId);
     }
 
-    function submitRatings(event) {
+    async function submitRatings(event) {
       event.preventDefault();
       const form = document.getElementById('rating-form');
       const formData = new FormData(form);
@@ -405,13 +447,13 @@
           if (!ratings[memberId]) {
             ratings[memberId] = {};
           }
-          ratings[memberId][criterion] = parseInt(value, 10); // Ensure values are integers
+          ratings[memberId][criterion] = parseInt(value, 10);
         } else {
           console.warn(`Ignoring unexpected form field with key: ${key}`);
         }
       });
 
-      console.log('Ratings to submit:', ratings); // Debugging line
+      console.log('Ratings to submit:', ratings);
 
       const promises = Object.keys(ratings).map(memberId => {
         return fetch(`/rate_team/rate_member/${memberId}`, {
@@ -434,8 +476,8 @@
           console.log(results);
           alert('Ratings submitted successfully!');
           if (selectedTeamId) {
-            fetchTeamMembers(selectedTeamId); // Reload team members and update chart
-            fetchLastSubmission(); // Fetch last submission details
+            fetchTeamMembers(selectedTeamId);
+            fetchLastSubmission();
           }
         })
         .catch(error => {
@@ -444,7 +486,7 @@
         });
     }
 
-    function fetchAllHistoricalData() {
+    async function fetchAllHistoricalData() {
       const promises = teamMembers.map(member => {
         return fetch(`/rate_team/get_historical_data/${member.id}`)
           .then(response => response.json())
@@ -453,24 +495,22 @@
           });
       });
 
-      Promise.all(promises)
-        .then(results => {
-          const labels = Array(12).fill(''); // Initialize an array of 12 empty strings
-          const datasets = results.map(result => {
-            const memberName = `${result.member.first_name} ${result.member.surname}`;
-            const scores = result.data.map(entry => entry.score);
-            return {
-              label: memberName, // Simplified label to just the name
-              data: scores.slice(-12), // Get the last 12 scores
-              borderColor: getRandomColor(),
-              borderWidth: 1,
-              fill: false,
-              tension: 0.4, // Smooth the line
-              pointRadius: 0 // Remove data point circles
-            };
-          });
-          renderChart(labels, datasets);
-        });
+      const results = await Promise.all(promises);
+      const labels = Array(12).fill('');
+      const datasets = results.map(result => {
+        const memberName = `${result.member.first_name} ${result.member.surname}`;
+        const scores = result.data.map(entry => entry.score);
+        return {
+          label: memberName,
+          data: scores.slice(-12),
+          borderColor: getRandomColor(),
+          borderWidth: 1,
+          fill: false,
+          tension: 0.4,
+          pointRadius: 0
+        };
+      });
+      renderChart(labels, datasets);
     }
 
     function renderChart(labels, datasets) {
@@ -488,25 +528,25 @@
           responsive: true,
           scales: {
             x: {
-              type: 'category', // Use 'category' to display custom labels
+              type: 'category',
               ticks: {
-                maxTicksLimit: 12, // Ensure only 12 data points are shown
-                display: false // Hide the vertical grid lines
+                maxTicksLimit: 12,
+                display: false
               },
               grid: {
-                display: false // Remove vertical grid lines
+                display: false
               },
-              reverse: true // Reverse the x-axis
+              reverse: true
             },
             y: {
               beginAtZero: false,
-              min: 20, // Set the minimum value to 20
-              max: 100, // Set the maximum value to 100
+              min: 20,
+              max: 100,
               ticks: {
-                stepSize: 10 // Adjust the step size as needed
+                stepSize: 10
               },
               grid: {
-                display: true // Keep horizontal grid lines
+                display: true
               }
             }
           }
@@ -523,67 +563,57 @@
       return color;
     }
 
-    function fetchLastSubmission() {
-      fetch(`/rate_team/get_last_submission/${selectedTeamId}`)
-        .then(response => response.json())
-        .then(data => {
+    async function fetchLastSubmission() {
+      try {
+          const response = await fetch(`/rate_team/get_last_submission/${selectedTeamId}`);
+          const data = await response.json();
+          console.log('Last submission data:', data);
+
           const lastSubmissionContent = document.getElementById('last-submission-content');
           lastSubmissionContent.innerHTML = '';
-          data.forEach(submission => {
-            const div = document.createElement('div');
-            div.innerHTML = `
-              <p><strong>Team Member:</strong> ${submission.member_name}</p>
-              <p><strong>Date:</strong> ${new Date(submission.date).toLocaleString()}</p>
-              <p><strong>Scores:</strong> ${submission.scores}</p>
-            `;
-            lastSubmissionContent.appendChild(div);
-          });
-        })
-        .catch(error => {
+
+          if (data.date) {
+              lastSubmissionContent.innerHTML = `<strong>Last Submission:</strong> ${data.date}`;
+          } else if (data.message) {
+              lastSubmissionContent.innerHTML = '<p>No submissions found</p>';
+          } else {
+              console.error('Unexpected response format:', data);
+          }
+      } catch (error) {
           console.error('Error fetching last submission:', error);
-        });
+      }
     }
 
-    // Load settings and selected team if it was selected before page reload
-    window.addEventListener('load', () => {
-      fetchSettings().then(() => {
-        const firstTeam = document.querySelector('#teamList li');
-        if (firstTeam) {
-          const teamId = firstTeam.getAttribute('data-team-id');
-          fetchTeamMembers(teamId);
-          fetchLastSubmission(); // Fetch last submission details
-        }
-      });
+    window.addEventListener('load', async () => {
+      await fetchSettings();
+      const firstTeam = document.querySelector('#teamList li');
+      if (firstTeam) {
+        const teamId = firstTeam.getAttribute('data-team-id');
+        await fetchTeamMembers(teamId);
+      }
 
       document.getElementById('individual-evaluation').addEventListener('click', () => {
-        if (tier < 1) {
-          alert("To get the full AI experience, please upgrade to Professional version");
-          window.location.href = "/pricing";
-        } else {
-          window.location.href = "/rate_team/individual_evaluation";
-        }
+        window.location.href = "/rate_team/individual_evaluation";
       });
     });
 
     document.addEventListener('DOMContentLoaded', () => {
       const criteriaRow = document.getElementById('criteria-row');
-      const tooltip = document.getElementById('tooltip');
 
       criteriaRow.addEventListener('mouseover', (event) => {
-        tooltip.style.display = 'block';
-        tooltip.style.left = `${event.pageX + 10}px`;
-        tooltip.style.top = `${event.pageY + 10}px`;
-      });
-
-      criteriaRow.addEventListener('mousemove', (event) => {
-        tooltip.style.left = `${event.pageX + 10}px`;
-        tooltip.style.top = `${event.pageY + 10}px`;
+        tooltipTimer = setTimeout(() => {
+          $('#criteriaModal').modal('show');
+        }, 1000);
       });
 
       criteriaRow.addEventListener('mouseout', () => {
-        tooltip.style.display = 'none';
+        clearTimeout(tooltipTimer);
+        $('#criteriaModal').modal('hide');
       });
     });
   </script>
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

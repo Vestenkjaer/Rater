@@ -80,3 +80,37 @@ def get_historical_data(member_id):
     data = [{'timestamp': rating.timestamp, 'total_score': rating.total_score, 'avg_score': rating.avg_score} for rating in ratings]
     logging.debug(f"Historical data fetched: {data}")
     return jsonify(data)
+
+@landing_page_bp.route('/rate_team/get_last_submission/<int:team_id>', methods=['GET'])
+def get_last_submission(team_id):
+    client_id = session.get('client_id')
+    if not client_id:
+        return jsonify({'error': 'Client not authenticated'}), 403
+
+    try:
+        # Fetch the latest rating timestamp for the members of the given team
+        latest_submission = db.session.query(
+            Rating.team_member_id,
+            func.max(Rating.timestamp).label('latest_submission')
+        ).join(TeamMember, TeamMember.id == Rating.team_member_id).filter(
+            TeamMember.team_id == team_id
+        ).group_by(Rating.team_member_id).order_by(func.max(Rating.timestamp).desc()).first()
+
+        if latest_submission:
+            member_id, latest_submission_time = latest_submission
+
+            latest_rating = Rating.query.filter_by(
+                team_member_id=member_id,
+                timestamp=latest_submission_time
+            ).first()
+
+            if latest_rating:
+                submission_data = {
+                    'date': latest_rating.timestamp.strftime('%d.%m.%Y')
+                }
+                return jsonify(submission_data), 200
+
+        return jsonify({'message': 'No submissions found'}), 200
+    except Exception as e:
+        logging.error(f"Error fetching last submission: {e}")
+        return jsonify({'error': 'An internal error occurred'}), 500

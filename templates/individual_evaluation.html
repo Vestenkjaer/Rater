@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Individual Evaluation</title>
+  <link rel="icon" type="image/x-icon" href="/static/Images/favicon.ico">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
@@ -29,7 +30,7 @@
     .container {
       display: flex;
       width: 200% !important;
-      max-width: 1900px; /* Ensures it's not too wide on large screens */
+      max-width: 1900px;
       margin: 0 auto;
       padding: 20px;
       background-color: #FFFFFF;
@@ -134,7 +135,6 @@
 
     .navbar-nav .nav-item .nav-link:hover {
       color: #D1D1D6;
-      
     }
 
     table {
@@ -234,7 +234,6 @@
     </div>
   </nav>
 
-  <!-- Add this spinner container -->
   <div id="spinnerContainer" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.5); z-index:9999;">
     <div class="spinner"></div>
     <div class="spinner-message">Please wait... our Artificial Intelligence is analyzing data for a solid recommendation!</div>
@@ -279,7 +278,6 @@
     </div>
   </div>
 
-  <!-- Modal for AI Recommendation -->
   <div class="modal fade" id="aiModal" tabindex="-1" role="dialog" aria-labelledby="aiModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
       <div class="modal-content">
@@ -316,7 +314,7 @@
     
     function fetchTeamMembers(teamId) {
       selectedTeamId = teamId;
-      fetch(`/individual_evaluation/get_team_members/${teamId}`)
+      fetch(`/rate_team/get_team_members/${teamId}`)
         .then(response => response.json())
         .then(data => {
           document.getElementById('team-name-container').innerHTML = `Selected Team: ${data.team_name}`;
@@ -328,13 +326,17 @@
             li.onclick = () => fetchMemberData(member.id, member.first_name + ' ' + member.surname);
             memberList.appendChild(li);
           });
+          // Automatically fetch members if there is only one team
+          if (data.members.length > 0) {
+            fetchMemberData(data.members[0].id, `${data.members[0].first_name} ${data.members[0].surname}`);
+          }
         });
     }
-    
+
     function fetchMemberData(memberId, memberName) {
       selectedMemberId = memberId;
       selectedMemberName = memberName;
-      fetch(`/individual_evaluation/get_team_members/${selectedTeamId}`)
+      fetch(`/rate_team/get_team_members/${selectedTeamId}`)
         .then(response => response.json())
         .then(data => {
           const member = data.members.find(m => m.id === memberId);
@@ -356,31 +358,28 @@
     }
     
     function fetchHistoricalData(memberId, memberName) {
-      fetch(`/individual_evaluation/get_historical_data/${memberId}`)
+      fetch(`/rate_team/get_historical_data/${memberId}`)
         .then(response => response.json())
         .then(data => {
           console.log('Historical Data:', data);
           const labels = data.map(entry => new Date(entry.timestamp).toLocaleDateString());
-          const datasets = criteria.map((criterion) => {
-            return {
-              label: criterion.replace(/_/g, ' '),
-              data: data.map(entry => entry[criterion]).reverse(), // Reverse the data array
-              borderColor: getRandomColor(),
-              borderWidth: 1,
-              fill: false,
-              tension: 0.4,
-              pointRadius: 0
-            };
-          });
-          console.log('Datasets:', datasets);
-          renderChart(labels.reverse(), datasets); // Reverse the labels array
+          const dataset = {
+            label: memberName,
+            data: data.map(entry => entry.score),
+            borderColor: getRandomColor(),
+            borderWidth: 1,
+            fill: false,
+            tension: 0.4,
+            pointRadius: 0
+          };
+          renderChart(labels, dataset);
         })
         .catch(error => {
           console.error('Error fetching historical data:', error);
         });
     }
     
-    function renderChart(labels, datasets) {
+    function renderChart(labels, dataset) {
       const ctx = document.getElementById('historicalChart').getContext('2d');
       if (window.myChart) {
         window.myChart.destroy();
@@ -389,24 +388,25 @@
         type: 'line',
         data: {
           labels: labels,
-          datasets: datasets
+          datasets: [dataset]
         },
         options: {
           responsive: true,
           scales: {
             x: {
               type: 'category',
-              reverse: true,  // Invert the x-axis
+              reverse: true,
               ticks: {
-                maxTicksLimit: 12
+                maxTicksLimit: 12,
+                autoSkip: false
               }
             },
             y: {
               beginAtZero: true,
               min: 0,
-              max: 11,
+              max: 100,
               ticks: {
-                stepSize: 1 // Adjust the step size as needed
+                stepSize: 10
               }
             }
           }
@@ -463,8 +463,10 @@
     }
     
     window.addEventListener('load', () => {
-      if (selectedTeamId) {
-        fetchTeamMembers(selectedTeamId);
+      const teamList = document.getElementById('teamList');
+      if (teamList.options.length === 2) { // 1 option for placeholder and 1 for the team
+        teamList.selectedIndex = 1; // Select the only team
+        fetchTeamMembers(teamList.value);
       }
     });
   </script>

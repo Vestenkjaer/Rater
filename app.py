@@ -4,13 +4,15 @@ from dotenv import load_dotenv
 from flask import Flask, render_template, redirect, url_for, session, jsonify, request
 from flask_session import Session
 from config import Config
-from models import db, Client, User
+from models import db, Client, User, Settings
 from flask_migrate import Migrate
 from authlib.integrations.flask_client import OAuth
 import logging
 import stripe
 import requests
 import json
+from apscheduler.schedulers.background import BackgroundScheduler
+from mail import mail  # Import mail from mail.py
 
 load_dotenv()  # Load environment variables from .env file
 
@@ -29,10 +31,26 @@ def create_app():
     app.config['SESSION_USE_SIGNER'] = True
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db?timeout=30'
 
+    # Print out environment variables for debugging
+    print(f"MAIL_SERVER: {os.getenv('MAIL_SERVER')}")
+    print(f"MAIL_PORT: {os.getenv('MAIL_PORT')}")
+    print(f"MAIL_USERNAME: {os.getenv('MAIL_USERNAME')}")
+    print(f"MAIL_PASSWORD: {os.getenv('MAIL_PASSWORD')}")
+
+    # Configure Flask-Mail
+    app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
+    app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT'))
+    app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS') == 'True'
+    app.config['MAIL_USE_SSL'] = os.getenv('MAIL_USE_SSL') == 'True'
+    app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+    app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+    app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
+    mail.init_app(app)  # Initialize the mail instance
+
     Session(app)
 
     db.init_app(app)
-    migrate = Migrate(app, db)
+    migrate = Migrate(app, db)  # Ensure Migrate is initialized
     oauth = OAuth(app)
 
     auth0 = oauth.register(
@@ -62,6 +80,7 @@ def create_app():
     from routes.landing_page import landing_page_bp  
     from routes.pricing import pricing_bp
     from routes.payment import payment_bp
+    from routes.public import public_bp  # Import the public blueprint
 
     app.register_blueprint(main_bp)
     app.register_blueprint(rate_team_bp, url_prefix='/rate_team')
@@ -72,6 +91,54 @@ def create_app():
     app.register_blueprint(landing_page_bp, url_prefix='/dashboard') 
     app.register_blueprint(pricing_bp, url_prefix='/pricing')
     app.register_blueprint(payment_bp)
+    app.register_blueprint(public_bp, url_prefix='/public')  # Register the public blueprint
+
+    def check_and_block_users():
+        clients = Client.query.all()
+        for client in clients:
+            if client.payment_status == 'blocked':
+                users = User.query.filter_by(client_id=client.id).all()
+                for user in users:
+                    block_user_in_auth0(user.email)
+            else:
+                users = User.query.filter_by(client_id=client.id).all()
+                for user in users:
+                    unblock_user_in_auth0(user.email)
+
+    def block_user_in_auth0(email):
+        auth0_domain = os.getenv('AUTH0_DOMAIN')
+        auth0_token = os.getenv('AUTH0_MANAGEMENT_API_TOKEN')
+        headers = {
+            'Authorization': f'Bearer {auth0_token}',
+            'Content-Type': 'application/json'
+        }
+        response = requests.get(f'https://{auth0_domain}/api/v2/users-by-email?email={email}', headers=headers)
+        if response.status_code == 200:
+            user_id = response.json()[0]['user_id']
+            block_payload = {
+                'blocked': True
+            }
+            requests.patch(f'https://{auth0_domain}/api/v2/users/{user_id}', headers=headers, json=block_payload)
+
+    def unblock_user_in_auth0(email):
+        auth0_domain = os.getenv('AUTH0_DOMAIN')
+        auth0_token = os.getenv('AUTH0_MANAGEMENT_API_TOKEN')
+        headers = {
+            'Authorization': f'Bearer {auth0_token}',
+            'Content-Type': 'application/json'
+        }
+        response = requests.get(f'https://{auth0_domain}/api/v2/users-by-email?email={email}', headers=headers)
+        if response.status_code == 200:
+            user_id = response.json()[0]['user_id']
+            unblock_payload = {
+                'blocked': False
+            }
+            requests.patch(f'https://{auth0_domain}/api/v2/users/{user_id}', headers=headers, json=unblock_payload)
+
+    # Scheduler setup
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(func=check_and_block_users, trigger="interval", hours=24)
+    scheduler.start()
 
     @app.teardown_appcontext
     def shutdown_session(exception=None):
@@ -105,12 +172,11 @@ def create_app():
             user_info = response.json()
             session['user'] = user_info
 
-            # Retrieve the client's information based on the user's email
             email = user_info['email']
             user = User.query.filter_by(email=email).first()
             if user:
                 session['client_id'] = user.client_id
-                session['tier'] = user.client.tier  # Add tier to the session
+                session['tier'] = user.client.tier
 
             session.pop('auth0_state', None)
         except Exception as e:
@@ -134,7 +200,6 @@ def create_app():
     def index():
         return redirect(url_for('logout'))
 
-    # Test routes to check session behavior
     @app.route('/set_session')
     def set_session():
         session['test'] = 'This is a test'
@@ -167,32 +232,24 @@ def create_app():
                 payload, sig_header, endpoint_secret
             )
         except ValueError as e:
-            # Invalid payload
             return jsonify({'error': str(e)}), 400
         except stripe.error.SignatureVerificationError as e:
-            # Invalid signature
             return jsonify({'error': str(e)}), 400
 
-        # Handle the event
         if event['type'] == 'checkout.session.completed':
             session_data = event['data']['object']
             customer_email = session_data['customer_details']['email']
             subscription_id = session_data['subscription']
 
-            # Retrieve subscription details
             subscription = stripe.Subscription.retrieve(subscription_id)
-
-            # Determine the plan and features
             plan_id = subscription['items']['data'][0]['price']['product']
             tier = determine_tier(plan_id)
 
-            # Update client tier in the database
             client = Client.query.filter_by(email=customer_email).first()
             if client:
                 client.tier = tier
                 db.session.commit()
 
-            # Update Auth0 profile
             update_auth0_profile(customer_email, tier)
 
         return jsonify({'status': 'success'}), 200
@@ -209,7 +266,7 @@ def create_app():
     def update_auth0_profile(email, tier):
         url = f'https://{app.config["AUTH0_DOMAIN"]}/api/v2/users-by-email?email={email}'
         headers = {
-            'Authorization': f'Bearer {os.getenv("AUTH0_API_TOKEN")}',
+            'Authorization': f'Bearer {os.getenv("AUTH0_MANAGEMENT_API_TOKEN")}',
             'Content-Type': 'application/json'
         }
         response = requests.get(url, headers=headers)

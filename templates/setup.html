@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Setup</title>
+    <link rel="icon" type="image/x-icon" href="/static/Images/favicon.ico">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         body {
@@ -78,12 +79,52 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             fetchUsersAndTeams();
+            fetchSettings(); // Fetch existing settings
 
             // Save settings on change
             document.querySelectorAll('input, select').forEach(element => {
                 element.addEventListener('change', saveSettings);
             });
+
+            // Add event listeners for score range inputs
+            document.getElementById('redRangeMax').addEventListener('input', updateScoreRanges);
+            document.getElementById('orangeRangeMin').addEventListener('input', updateScoreRanges);
+            document.getElementById('orangeRangeMax').addEventListener('input', updateScoreRanges);
+            document.getElementById('whiteRangeMin').addEventListener('input', updateScoreRanges);
+            document.getElementById('whiteRangeMax').addEventListener('input', updateScoreRanges);
+            document.getElementById('greenRangeMin').addEventListener('input', updateScoreRanges);
+
+            // Add event listener for rating frequency checkboxes
+            document.querySelectorAll('input[name="ratingFrequency"]').forEach(element => {
+                element.addEventListener('change', function () {
+                    document.querySelectorAll('input[name="ratingFrequency"]').forEach(checkbox => {
+                        checkbox.checked = false;
+                    });
+                    this.checked = true;
+                });
+            });
         });
+
+        function updateScoreRanges() {
+            const redMax = parseInt(document.getElementById('redRangeMax').value);
+            const orangeMin = redMax + 1;
+            document.getElementById('orangeRangeMin').value = orangeMin;
+
+            const orangeMax = parseInt(document.getElementById('orangeRangeMax').value);
+            const whiteMin = orangeMax + 1;
+            document.getElementById('whiteRangeMin').value = whiteMin;
+
+            const whiteMax = parseInt(document.getElementById('whiteRangeMax').value);
+            const greenMin = whiteMax + 1;
+            document.getElementById('greenRangeMin').value = greenMin;
+
+            // Disable manual input for min fields except for the first one
+            document.getElementById('orangeRangeMin').disabled = true;
+            document.getElementById('whiteRangeMin').disabled = true;
+            document.getElementById('greenRangeMin').disabled = true;
+
+            saveSettings();
+        }
 
         function fetchUsersAndTeams() {
             fetch('/setup/get_users').then(response => response.json()).then(data => {
@@ -110,6 +151,52 @@
                     listItem.addEventListener('click', () => assignTeam(team.id, team.name));
                     availableTeamsList.appendChild(listItem);
                 });
+            });
+        }
+
+        function fetchSettings() {
+            fetch('/setup/get_settings').then(response => response.json()).then(data => {
+                const defaultSettings = {
+                    score_ranges: {
+                        red: { min: 0, max: 40 },
+                        orange: { min: 41, max: 55 },
+                        white: { min: 56, max: 70 },
+                        green: { min: 71, max: 80 }
+                    },
+                    email_notifications: {
+                        "1_week": false,
+                        "3_days": true,
+                        "1_day": false
+                    },
+                    rating_frequency: {
+                        "weekly": false,
+                        "bi_weekly": false,
+                        "monthly": true,
+                        "quarterly": false
+                    }
+                };
+
+                const settings = data.settings || defaultSettings;
+
+                document.getElementById('redRangeMin').value = settings.score_ranges.red.min;
+                document.getElementById('redRangeMax').value = settings.score_ranges.red.max;
+                document.getElementById('orangeRangeMin').value = settings.score_ranges.orange.min;
+                document.getElementById('orangeRangeMax').value = settings.score_ranges.orange.max;
+                document.getElementById('whiteRangeMin').value = settings.score_ranges.white.min;
+                document.getElementById('whiteRangeMax').value = settings.score_ranges.white.max;
+                document.getElementById('greenRangeMin').value = settings.score_ranges.green.min;
+                document.getElementById('greenRangeMax').value = settings.score_ranges.green.max;
+
+                document.getElementById('notify1Week').checked = settings.email_notifications['1_week'];
+                document.getElementById('notify3Days').checked = settings.email_notifications['3_days'];
+                document.getElementById('notify1Day').checked = settings.email_notifications['1_day'];
+
+                document.getElementById('weekly').checked = settings.rating_frequency.weekly;
+                document.getElementById('bi_weekly').checked = settings.rating_frequency.bi_weekly;
+                document.getElementById('monthly').checked = settings.rating_frequency.monthly;
+                document.getElementById('quarterly').checked = settings.rating_frequency.quarterly;
+            }).catch(error => {
+                console.error('Error fetching settings:', error);
             });
         }
 
@@ -171,7 +258,7 @@
                     assignedTeamsList.innerHTML = '';
                     fetchUsersAndTeams();
                 } else {
-                    alert('Error creating user: ' + result.message);
+                    alert('Error creating user: ' + result.error);
                 }
             });
         }
@@ -233,7 +320,7 @@
                     createButton.textContent = 'Create User';
                     createButton.onclick = createUser;
                 } else {
-                    alert('Error updating user: ' + result.message);
+                    alert('Error updating user: ' + result.error);
                 }
             });
         }
@@ -244,10 +331,12 @@
             }).then(response => response.json()).then(result => {
                 if (result.status === 'success') {
                     alert('User deleted successfully');
-                    fetchUsersAndTeams();
+                    window.location.reload(); // Refresh the page
                 } else {
-                    alert('Error deleting user: ' + result.message);
+                    alert('Error deleting user: ' + result.error);
                 }
+            }).catch(error => {
+                alert('Error deleting user: ' + error.message);
             });
         }
 
@@ -373,19 +462,19 @@
             <div>
                 <label for="ratingFrequency">Frequency:</label>
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="weekly" id="weekly">
+                    <input class="form-check-input" type="checkbox" name="ratingFrequency" value="weekly" id="weekly">
                     <label class="form-check-label" for="weekly">Weekly</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="bi_weekly" id="bi_weekly">
+                    <input class="form-check-input" type="checkbox" name="ratingFrequency" value="bi_weekly" id="bi_weekly">
                     <label class="form-check-label" for="bi_weekly">Bi-Weekly</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="monthly" id="monthly" checked>
+                    <input class="form-check-input" type="checkbox" name="ratingFrequency" value="monthly" id="monthly" checked>
                     <label class="form-check-label" for="monthly">Monthly</label>
                 </div>
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="quarterly" id="quarterly">
+                    <input class="form-check-input" type="checkbox" name="ratingFrequency" value="quarterly" id="quarterly">
                     <label class="form-check-label" for="quarterly">Quarterly</label>
                 </div>
             </div>

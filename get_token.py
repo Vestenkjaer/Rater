@@ -1,27 +1,28 @@
+import os
 import requests
+import json
 
-domain = 'dev-ltmkusi0krsffl3x.eu.auth0.com'
-client_id = 'xyP50XgjCpnYey6H4lxFBWIH6NOmjBsm'
-client_secret = 'fJpOY4HgODYUgnPMBqWitq3kait2XsKsJqeTl99M0wckQdf8huFlgswR67QJaiAl'
+def get_auth0_management_token():
+    url = "https://dev-ltmkusi0krsffl3x.eu.auth0.com/oauth/token"
+    payload = {
+        "client_id": "XYhuec5rL33WZ7b2SspKKQWuGXD3bTF8",
+        "client_secret": "IGPX13CGznmyKga-8WmlRXQp8gfKw7_twsQOoEUigR276cyzoewRssGY_sZ12BOo",
+        "audience": "https://dev-ltmkusi0krsffl3x.eu.auth0.com/api/v2/",
+        "grant_type": "client_credentials"
+    }
+    headers = {'content-type': 'application/json'}
+    
+    response = requests.post(url, data=json.dumps(payload), headers=headers)
+    
+    # Debugging information
+    print(f"URL: {url}")
+    print(f"Payload: {json.dumps(payload)}")
+    print(f"Response Status Code: {response.status_code}")
+    print(f"Response Content: {response.content}")
 
-url = f'https://{domain}/oauth/token'
-headers = {'content-type': 'application/json'}
-data = {
-    'client_id': client_id,
-    'client_secret': client_secret,
-    'audience': f'https://{domain}/api/v2/',
-    'grant_type': 'client_credentials'
-}
+    response.raise_for_status()  # Raise an error for bad status codes
+    return response.json()['access_token']
 
-try:
-    response = requests.post(url, headers=headers, json=data)
-    response.raise_for_status()  # This will raise an HTTPError if the HTTP request returned an unsuccessful status code
-    access_token = response.json().get('access_token')
-    if access_token:
-        print(f"Access Token: {access_token}")
-    else:
-        print("Failed to retrieve access token. Response content:", response.content)
-except requests.exceptions.HTTPError as http_err:
-    print(f"HTTP error occurred: {http_err}")
-except Exception as err:
-    print(f"An error occurred: {err}")
+if __name__ == "__main__":
+    token = get_auth0_management_token()
+    print(f"Auth0 Management API Token: {token}")
