@@ -32,11 +32,14 @@ def create_app():
     app.config['SESSION_USE_SIGNER'] = True
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db?timeout=30'
 
-    # Print out environment variables for debugging
-    print(f"MAIL_SERVER: {os.getenv('MAIL_SERVER')}")
-    print(f"MAIL_PORT: {os.getenv('MAIL_PORT')}")
-    print(f"MAIL_USERNAME: {os.getenv('MAIL_USERNAME')}")
-    print(f"MAIL_PASSWORD: {os.getenv('MAIL_PASSWORD')}")
+    required_env_vars = [
+        'MAIL_SERVER', 'MAIL_PORT', 'MAIL_USERNAME', 'MAIL_PASSWORD',
+        'AUTH0_CLIENT_ID', 'AUTH0_CLIENT_SECRET', 'AUTH0_DOMAIN', 'AUTH0_CALLBACK_URL'
+    ]
+
+    for var in required_env_vars:
+        if not os.getenv(var):
+            raise ValueError(f"Missing required environment variable: {var}")
 
     # Configure Flask-Mail
     app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
@@ -195,7 +198,11 @@ def create_app():
     @app.route('/logout')
     def logout():
         session.clear()
-        return redirect(auth0.api_base_url + '/v2/logout?client_id=' + app.config['AUTH0_CLIENT_ID'] + '&returnTo=' + url_for('index', _external=True))
+        auth0_api_base_url = app.config.get('AUTH0_API_BASE_URL')
+        auth0_client_id = app.config.get('AUTH0_CLIENT_ID')
+        if not auth0_api_base_url or not auth0_client_id:
+            raise ValueError("Missing AUTH0_API_BASE_URL or AUTH0_CLIENT_ID")
+        return redirect(auth0_api_base_url + '/v2/logout?client_id=' + auth0_client_id + '&returnTo=' + url_for('index', _external=True))
 
     @app.route('/')
     def index():
@@ -281,7 +288,7 @@ def create_app():
         if 'auth0_token' not in get_auth0_token.__dict__:
             get_auth0_token.auth0_token = None
             get_auth0_token.auth0_token_expiry = 0
-        
+
         if time.time() < get_auth0_token.auth0_token_expiry:
             return get_auth0_token.auth0_token
 
