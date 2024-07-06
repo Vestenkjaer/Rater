@@ -282,12 +282,15 @@
     <div class="modal-dialog modal-lg" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="aiModalLabel">AI Recommendation</h5>
+          <h5 class="modal-title" id="aiModalLabel">AI Recommendation and Future Prediction</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <div class="modal-body" id="aiRecommendationContent"></div>
+        <div class="modal-body">
+          <div id="aiRecommendationContent"></div>
+          <div id="futurePredictionContent"></div>
+        </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
           <button type="button" class="btn btn-primary" onclick="saveAsPDF()">Save as PDF</button>
@@ -428,24 +431,25 @@
         alert('Please select a member to get AI recommendation.');
         return;
       }
-    
+
       document.getElementById('spinnerContainer').style.display = 'block';
-    
+
       fetch(`/rate_team/get_ai_recommendation/${selectedMemberId}`)
         .then(response => response.json())
         .then(data => {
           document.getElementById('spinnerContainer').style.display = 'none';
-    
+
           if (data.error) {
             alert(data.error);
           } else {
             document.getElementById('aiRecommendationContent').innerText = data.recommendation;
+            document.getElementById('futurePredictionContent').innerText = data.future_prediction;
             $('#aiModal').modal('show');
           }
         })
         .catch(error => {
           document.getElementById('spinnerContainer').style.display = 'none';
-    
+
           console.error('Error fetching AI recommendation:', error);
           alert('An error occurred while fetching the AI recommendation.');
         });
@@ -455,8 +459,11 @@
       const memberName = document.getElementById('member-name-container').innerText.replace('Selected Member: ', '');
       const today = new Date().toISOString().slice(0, 10);
       const fileName = `AI_Recommendation_${memberName}_${today}.pdf`;
-    
-      const element = document.getElementById('aiRecommendationContent');
+
+      const element = document.createElement('div');
+      element.appendChild(document.getElementById('aiRecommendationContent').cloneNode(true));
+      element.appendChild(document.getElementById('futurePredictionContent').cloneNode(true));
+
       html2pdf().set({
         filename: fileName
       }).from(element).save();

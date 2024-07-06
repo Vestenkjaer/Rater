@@ -458,11 +458,18 @@
         }, 500);
       }
 
-      // Log out the user when they visit the index page
-      if (!sessionStorage.getItem('logged_out')) {
-        sessionStorage.setItem('logged_out', 'true');
-        window.location.href = "/logout";
+      // Inactivity logout logic
+      let logoutTimer;
+      function resetLogoutTimer() {
+        clearTimeout(logoutTimer);
+        logoutTimer = setTimeout(() => {
+          window.location.href = "/logout";
+        }, 10000); // 5 minutes in milliseconds   300000
       }
+
+      document.addEventListener("mousemove", resetLogoutTimer);
+      document.addEventListener("keypress", resetLogoutTimer);
+      resetLogoutTimer(); // Initialize timer on page load
     });
   </script>
 </body>

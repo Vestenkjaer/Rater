@@ -1,7 +1,7 @@
 import os
 import secrets
 from dotenv import load_dotenv
-from flask import Flask, render_template, redirect, url_for, session, jsonify, request
+from flask import Flask, render_template, redirect, url_for, session, jsonify, request, current_app
 from flask_session import Session
 from config import Config
 from models import db, Client, User, Settings
@@ -11,6 +11,7 @@ import logging
 import stripe
 import requests
 import json
+import time
 from apscheduler.schedulers.background import BackgroundScheduler
 from mail import mail  # Import mail from mail.py
 
@@ -107,9 +108,9 @@ def create_app():
 
     def block_user_in_auth0(email):
         auth0_domain = os.getenv('AUTH0_DOMAIN')
-        auth0_token = os.getenv('AUTH0_MANAGEMENT_API_TOKEN')
+        token = get_auth0_token()
         headers = {
-            'Authorization': f'Bearer {auth0_token}',
+            'Authorization': f'Bearer {token}',
             'Content-Type': 'application/json'
         }
         response = requests.get(f'https://{auth0_domain}/api/v2/users-by-email?email={email}', headers=headers)
@@ -122,9 +123,9 @@ def create_app():
 
     def unblock_user_in_auth0(email):
         auth0_domain = os.getenv('AUTH0_DOMAIN')
-        auth0_token = os.getenv('AUTH0_MANAGEMENT_API_TOKEN')
+        token = get_auth0_token()
         headers = {
-            'Authorization': f'Bearer {auth0_token}',
+            'Authorization': f'Bearer {token}',
             'Content-Type': 'application/json'
         }
         response = requests.get(f'https://{auth0_domain}/api/v2/users-by-email?email={email}', headers=headers)
@@ -266,7 +267,7 @@ def create_app():
     def update_auth0_profile(email, tier):
         url = f'https://{app.config["AUTH0_DOMAIN"]}/api/v2/users-by-email?email={email}'
         headers = {
-            'Authorization': f'Bearer {os.getenv("AUTH0_MANAGEMENT_API_TOKEN")}',
+            'Authorization': f'Bearer {get_auth0_token()}',
             'Content-Type': 'application/json'
         }
         response = requests.get(url, headers=headers)
@@ -275,6 +276,30 @@ def create_app():
             update_url = f'https://{app.config["AUTH0_DOMAIN"]}/api/v2/users/{user_id}'
             data = {'user_metadata': {'tier': tier}}
             requests.patch(update_url, headers=headers, data=json.dumps(data))
+
+    def get_auth0_token():
+        if 'auth0_token' not in get_auth0_token.__dict__:
+            get_auth0_token.auth0_token = None
+            get_auth0_token.auth0_token_expiry = 0
+        
+        if time.time() < get_auth0_token.auth0_token_expiry:
+            return get_auth0_token.auth0_token
+
+        url = f'https://{os.getenv("AUTH0_DOMAIN")}/oauth/token'
+        headers = {'content-type': 'application/json'}
+        data = {
+            'client_id': os.getenv('AUTH0_CLIENT_ID'),
+            'client_secret': os.getenv('AUTH0_CLIENT_SECRET'),
+            'audience': f'https://{os.getenv("AUTH0_DOMAIN")}/api/v2/',
+            'grant_type': 'client_credentials'
+        }
+        response = requests.post(url, json=data, headers=headers)
+        response.raise_for_status()
+        token_info = response.json()
+        get_auth0_token.auth0_token = token_info['access_token']
+        get_auth0_token.auth0_token_expiry = time.time() + token_info['expires_in'] - 60  # Refresh 1 minute before expiry
+
+        return get_auth0_token.auth0_token
 
     return app
 

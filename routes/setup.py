@@ -94,15 +94,21 @@ def create_user():
     email = data.get('email')
     client_id = session.get('client_id')
     if not client_id:
+        current_app.logger.error('Client ID not found in session')
         return jsonify({'error': 'Client ID not found in session'}), 401
 
     # Check if user already exists
     existing_user = User.query.filter_by(email=email).first()
     if existing_user:
+        current_app.logger.error('User with this email already exists')
         return jsonify({'error': 'User with this email already exists'}), 400
 
     # Create Auth0 user and get auth0_id
-    auth0_id, temp_password = create_auth0_user(email)
+    try:
+        auth0_id, temp_password = create_auth0_user(email)
+    except Exception as e:
+        current_app.logger.error(f'Error creating Auth0 user: {e}')
+        return jsonify({'error': str(e)}), 500
 
     # Store user with auth0_id in local database
     user = User(username=username, email=email, client_id=client_id, auth0_id=auth0_id)
@@ -118,6 +124,7 @@ def create_user():
 
     send_password_email(email, temp_password)  # Send email with temporary password
 
+    current_app.logger.info(f'User {username} created successfully with Auth0 ID {auth0_id}')
     return jsonify({'status': 'success'})
 
 def create_auth0_user(email):
@@ -163,12 +170,42 @@ def create_auth0_user(email):
 def send_password_email(email, password):
     msg = Message('Your New Account Password',
                   recipients=[email])
-    msg.body = f'Your temporary password is: {password}'
+    msg.body = f'''
+    Welcome to Raterware!
+
+    Your temporary password is: {password}
+
+    Please visit the following link to log in with your new password:
+    http://raterware.com/login
+
+    
+    Best regards,
+    The Raterware Team
+    '''
     try:
         mail.send(msg)
         current_app.logger.info(f"Password email sent to {email}")
     except Exception as e:
         current_app.logger.error(f"Failed to send email: {e}")
+
+def send_deletion_email(email):
+    msg = Message('Account Deletion Notice',
+                  recipients=[email])
+    msg.body = '''
+    Dear User,
+
+    You have been removed from Raterware.
+
+    If you have any questions or believe this is a mistake, please contact your manager or your Raterware responsible contact.
+
+    Best regards,
+    The Raterware Team
+    '''
+    try:
+        mail.send(msg)
+        current_app.logger.info(f"Deletion email sent to {email}")
+    except Exception as e:
+        current_app.logger.error(f"Failed to send deletion email: {e}")
 
 @setup_bp.route('/edit_user/<auth0_id>/<int:user_id>', methods=['POST'])
 def edit_user(auth0_id, user_id):
@@ -201,7 +238,6 @@ def edit_user(auth0_id, user_id):
 
     return jsonify({'status': 'success'})
 
-
 @setup_bp.route('/request_password_reset', methods=['POST'])
 def request_password_reset():
     data = request.json
@@ -230,7 +266,6 @@ def request_password_reset():
 def password_reset():
     return render_template('request_password_reset.html')
 
-
 @setup_bp.route('/delete_user/<auth0_id>/<int:user_id>', methods=['POST'])
 def delete_user(auth0_id, user_id):
     try:
@@ -242,6 +277,7 @@ def delete_user(auth0_id, user_id):
         if not user:
             return jsonify({'error': 'User not found'}), 404
 
+        email = user.email  # Save email before deletion
         db.session.delete(user)
         db.session.commit()
 
@@ -254,6 +290,8 @@ def delete_user(auth0_id, user_id):
         }
         response = requests.delete(f'https://{auth0_domain}/api/v2/users/{auth0_id}', headers=headers)
         response.raise_for_status()
+
+        send_deletion_email(email)  # Send email notification of deletion
 
         return jsonify({'status': 'success'})
     except Exception as e:

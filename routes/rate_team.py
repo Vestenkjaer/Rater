@@ -293,6 +293,9 @@ def get_ai_recommendation(member_id):
         Conclusion:
         Summarize the key points and the next steps.
 
+        Future Prediction:
+        Based on the current performance trends, predict the potential future behavior of the member over the next few months.
+
         Performance Data:
         """
         for data in rating_data:
@@ -318,11 +321,15 @@ def get_ai_recommendation(member_id):
                 ]
             )
             recommendation = response.choices[0].message['content'].strip()
+            # Split the response into recommendation and future prediction
+            recommendation_parts = recommendation.split("Future Prediction:")
+            recommendation_text = recommendation_parts[0].strip()
+            future_prediction = recommendation_parts[1].strip() if len(recommendation_parts) > 1 else "No prediction available."
         except Exception as e:
             logging.error(f"Error fetching AI recommendation: {e}")
             return jsonify({'error': str(e)}), 500
 
-        return jsonify({'recommendation': recommendation})
+        return jsonify({'recommendation': recommendation_text, 'future_prediction': future_prediction})
     except Exception as e:
         logging.error(f"Error in get_ai_recommendation: {e}")
         return jsonify({'error': 'An internal error occurred'}), 500
