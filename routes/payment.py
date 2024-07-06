@@ -12,12 +12,12 @@ def buy(plan):
     plans = {
         'basic': {
             'name': 'Basic Plan',
-            'amount': 999,  # Amount in cents ($9.99)
+            'amount': 199,  # Amount in cents ($19.99)
             'currency': 'usd'
         },
         'professional': {
             'name': 'Professional Plan',
-            'amount': 2999,  # Amount in cents ($29.99)
+            'amount': 2999,  # Amount in cents ($299.99)
             'currency': 'usd'
         },
         'enterprise': {
