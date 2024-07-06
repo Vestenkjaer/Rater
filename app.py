@@ -22,7 +22,7 @@ stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
-    app.secret_key = app.config['SECRET_KEY']
+    app.secret_key = os.getenv('SECRET_KEY')
     app.config['STRIPE_PUBLISHABLE_KEY'] = os.getenv('STRIPE_PUBLISHABLE_KEY')
 
     # Configure session to use the filesystem
@@ -32,14 +32,17 @@ def create_app():
     app.config['SESSION_USE_SIGNER'] = True
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db?timeout=30'
 
+    # Add logging for environment variables
     required_env_vars = [
         'MAIL_SERVER', 'MAIL_PORT', 'MAIL_USERNAME', 'MAIL_PASSWORD',
         'AUTH0_CLIENT_ID', 'AUTH0_CLIENT_SECRET', 'AUTH0_DOMAIN', 'AUTH0_CALLBACK_URL'
     ]
 
     for var in required_env_vars:
-        if not os.getenv(var):
+        value = os.getenv(var)
+        if not value:
             raise ValueError(f"Missing required environment variable: {var}")
+        app.logger.debug(f"{var}: {value}")
 
     # Configure Flask-Mail
     app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
@@ -59,12 +62,12 @@ def create_app():
 
     auth0 = oauth.register(
         'auth0',
-        client_id=app.config['AUTH0_CLIENT_ID'],
-        client_secret=app.config['AUTH0_CLIENT_SECRET'],
-        api_base_url=f"https://{app.config['AUTH0_DOMAIN']}",
-        access_token_url=f"https://{app.config['AUTH0_DOMAIN']}/oauth/token",
-        authorize_url=f"https://{app.config['AUTH0_DOMAIN']}/authorize",
-        server_metadata_url=f"https://{app.config['AUTH0_DOMAIN']}/.well-known/openid-configuration",
+        client_id=os.getenv('AUTH0_CLIENT_ID'),
+        client_secret=os.getenv('AUTH0_CLIENT_SECRET'),
+        api_base_url=f"https://{os.getenv('AUTH0_DOMAIN')}",
+        access_token_url=f"https://{os.getenv('AUTH0_DOMAIN')}/oauth/token",
+        authorize_url=f"https://{os.getenv('AUTH0_DOMAIN')}/authorize",
+        server_metadata_url=f"https://{os.getenv('AUTH0_DOMAIN')}/.well-known/openid-configuration",
         client_kwargs={
             'scope': 'openid profile email',
         },
@@ -155,7 +158,7 @@ def create_app():
         session.modified = True  
         app.logger.debug(f"Generated state: {state}")
         app.logger.debug(f"Session before redirect: {dict(session)}")
-        return auth0.authorize_redirect(redirect_uri=app.config['AUTH0_CALLBACK_URL'], state=state)
+        return auth0.authorize_redirect(redirect_uri=os.getenv('AUTH0_CALLBACK_URL'), state=state)
 
     @app.route('/callback')
     def callback_handling():
@@ -197,13 +200,15 @@ def create_app():
 
     @app.route('/logout')
     def logout():
-     session.clear()
-     auth0_domain = os.getenv('AUTH0_DOMAIN')
-     auth0_api_base_url = f"https://{auth0_domain}"
-     auth0_client_id = os.getenv('AUTH0_CLIENT_ID')
-     if not auth0_api_base_url or not auth0_client_id:
-          raise ValueError("Missing AUTH0_API_BASE_URL or AUTH0_CLIENT_ID")
-     return redirect(auth0_api_base_url + '/v2/logout?client_id=' + auth0_client_id + '&returnTo=' + url_for('index', _external=True))
+        session.clear()
+        auth0_domain = os.getenv('AUTH0_DOMAIN')
+        auth0_api_base_url = f"https://{auth0_domain}"
+        auth0_client_id = os.getenv('AUTH0_CLIENT_ID')
+        app.logger.debug(f"AUTH0_DOMAIN: {auth0_domain}")
+        app.logger.debug(f"AUTH0_CLIENT_ID: {auth0_client_id}")
+        if not auth0_api_base_url or not auth0_client_id:
+            raise ValueError("Missing AUTH0_API_BASE_URL or AUTH0_CLIENT_ID")
+        return redirect(auth0_api_base_url + '/v2/logout?client_id=' + auth0_client_id + '&returnTo=' + url_for('index', _external=True))
 
     @app.route('/')
     def index():
