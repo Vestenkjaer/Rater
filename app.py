@@ -35,15 +35,14 @@ def create_app():
 
     # Initialize Whitenoise
     app.wsgi_app = WhiteNoise(
-    app.wsgi_app,
-    root='static/',
-    prefix='static/',
-    max_age=31536000,  # Cache files for 1 year
-    autorefresh=True,  # Auto-refresh static files in development
-    index_file=True,   # Serve index.html as default
-    mimetypes={'text/css': 'text/css; charset=UTF-8'}  # Specify MIME types if needed
-)
-
+        app.wsgi_app,
+        root='static/',
+        prefix='static/',
+        max_age=31536000,  # Cache files for 1 year
+        autorefresh=True,  # Auto-refresh static files in development
+        index_file=True,   # Serve index.html as default
+        mimetypes={'text/css': 'text/css; charset=UTF-8'}  # Specify MIME types if needed
+    )
 
     # Add logging for environment variables
     required_env_vars = [
@@ -167,7 +166,6 @@ def create_app():
     @app.route('/')
     def index():
         return redirect(url_for('dashboard'))
-
 
 
     @app.route('/login')
