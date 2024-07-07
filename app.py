@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from flask import Flask, render_template, redirect, url_for, session, jsonify, request, current_app
 from flask_session import Session
 from config import Config
+from whitenoise import WhiteNoise
 from models import db, Client, User, Settings
 from flask_migrate import Migrate
 from authlib.integrations.flask_client import OAuth
@@ -31,6 +32,11 @@ def create_app():
     app.config['SESSION_PERMANENT'] = False
     app.config['SESSION_USE_SIGNER'] = True
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db?timeout=30'
+
+    # Initialize Whitenoise
+    app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/')
+    app.wsgi_app.add_files('static/', prefix='static/')
+
 
     # Add logging for environment variables
     required_env_vars = [
