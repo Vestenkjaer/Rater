@@ -274,6 +274,7 @@
       </table>
       <div class="chart-container">
         <canvas id="historicalChart"></canvas>
+        <canvas id="radarChart" style="margin-top: 20px;"></canvas>
       </div>
     </div>
   </div>
@@ -347,6 +348,7 @@
             document.getElementById('member-name-container').innerHTML = `Selected Member: ${member.first_name} ${member.surname}`;
             const container = document.getElementById('member-ratings-container');
             container.innerHTML = '';
+            const radarData = [];
             criteria.forEach(criterion => {
               const tr = document.createElement('tr');
               tr.innerHTML = `
@@ -354,13 +356,14 @@
                 <td>${member.ratings[criterion]}</td>
               `;
               container.appendChild(tr);
+              radarData.push(member.ratings[criterion]);
             });
-            fetchHistoricalData(member.id, memberName);
+            fetchHistoricalData(member.id, memberName, radarData);
           }
         });
     }
     
-    function fetchHistoricalData(memberId, memberName) {
+    function fetchHistoricalData(memberId, memberName, radarData) {
       fetch(`/rate_team/get_historical_data/${memberId}`)
         .then(response => response.json())
         .then(data => {
@@ -376,6 +379,7 @@
             pointRadius: 0
           };
           renderChart(labels, dataset);
+          renderRadarChart(radarData);
         })
         .catch(error => {
           console.error('Error fetching historical data:', error);
@@ -411,6 +415,39 @@
               ticks: {
                 stepSize: 10
               }
+            }
+          }
+        }
+      });
+    }
+
+    function renderRadarChart(radarData) {
+      const ctx = document.getElementById('radarChart').getContext('2d');
+      if (window.myRadarChart) {
+        window.myRadarChart.destroy();
+      }
+      window.myRadarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: criteria.map(criterion => criterion.replace(/_/g, ' ')),
+          datasets: [{
+            label: selectedMemberName,
+            data: radarData,
+            backgroundColor: 'rgba(179,181,198,0.2)',
+            borderColor: 'rgba(179,181,198,1)',
+            pointBackgroundColor: 'rgba(179,181,198,1)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'rgba(179,181,198,1)'
+          }]
+        },
+        options: {
+          scale: {
+            ticks: {
+              beginAtZero: true,
+              min: 0,
+              max: 100,
+              stepSize: 10
             }
           }
         }
