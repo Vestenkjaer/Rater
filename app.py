@@ -20,7 +20,7 @@ load_dotenv()  # Load environment variables from .env file
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder='static')
     app.config.from_object(Config)
     app.secret_key = os.getenv('SECRET_KEY')
     app.config['STRIPE_PUBLISHABLE_KEY'] = os.getenv('STRIPE_PUBLISHABLE_KEY')
