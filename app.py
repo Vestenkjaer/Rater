@@ -34,8 +34,15 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db?timeout=30'
 
     # Initialize Whitenoise
-    app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/')
-    app.wsgi_app.add_files('static/', prefix='static/')
+    app.wsgi_app = WhiteNoise(
+    app.wsgi_app,
+    root='static/',
+    prefix='static/',
+    max_age=31536000,  # Cache files for 1 year
+    autorefresh=True,  # Auto-refresh static files in development
+    index_file=True,   # Serve index.html as default
+    mimetypes={'text/css': 'text/css; charset=UTF-8'}  # Specify MIME types if needed
+)
 
 
     # Add logging for environment variables
