@@ -30,7 +30,6 @@ def add_team():
         if not client_id:
             return jsonify({"error": "Client not found in session"}), 401
         
-        # Remove tier-based restrictions
         new_team = Team(name=data['team_name'], user_id=1, client_id=client_id)  # Assuming user_id is 1 for now
         db.session.add(new_team)
         db.session.commit()
@@ -65,12 +64,6 @@ def add_team_member(team_id):
         team = Team.query.get(team_id)
         if not team:
             return jsonify({"error": "Team not found"}), 404
-
-        current_members_count = TeamMember.query.filter_by(team_id=team_id).count()
-        if (tier == 0 or tier is None) and current_members_count >= 10:
-            return jsonify({"error": "To get the full AI experience, please upgrade to Professional version"}), 403
-        elif tier == 1 and current_members_count >= 50:
-            return jsonify({"error": "To add more team members, please upgrade to a higher tier"}), 403
 
         new_member = TeamMember(
             team_id=team_id, 
