@@ -27,17 +27,10 @@ def add_team():
         data = request.get_json()
         logger.debug(f"Received data for new team: {data}")
         client_id = session.get('client_id')  # Get client_id from session
-        tier = session.get('tier')  # Get user tier from session
         if not client_id:
             return jsonify({"error": "Client not found in session"}), 401
         
-        # Check the number of teams based on the tier
-        current_teams_count = Team.query.filter_by(client_id=client_id).count()
-        if (tier == 0 or tier is None) and current_teams_count >= 1:
-            return jsonify({"error": "To get the full AI experience, please upgrade to Professional version"}), 403
-        elif tier == 1 and current_teams_count >= 5:
-            return jsonify({"error": "To create more teams, please upgrade to a higher tier"}), 403
-
+        # Remove tier-based restrictions
         new_team = Team(name=data['team_name'], user_id=1, client_id=client_id)  # Assuming user_id is 1 for now
         db.session.add(new_team)
         db.session.commit()
