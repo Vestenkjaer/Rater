@@ -209,6 +209,19 @@ def create_app():
             return jsonify({"error": str(e)}), 500
         return redirect('/dashboard')
 
+    @app.route('/logout')
+    def logout():
+        session.clear()
+        auth0_domain = os.getenv('AUTH0_DOMAIN')
+        return_to = url_for('index', _external=True)
+        client_id = os.getenv('AUTH0_CLIENT_ID')
+        params = {
+            'returnTo': return_to,
+            'client_id': client_id
+        }
+        logout_url = f'https://{auth0_domain}/v2/logout?{urlencode(params)}'
+        return redirect(logout_url)
+
     @app.route('/dashboard')
     def dashboard():
         if 'user' not in session:
@@ -233,19 +246,6 @@ def create_app():
             'name': user_info.get('name', 'Unknown User'),
             'email': user_info.get('email', 'unknown@example.com')
         })
-
-    @app.route('/logout')
-    def logout():
-        session.clear()
-        auth0_domain = os.getenv('AUTH0_DOMAIN')
-        return_to = url_for('index', _external=True)
-        client_id = os.getenv('AUTH0_CLIENT_ID')
-        params = {
-        'returnTo': return_to,
-        'client_id': client_id
-        }
-    logout_url = f'https://{auth0_domain}/v2/logout?{urlencode(params)}'
-    return redirect(logout_url)
 
     @app.route('/stripe-webhook', methods=['POST'])
     def stripe_webhook():
