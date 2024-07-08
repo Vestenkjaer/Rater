@@ -289,20 +289,11 @@
           </button>
         </div>
         <div class="modal-body">
-          <div id="reportContent">
-            <img src="{{ url_for('static', filename='images/raterware.png') }}" alt="Raterware Logo" style="max-width: 200px; margin-bottom: 20px;">
-            <div id="reportHeader" style="margin-bottom: 20px;">
-              <h3>Individual Evaluation Report</h3>
-              <p><strong>Date:</strong> <span id="reportDate"></span></p>
-              <p><strong>Team Member:</strong> <span id="reportMemberName"></span></p>
-              <p><strong>Confidential GDPR Material</strong></p>
-            </div>
-            <div id="aiRecommendationContent" style="margin-bottom: 20px;"></div>
-            <div id="futurePredictionContent" style="margin-bottom: 20px;"></div>
-            <div style="margin-bottom: 20px;">
-              <canvas id="pdfRadarChart"></canvas>
-            </div>
+          <div id="aiRecommendationContent"></div>
+          <div class="chart-container">
+            <canvas id="modalRadarChart" style="margin-top: 20px;"></canvas>
           </div>
+          <div id="futurePredictionContent"></div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -390,20 +381,20 @@
             tension: 0.4,
             pointRadius: 0
           };
-          renderChart(labels, dataset);
-          renderRadarChart('radarChart', radarData);
+          renderChart(labels, dataset, 'historicalChart');
+          renderRadarChart(radarData, 'radarChart');
         })
         .catch(error => {
           console.error('Error fetching historical data:', error);
         });
     }
     
-    function renderChart(labels, dataset) {
-      const ctx = document.getElementById('historicalChart').getContext('2d');
-      if (window.myChart) {
-        window.myChart.destroy();
+    function renderChart(labels, dataset, canvasId) {
+      const ctx = document.getElementById(canvasId).getContext('2d');
+      if (window[canvasId]) {
+        window[canvasId].destroy();
       }
-      window.myChart = new Chart(ctx, {
+      window[canvasId] = new Chart(ctx, {
         type: 'line',
         data: {
           labels: labels,
@@ -433,7 +424,7 @@
       });
     }
 
-    function renderRadarChart(canvasId, radarData) {
+    function renderRadarChart(radarData, canvasId) {
       const ctx = document.getElementById(canvasId).getContext('2d');
       if (window[canvasId]) {
         window[canvasId].destroy();
@@ -493,10 +484,8 @@
           } else {
             document.getElementById('aiRecommendationContent').innerText = data.recommendation;
             document.getElementById('futurePredictionContent').innerText = data.future_prediction;
-            document.getElementById('reportDate').innerText = new Date().toLocaleDateString();
-            document.getElementById('reportMemberName').innerText = selectedMemberName;
+            renderRadarChart(data.radarData, 'modalRadarChart');
             $('#aiModal').modal('show');
-            renderRadarChart('pdfRadarChart', data.radar_data); // Ensure radar chart renders for PDF
           }
         })
         .catch(error => {
@@ -512,13 +501,49 @@
       const today = new Date().toISOString().slice(0, 10);
       const fileName = `AI_Recommendation_${memberName}_${today}.pdf`;
 
-      const element = document.createElement('div');
-      element.appendChild(document.getElementById('reportContent').cloneNode(true));
+      const reportContent = document.createElement('div');
+      const page1 = document.createElement('div');
+      const page2 = document.createElement('div');
+
+      // Page 1 content
+      page1.innerHTML = `
+        <div style="text-align: center; margin-bottom: 20px;">
+          <img src="{{ url_for('static', filename='images/raterware.png') }}" style="max-width: 200px;">
+        </div>
+        <h1 style="text-align: center; font-size: 36px;">Individual Evaluation Report</h1>
+        <p style="text-align: center; font-size: 18px;">Date: ${today}</p>
+        <p style="text-align: center; font-size: 18px;">Team Member: ${memberName}</p>
+        <p style="text-align: center; font-size: 18px;">Confidential GDPR Material</p>
+      `;
+
+      const modalRadarCanvas = document.getElementById('modalRadarChart');
+      const radarChartDataUrl = modalRadarCanvas.toDataURL('image/png');
+      const radarChartImage = new Image();
+      radarChartImage.src = radarChartDataUrl;
+      radarChartImage.style.display = 'block';
+      radarChartImage.style.margin = '20px auto';
+      page1.appendChild(radarChartImage);
+
+      // Page 2 content
+      page2.innerHTML = `
+        <h2>AI Recommendation</h2>
+        <div>${document.getElementById('aiRecommendationContent').innerHTML}</div>
+        <h2>Future Prediction</h2>
+        <div>${document.getElementById('futurePredictionContent').innerHTML}</div>
+      `;
+
+      // Append pages to report content
+      reportContent.appendChild(page1);
+      reportContent.appendChild(document.createElement('hr')); // Page break
+      reportContent.appendChild(page2);
 
       html2pdf().set({
         filename: fileName,
-        html2canvas: { scale: 2 }
-      }).from(element).save();
+        margin: [20, 20, 20, 20], // 20mm margins
+        pagebreak: { mode: ['css', 'legacy'] },
+        html2canvas: { useCORS: true, willReadFrequently: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      }).from(reportContent).save();
     }
     
     window.addEventListener('load', () => {
