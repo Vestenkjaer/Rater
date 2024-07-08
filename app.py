@@ -15,6 +15,7 @@ import json
 import time
 from apscheduler.schedulers.background import BackgroundScheduler
 from mail import mail  # Import mail from mail.py
+from urllib.parse import urlencode  # Import urlencode from urllib.parse
 
 load_dotenv()  # Load environment variables from .env file
 
