@@ -500,30 +500,30 @@
     }
     
     function saveAsPDF() {
-      const memberName = document.getElementById('member-name-container').innerText.replace('Selected Member: ', '');
-      const today = new Date().toISOString().slice(0, 10);
-      const fileName = `AI_Recommendation_${memberName}_${today}.pdf`;
+     const memberName = document.getElementById('member-name-container').innerText.replace('Selected Member: ', '');
+     const today = new Date().toISOString().slice(0, 10);
+     const fileName = `AI_Recommendation_${memberName}_${today}.pdf`;
 
       const element = document.createElement('div');
-      element.innerHTML = `
-        <h1>Individual Evaluation Report</h1>
-        <p>Date: ${today}</p>
-        <p>Team Member: ${memberName}</p>
-        <p>Confidential GDPR material</p>
-        <img src="/static/images/raterware.png" alt="Raterware">
-      `;
-      element.appendChild(document.getElementById('aiRecommendationContent').cloneNode(true));
-      element.appendChild(document.getElementById('futurePredictionContent').cloneNode(true));
-      element.appendChild(document.getElementById('radarChartModal').cloneNode(true));
+       element.innerHTML = `
+       <h1>Individual Evaluation Report</h1>
+       <p>Date: ${today}</p>
+       <p>Team Member: ${memberName}</p>
+       <p>Confidential GDPR material</p>
+       <img src="/static/images/raterware.png" alt="Raterware" style="width: 50%; height: auto;">
+       `;
+    element.appendChild(document.getElementById('aiRecommendationContent').cloneNode(true));
+    element.appendChild(document.getElementById('futurePredictionContent').cloneNode(true));
+    element.appendChild(document.getElementById('radarChartModal').cloneNode(true));
 
-      html2pdf().set({
-        margin: [20, 20, 20, 20],
-        filename: fileName,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, allowTaint: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      }).from(element).save();
-    }
+    html2pdf().set({
+    margin: [20, 20, 20, 20],
+    filename: fileName,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, allowTaint: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    }).from(element).save();
+   }
     
     window.addEventListener('load', () => {
       const teamList = document.getElementById('teamList');
