@@ -291,7 +291,7 @@
         <div class="modal-body">
           <div id="aiRecommendationContent"></div>
           <div id="futurePredictionContent"></div>
-          <canvas id="radarChartModal" style="margin-top: 20px;"></canvas>
+          <canvas id="aiRadarChart" style="margin-top: 20px;"></canvas>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -316,8 +316,7 @@
     let selectedTeamId = null;
     let selectedMemberId = null;
     let selectedMemberName = '';
-    let radarChart, radarChartModal;
-
+    
     function fetchTeamMembers(teamId) {
       selectedTeamId = teamId;
       fetch(`/rate_team/get_team_members/${teamId}`)
@@ -381,8 +380,7 @@
             pointRadius: 0
           };
           renderChart(labels, dataset);
-          renderRadarChart(radarData, 'radarChart');
-          renderRadarChart(radarData, 'radarChartModal');
+          renderRadarChart('radarChart', radarData, memberName);
         })
         .catch(error => {
           console.error('Error fetching historical data:', error);
@@ -391,10 +389,10 @@
     
     function renderChart(labels, dataset) {
       const ctx = document.getElementById('historicalChart').getContext('2d');
-      if (window.myChart) {
-        window.myChart.destroy();
+      if (window.historicalChart) {
+        window.historicalChart.destroy();
       }
-      window.myChart = new Chart(ctx, {
+      window.historicalChart = new Chart(ctx, {
         type: 'line',
         data: {
           labels: labels,
@@ -424,7 +422,7 @@
       });
     }
 
-    function renderRadarChart(radarData, canvasId) {
+    function renderRadarChart(canvasId, radarData, memberName) {
       const ctx = document.getElementById(canvasId).getContext('2d');
       if (window[canvasId]) {
         window[canvasId].destroy();
@@ -434,7 +432,7 @@
         data: {
           labels: criteria.map(criterion => criterion.replace(/_/g, ' ')),
           datasets: [{
-            label: selectedMemberName,
+            label: memberName,
             data: radarData,
             backgroundColor: 'rgba(0,123,255,0.2)',
             borderColor: 'rgba(0,123,255,1)',
@@ -482,8 +480,9 @@
           if (data.error) {
             alert(data.error);
           } else {
-            document.getElementById('aiRecommendationContent').innerHTML = data.recommendation;
-            document.getElementById('futurePredictionContent').innerHTML = data.future_prediction;
+            document.getElementById('aiRecommendationContent').innerText = data.recommendation;
+            document.getElementById('futurePredictionContent').innerText = data.future_prediction;
+            renderRadarChart('aiRadarChart', data.radarData, selectedMemberName);
             $('#aiModal').modal('show');
           }
         })
@@ -501,71 +500,22 @@
       const fileName = `AI_Recommendation_${memberName}_${today}.pdf`;
 
       const reportContent = document.createElement('div');
-      const page1 = document.createElement('div');
-      const page2 = document.createElement('div');
-      
-      page1.innerHTML = `
+      reportContent.innerHTML = `
         <h1>Individual Evaluation Report</h1>
-        <h3>Date: ${today}</h3>
-        <h3>Team Member: ${memberName}</h3>
-        <h3>Confidential GDPR Material</h3>
-        <img src="{{ url_for('static', filename='images/raterware.png') }}" alt="Raterware Logo" style="display: block; margin: 20px auto;">
+        <p>Date: ${today}</p>
+        <p>Team Member: ${memberName}</p>
+        <p>Confidential GDPR Material</p>
+        <img src="/static/images/raterware.png" style="display: block; margin: 20px auto;">
+        ${document.getElementById('aiRecommendationContent').outerHTML}
+        ${document.getElementById('futurePredictionContent').outerHTML}
       `;
-      
-      page2.innerHTML = `
-        <h2>AI Recommendation</h2>
-        <div>${document.getElementById('aiRecommendationContent').innerHTML}</div>
-        <h2>Future Prediction</h2>
-        <div>${document.getElementById('futurePredictionContent').innerHTML}</div>
-        <h2>Performance Radar Chart</h2>
-        <div><canvas id="radarChartPDF" style="margin-top: 20px;"></canvas></div>
-      `;
-
-      // Append pages to report content
-      reportContent.appendChild(page1);
-      reportContent.appendChild(document.createElement('hr')); // Page break
-      reportContent.appendChild(page2);
+      reportContent.appendChild(document.getElementById('aiRadarChart').cloneNode(true));
 
       html2pdf().set({
         filename: fileName,
-        margin: [20, 20, 20, 20], // 20mm margins
+        margin: [20, 20, 20, 20],
         pagebreak: { mode: ['css', 'legacy'] }
-      }).from(reportContent).toPdf().get('pdf').then((pdf) => {
-        const canvas = document.getElementById('radarChartPDF');
-        if (canvas) {
-          const ctx = canvas.getContext('2d');
-          new Chart(ctx, {
-            type: 'radar',
-            data: {
-              labels: criteria.map(criterion => criterion.replace(/_/g, ' ')),
-              datasets: [{
-                label: memberName,
-                data: window.radarChart.data.datasets[0].data,
-                backgroundColor: 'rgba(0,123,255,0.2)',
-                borderColor: 'rgba(0,123,255,1)',
-                pointBackgroundColor: 'rgba(0,123,255,1)',
-                pointBorderColor: '#fff',
-                pointHoverBackgroundColor: '#fff',
-                pointHoverBorderColor: 'rgba(0,123,255,1)'
-              }]
-            },
-            options: {
-              scale: {
-                ticks: {
-                  beginAtZero: true,
-                  min: 0,
-                  max: 100,
-                  stepSize: 10
-                }
-              }
-            }
-          });
-          pdf.addPage();
-          pdf.setPage(pdf.internal.getNumberOfPages());
-          pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 20, 20, canvas.width / 4, canvas.height / 4);
-          pdf.save();
-        }
-      });
+      }).from(reportContent).save();
     }
     
     window.addEventListener('load', () => {
