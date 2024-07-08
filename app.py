@@ -167,7 +167,6 @@ def create_app():
     def index():
         return redirect(url_for('dashboard'))
 
-
     @app.route('/login')
     def login():
         state = secrets.token_urlsafe(16)
@@ -214,7 +213,6 @@ def create_app():
         if 'user' not in session:
             return redirect(url_for('login'))
         return render_template('landing_page.html')
-
 
     @app.route('/set_session')
     def set_session():
