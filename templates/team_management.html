@@ -244,7 +244,7 @@
         const response = await fetch('/team_management/get_teams');
         if (response.ok) {
           const data = await response.json();
-          const { teams } = data;  // Get teams only
+          const { teams } = data;
           const teamList = document.getElementById('teamList');
           teamList.innerHTML = '';
           teams.forEach(team => {
@@ -285,8 +285,6 @@
       event.preventDefault();
 
       const teamName = document.getElementById('teamName').value;
-      const teamList = document.getElementById('teamList');
-      const currentTeamsCount = teamList.children.length;
 
       const response = await fetch('/team_management/add_team', {
         method: 'POST',

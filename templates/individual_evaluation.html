@@ -217,6 +217,34 @@
       background-color: #005BB5;
       transform: translateY(-2px);
     }
+
+    .report-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .report-header h1 {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    .report-header h2 {
+      font-size: 20px;
+      margin-bottom: 5px;
+    }
+
+    .report-header h3 {
+      font-size: 18px;
+      color: red;
+    }
+
+    .report-content {
+      margin: 20px;
+    }
+
+    .report-chart {
+      margin: 20px 0;
+    }
   </style>
 </head>
 <body>
@@ -289,10 +317,16 @@
           </button>
         </div>
         <div class="modal-body">
-          <div id="aiRecommendationContent"></div>
-          <div id="futurePredictionContent"></div>
-          <div class="chart-container">
-            <canvas id="radarChartClone"></canvas>
+          <div id="reportHeader" class="report-header">
+            <h1>Individual Evaluation Report</h1>
+            <h2 id="reportMemberName"></h2>
+            <h2 id="reportDate"></h2>
+            <h3>Confidential GDPR Material</h3>
+          </div>
+          <div id="aiRecommendationContent" class="report-content"></div>
+          <div id="futurePredictionContent" class="report-content"></div>
+          <div id="reportRadarChart" class="report-chart">
+            <canvas id="radarChartModal"></canvas>
           </div>
         </div>
         <div class="modal-footer">
@@ -349,6 +383,7 @@
           const member = data.members.find(m => m.id === memberId);
           if (member) {
             document.getElementById('member-name-container').innerHTML = `Selected Member: ${member.first_name} ${member.surname}`;
+            document.getElementById('reportMemberName').innerHTML = `Member: ${member.first_name} ${member.surname}`;
             const container = document.getElementById('member-ratings-container');
             container.innerHTML = '';
             const radarData = [];
@@ -382,7 +417,7 @@
             pointRadius: 0
           };
           renderChart(labels, dataset);
-          renderRadarChart(radarData);
+          renderRadarChart(radarData, 'radarChart');
         })
         .catch(error => {
           console.error('Error fetching historical data:', error);
@@ -424,12 +459,12 @@
       });
     }
 
-    function renderRadarChart(radarData) {
-      const ctx = document.getElementById('radarChart').getContext('2d');
-      if (window.myRadarChart) {
-        window.myRadarChart.destroy();
+    function renderRadarChart(radarData, canvasId) {
+      const ctx = document.getElementById(canvasId).getContext('2d');
+      if (window[canvasId]) {
+        window[canvasId].destroy();
       }
-      window.myRadarChart = new Chart(ctx, {
+      window[canvasId] = new Chart(ctx, {
         type: 'radar',
         data: {
           labels: criteria.map(criterion => criterion.replace(/_/g, ' ')),
@@ -484,7 +519,7 @@
           } else {
             document.getElementById('aiRecommendationContent').innerText = data.recommendation;
             document.getElementById('futurePredictionContent').innerText = data.future_prediction;
-            cloneRadarChart();
+            renderRadarChart(data.radar_data, 'radarChartModal');
             $('#aiModal').modal('show');
           }
         })
@@ -496,35 +531,27 @@
         });
     }
     
-    function cloneRadarChart() {
-      const radarChartCanvas = document.getElementById('radarChart');
-      const radarChartClone = document.getElementById('radarChartClone');
-      
-      radarChartClone.getContext('2d').drawImage(radarChartCanvas, 0, 0);
-    }
-    
     function saveAsPDF() {
       const memberName = document.getElementById('member-name-container').innerText.replace('Selected Member: ', '');
       const today = new Date().toISOString().slice(0, 10);
       const fileName = `AI_Recommendation_${memberName}_${today}.pdf`;
 
       const element = document.createElement('div');
-      const dateElement = document.createElement('div');
-      dateElement.style.marginBottom = '20px';
-      dateElement.innerHTML = `Date: ${today}`;
-      element.appendChild(dateElement);
-
-      const contentElement = document.createElement('div');
-      contentElement.style.margin = '20px';
-      contentElement.appendChild(document.getElementById('aiRecommendationContent').cloneNode(true));
-      contentElement.appendChild(document.getElementById('futurePredictionContent').cloneNode(true));
-      contentElement.appendChild(document.getElementById('radarChartClone').cloneNode(true));
-
-      element.appendChild(contentElement);
+      element.appendChild(document.getElementById('reportHeader').cloneNode(true));
+      element.appendChild(document.getElementById('aiRecommendationContent').cloneNode(true));
+      element.appendChild(document.getElementById('futurePredictionContent').cloneNode(true));
 
       html2pdf().set({
-        filename: fileName
-      }).from(element).save();
+        margin: 10,
+        filename: fileName,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      }).from(element).toPdf().get('pdf').then(pdf => {
+        const chartCanvas = document.getElementById('radarChartModal');
+        const chartDataUrl = chartCanvas.toDataURL('image/png');
+        pdf.addImage(chartDataUrl, 'PNG', 10, pdf.autoTable.previous.finalY + 10, 190, 0);
+      }).save();
     }
     
     window.addEventListener('load', () => {
@@ -533,6 +560,7 @@
         teamList.selectedIndex = 1; // Select the only team
         fetchTeamMembers(teamList.value);
       }
+      document.getElementById('reportDate').innerText = `Date: ${new Date().toLocaleDateString()}`;
     });
   </script>
 </body>
