@@ -318,7 +318,8 @@
     let selectedMemberName = '';
     let historicalChart = null;
     let radarChart = null;
-
+    let radarChartModal = null;
+    
     function fetchTeamMembers(teamId) {
       selectedTeamId = teamId;
       fetch(`/rate_team/get_team_members/${teamId}`)
@@ -382,7 +383,7 @@
             pointRadius: 0
           };
           renderChart(labels, dataset);
-          renderRadarChart(radarData);
+          renderRadarChart(radarData, 'radarChart');
         })
         .catch(error => {
           console.error('Error fetching historical data:', error);
@@ -391,10 +392,10 @@
     
     function renderChart(labels, dataset) {
       const ctx = document.getElementById('historicalChart').getContext('2d');
-      if (historicalChart) {
-        historicalChart.destroy();
+      if (window.historicalChart) {
+        window.historicalChart.destroy();
       }
-      historicalChart = new Chart(ctx, {
+      window.historicalChart = new Chart(ctx, {
         type: 'line',
         data: {
           labels: labels,
@@ -424,56 +425,24 @@
       });
     }
 
-    function renderRadarChart(radarData) {
-      const ctx = document.getElementById('radarChart').getContext('2d');
-      const ctxModal = document.getElementById('radarChartModal').getContext('2d');
-      if (radarChart) {
-        radarChart.destroy();
+    function renderRadarChart(radarData, canvasId) {
+      const ctx = document.getElementById(canvasId).getContext('2d');
+      if (window[canvasId]) {
+        window[canvasId].destroy();
       }
-      radarChart = new Chart(ctx, {
+      window[canvasId] = new Chart(ctx, {
         type: 'radar',
         data: {
           labels: criteria.map(criterion => criterion.replace(/_/g, ' ')),
           datasets: [{
             label: selectedMemberName,
             data: radarData,
-            backgroundColor: 'rgba(179,181,198,0.2)',
-            borderColor: 'rgba(179,181,198,1)',
-            pointBackgroundColor: 'rgba(179,181,198,1)',
+            backgroundColor: 'rgba(0, 123, 255, 0.2)',
+            borderColor: 'rgba(0, 123, 255, 1)',
+            pointBackgroundColor: 'rgba(0, 123, 255, 1)',
             pointBorderColor: '#fff',
             pointHoverBackgroundColor: '#fff',
-            pointHoverBorderColor: 'rgba(179,181,198,1)'
-          }]
-        },
-        options: {
-          scale: {
-            ticks: {
-              beginAtZero: true,
-              min: 0,
-              max: 100,
-              stepSize: 10
-            }
-          }
-        }
-      });
-      
-      // Render the same radar chart in the modal
-      if (window.radarChartModal) {
-        window.radarChartModal.destroy();
-      }
-      window.radarChartModal = new Chart(ctxModal, {
-        type: 'radar',
-        data: {
-          labels: criteria.map(criterion => criterion.replace(/_/g, ' ')),
-          datasets: [{
-            label: selectedMemberName,
-            data: radarData,
-            backgroundColor: 'rgba(179,181,198,0.2)',
-            borderColor: 'rgba(179,181,198,1)',
-            pointBackgroundColor: 'rgba(179,181,198,1)',
-            pointBorderColor: '#fff',
-            pointHoverBackgroundColor: '#fff',
-            pointHoverBorderColor: 'rgba(179,181,198,1)'
+            pointHoverBorderColor: 'rgba(0, 123, 255, 1)'
           }]
         },
         options: {
@@ -516,7 +485,7 @@
           } else {
             document.getElementById('aiRecommendationContent').innerText = data.recommendation;
             document.getElementById('futurePredictionContent').innerText = data.future_prediction;
-            renderRadarChart(data.radar_data); // Render the radar chart in the modal
+            renderRadarChart(data.radar_data, 'radarChartModal'); // Render the radar chart in the modal
             $('#aiModal').modal('show');
           }
         })
@@ -534,8 +503,7 @@
       const fileName = `AI_Recommendation_${memberName}_${today}.pdf`;
 
       const element = document.createElement('div');
-      element.style.padding = '20mm';
-      const header = document.createElement('h1');
+      const header = document.createElement('h2');
       header.innerText = 'Individual Evaluation Report';
       element.appendChild(header);
 
