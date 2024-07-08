@@ -5,7 +5,7 @@ from flask import Flask, render_template, redirect, url_for, session, jsonify, r
 from flask_session import Session
 from config import Config
 from whitenoise import WhiteNoise
-from models import db, Client, User, Settings
+from models import db, Client, User, Settings, Team, TeamMember, Rating
 from flask_migrate import Migrate
 from authlib.integrations.flask_client import OAuth
 import logging

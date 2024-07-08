@@ -272,8 +272,10 @@
         <tbody id="member-ratings-container">
         </tbody>
       </table>
-      <div class="chart-container">
+      <div class="chart-container" id="historicalChartContainer">
         <canvas id="historicalChart"></canvas>
+      </div>
+      <div class="chart-container" id="radarChartContainer">
         <canvas id="radarChart" style="margin-top: 20px;"></canvas>
       </div>
     </div>
@@ -291,7 +293,9 @@
         <div class="modal-body">
           <div id="aiRecommendationContent"></div>
           <div id="futurePredictionContent"></div>
-          <canvas id="radarChartModal" style="margin-top: 20px;"></canvas>
+          <div class="chart-container" id="radarChartContainerModal">
+            <canvas id="radarChartModal" style="margin-top: 20px;"></canvas>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -316,12 +320,7 @@
     let selectedTeamId = null;
     let selectedMemberId = null;
     let selectedMemberName = '';
-
-    // Store chart instances globally
-    let historicalChart;
-    let radarChart;
-    let radarChartModal;
-
+    
     function fetchTeamMembers(teamId) {
       selectedTeamId = teamId;
       fetch(`/rate_team/get_team_members/${teamId}`)
@@ -368,7 +367,7 @@
           }
         });
     }
-
+    
     function fetchHistoricalData(memberId, memberName, radarData) {
       fetch(`/rate_team/get_historical_data/${memberId}`)
         .then(response => response.json())
@@ -385,7 +384,7 @@
             pointRadius: 0
           };
           renderChart(labels, dataset);
-          renderRadarChart('radarChart', radarData);
+          renderRadarChart(radarData, 'radarChart');
         })
         .catch(error => {
           console.error('Error fetching historical data:', error);
@@ -393,11 +392,22 @@
     }
     
     function renderChart(labels, dataset) {
-      const ctx = document.getElementById('historicalChart').getContext('2d');
-      if (historicalChart) {
-        historicalChart.destroy();
+      // Ensure the canvas element exists
+      let ctx = document.getElementById('historicalChart');
+      if (!ctx) {
+        const container = document.getElementById('historicalChartContainer');
+        ctx = document.createElement('canvas');
+        ctx.id = 'historicalChart';
+        container.appendChild(ctx);
       }
-      historicalChart = new Chart(ctx, {
+      
+      // Destroy the existing chart instance if it exists
+      if (window.historicalChart) {
+        window.historicalChart.destroy();
+      }
+      
+      // Create a new chart instance
+      window.historicalChart = new Chart(ctx, {
         type: 'line',
         data: {
           labels: labels,
@@ -427,11 +437,22 @@
       });
     }
 
-    function renderRadarChart(canvasId, radarData) {
-      const ctx = document.getElementById(canvasId).getContext('2d');
+    function renderRadarChart(radarData, canvasId) {
+      // Ensure the canvas element exists
+      let ctx = document.getElementById(canvasId);
+      if (!ctx) {
+        const container = document.getElementById(canvasId + 'Container');
+        ctx = document.createElement('canvas');
+        ctx.id = canvasId;
+        container.appendChild(ctx);
+      }
+      
+      // Destroy the existing chart instance if it exists
       if (window[canvasId]) {
         window[canvasId].destroy();
       }
+      
+      // Create a new chart instance
       window[canvasId] = new Chart(ctx, {
         type: 'radar',
         data: {
@@ -459,7 +480,7 @@
         }
       });
     }
-
+    
     function getRandomColor() {
       const letters = '0123456789ABCDEF';
       let color = '#';
@@ -488,7 +509,7 @@
             document.getElementById('aiRecommendationContent').innerText = data.recommendation;
             document.getElementById('futurePredictionContent').innerText = data.future_prediction;
             $('#aiModal').modal('show');
-            renderRadarChart('radarChartModal', data.radarData);
+            renderRadarChart(data.radar_data, 'radarChartModal');
           }
         })
         .catch(error => {
@@ -500,30 +521,28 @@
     }
     
     function saveAsPDF() {
-     const memberName = document.getElementById('member-name-container').innerText.replace('Selected Member: ', '');
-     const today = new Date().toISOString().slice(0, 10);
-     const fileName = `AI_Recommendation_${memberName}_${today}.pdf`;
+      const memberName = document.getElementById('member-name-container').innerText.replace('Selected Member: ', '');
+      const today = new Date().toISOString().slice(0, 10);
+      const fileName = `AI_Recommendation_${memberName}_${today}.pdf`;
 
       const element = document.createElement('div');
-       element.innerHTML = `
-       <h1>Individual Evaluation Report</h1>
-       <p>Date: ${today}</p>
-       <p>Team Member: ${memberName}</p>
-       <p>Confidential GDPR material</p>
-       <img src="/static/images/raterware.png" alt="Raterware" style="width: 80%; height: auto;">
-  `;
-    element.appendChild(document.getElementById('aiRecommendationContent').cloneNode(true));
-    element.appendChild(document.getElementById('futurePredictionContent').cloneNode(true));
-    element.appendChild(document.getElementById('radarChartModal').cloneNode(true));
+      element.innerHTML = `
+        <h1>Individual Evaluation Report</h1>
+        <p>Date: ${today}</p>
+        <p>Team Member: ${memberName}</p>
+        <p>Confidential GDPR material</p>
+        <img src="/static/images/raterware.png" alt="Raterware" style="width: 100%; height: auto;">
+      `;
+      element.appendChild(document.getElementById('aiRecommendationContent').cloneNode(true));
+      element.appendChild(document.getElementById('futurePredictionContent').cloneNode(true));
+      element.appendChild(document.getElementById('radarChartContainerModal').cloneNode(true));
 
-    html2pdf().set({
-    margin: [20, 20, 20, 20],
-    filename: fileName,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, allowTaint: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    }).from(element).save();
-   }
+      html2pdf().set({
+        margin: [20, 20, 20, 20],
+        filename: fileName,
+        pagebreak: { mode: 'avoid-all', before: '#radarChartContainerModal' }
+      }).from(element).save();
+    }
     
     window.addEventListener('load', () => {
       const teamList = document.getElementById('teamList');
