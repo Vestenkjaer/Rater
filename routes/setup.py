@@ -6,6 +6,7 @@ import os
 import secrets
 from mail import mail  # Import mail from mail.py
 from flask_mail import Message
+import time
 
 setup_bp = Blueprint('setup', __name__)
 
@@ -127,9 +128,37 @@ def create_user():
     current_app.logger.info(f'User {username} created successfully with Auth0 ID {auth0_id}')
     return jsonify({'status': 'success'})
 
+def get_auth0_token():
+    if 'auth0_token' not in get_auth0_token.__dict__:
+        get_auth0_token.auth0_token = None
+        get_auth0_token.auth0_token_expiry = 0
+
+    if time.time() < get_auth0_token.auth0_token_expiry:
+        return get_auth0_token.auth0_token
+
+    auth0_domain = os.getenv('AUTH0_DOMAIN')
+    client_id = os.getenv('AUTH0_CLIENT_ID')
+    client_secret = os.getenv('AUTH0_CLIENT_SECRET')
+    
+    url = f'https://{auth0_domain}/oauth/token'
+    headers = {'content-type': 'application/json'}
+    data = {
+        'client_id': client_id,
+        'client_secret': client_secret,
+        'audience': f'https://{auth0_domain}/api/v2/',
+        'grant_type': 'client_credentials'
+    }
+    response = requests.post(url, json=data, headers=headers)
+    response.raise_for_status()
+    token_info = response.json()
+    get_auth0_token.auth0_token = token_info['access_token']
+    get_auth0_token.auth0_token_expiry = time.time() + token_info['expires_in'] - 60  # Refresh 1 minute before expiry
+
+    return get_auth0_token.auth0_token
+
 def create_auth0_user(email):
     auth0_domain = os.getenv('AUTH0_DOMAIN')
-    auth0_token = os.getenv('AUTH0_MANAGEMENT_API_TOKEN')
+    auth0_token = get_auth0_token()  # Get the valid Auth0 token
     headers = {
         'Authorization': f'Bearer {auth0_token}',
         'Content-Type': 'application/json'
@@ -153,7 +182,10 @@ def create_auth0_user(email):
     current_app.logger.info(f"Response status code: {response.status_code}")
     current_app.logger.info(f"Response content: {response.content}")
     
-    response.raise_for_status()
+    if response.status_code != 201:
+        current_app.logger.error(f"Failed to create Auth0 user: {response.content}")
+        response.raise_for_status()
+    
     auth0_user = response.json()
     current_app.logger.info(f"Auth0 user created: {auth0_user}")
 
@@ -283,7 +315,7 @@ def delete_user(auth0_id, user_id):
 
         # Also delete the user from Auth0
         auth0_domain = os.getenv('AUTH0_DOMAIN')
-        auth0_token = os.getenv('AUTH0_MANAGEMENT_API_TOKEN')
+        auth0_token = get_auth0_token()  # Use the token retrieval function
         headers = {
             'Authorization': f'Bearer {auth0_token}',
             'Content-Type': 'application/json'
