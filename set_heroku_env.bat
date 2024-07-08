@@ -2,9 +2,9 @@
 setlocal enabledelayedexpansion
 
 :: Load .env file
-for /f "delims=" %%a in ('.env') do (
+for /f "usebackq tokens=*" %%a in (.env) do (
     set "line=%%a"
-    if not "!line!"=="" (
+    if defined line (
         set "line=!line:#=!"
         for /f "tokens=1,* delims==" %%b in ("!line!") do set %%b=%%c
     )
