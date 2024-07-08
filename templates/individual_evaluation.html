@@ -291,7 +291,7 @@
         <div class="modal-body">
           <div id="aiRecommendationContent"></div>
           <div id="futurePredictionContent"></div>
-          <canvas id="radarChartModal"></canvas> <!-- Modal Radar Chart -->
+          <canvas id="radarChartModal"></canvas>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -316,10 +316,8 @@
     let selectedTeamId = null;
     let selectedMemberId = null;
     let selectedMemberName = '';
-    let historicalChart;
-    let radarChart;
-    let radarChartModal;
-    
+    let historicalChart, radarChart, radarChartModal;
+
     function fetchTeamMembers(teamId) {
       selectedTeamId = teamId;
       fetch(`/rate_team/get_team_members/${teamId}`)
@@ -383,7 +381,7 @@
             pointRadius: 0
           };
           renderChart(labels, dataset);
-          renderRadarChart('radarChart', radarData);
+          renderRadarChart(radarData, 'radarChart');
         })
         .catch(error => {
           console.error('Error fetching historical data:', error);
@@ -425,7 +423,7 @@
       });
     }
 
-    function renderRadarChart(canvasId, radarData) {
+    function renderRadarChart(radarData, canvasId) {
       const ctx = document.getElementById(canvasId).getContext('2d');
       if (window[canvasId]) {
         window[canvasId].destroy();
@@ -437,12 +435,12 @@
           datasets: [{
             label: selectedMemberName,
             data: radarData,
-            backgroundColor: 'rgba(179,181,198,0.2)',
-            borderColor: 'rgba(179,181,198,1)',
-            pointBackgroundColor: 'rgba(179,181,198,1)',
+            backgroundColor: 'rgba(0,122,255,0.2)',
+            borderColor: 'rgba(0,122,255,1)',
+            pointBackgroundColor: 'rgba(0,122,255,1)',
             pointBorderColor: '#fff',
             pointHoverBackgroundColor: '#fff',
-            pointHoverBorderColor: 'rgba(179,181,198,1)'
+            pointHoverBorderColor: 'rgba(0,122,255,1)'
           }]
         },
         options: {
@@ -485,8 +483,8 @@
           } else {
             document.getElementById('aiRecommendationContent').innerText = data.recommendation;
             document.getElementById('futurePredictionContent').innerText = data.future_prediction;
-            renderRadarChart('radarChartModal', data.radar_data);
             $('#aiModal').modal('show');
+            renderRadarChart(data.radarData, 'radarChartModal');
           }
         })
         .catch(error => {
@@ -503,30 +501,36 @@
       const fileName = `AI_Recommendation_${memberName}_${today}.pdf`;
 
       const element = document.createElement('div');
-      const header = document.createElement('div');
-      header.innerHTML = `
-        <h1>Individual Evaluation Report</h1>
-        <p>Date: ${today}</p>
-        <p>Team Member: ${memberName}</p>
-        <p>Confidential GDPR material</p>
-      `;
-      header.style.marginBottom = '20px';
-      header.style.textAlign = 'center';
-      element.appendChild(header);
-      
-      const chartsContainer = document.createElement('div');
-      chartsContainer.appendChild(document.getElementById('radarChartModal').cloneNode(true));
-      element.appendChild(chartsContainer);
+      element.appendChild(document.createElement('hr'));
+      element.appendChild(document.createElement('hr'));
 
+      const date = new Date().toLocaleDateString();
+      const reportHeader = document.createElement('div');
+      reportHeader.innerHTML = `<h1>Individual Evaluation Report</h1><h2>Date: ${date}</h2><h3>Team Member: ${selectedMemberName}</h3><h3>Confidential GDPR Material</h3>`;
+      reportHeader.style.textAlign = 'center';
+      reportHeader.style.marginBottom = '20px';
+
+      const chartCanvas = document.createElement('canvas');
+      chartCanvas.width = window.radarChartModal.width;
+      chartCanvas.height = window.radarChartModal.height;
+      const chartCtx = chartCanvas.getContext('2d');
+      chartCtx.drawImage(document.getElementById('radarChartModal'), 0, 0);
+
+      element.appendChild(reportHeader);
+      element.appendChild(chartCanvas);
+      element.appendChild(document.createElement('hr'));
       element.appendChild(document.getElementById('aiRecommendationContent').cloneNode(true));
       element.appendChild(document.getElementById('futurePredictionContent').cloneNode(true));
 
-      html2pdf().set({
+      const pdfOptions = {
         filename: fileName,
-        pagebreak: { mode: 'avoid-all' },
-        margin: [20, 20, 20, 20],
-        html2canvas: { scale: 2, useCORS: true }
-      }).from(element).save();
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        html2canvas: { scale: 2, useCORS: true, willReadFrequently: true },
+        margin: [20, 20, 20, 20], // Add 20mm margin on each side
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      };
+
+      html2pdf().set(pdfOptions).from(element).save();
     }
     
     window.addEventListener('load', () => {
