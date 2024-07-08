@@ -244,14 +244,13 @@
         const response = await fetch('/team_management/get_teams');
         if (response.ok) {
           const data = await response.json();
-          const { teams, tier } = data;  // Destructure to get both teams and tier
+          const { teams } = data;  // Get teams only
           const teamList = document.getElementById('teamList');
           teamList.innerHTML = '';
           teams.forEach(team => {
             const li = createTeamListItem(team);
             teamList.appendChild(li);
           });
-          window.tier = tier;  // Store the tier globally for later checks
         } else {
           console.error('Failed to fetch teams');
         }
@@ -288,14 +287,6 @@
       const teamName = document.getElementById('teamName').value;
       const teamList = document.getElementById('teamList');
       const currentTeamsCount = teamList.children.length;
-
-      if ((window.tier === 0 || window.tier === null) && currentTeamsCount >= 1) {
-        alert("To get the full AI experience, please upgrade to Professional version");
-        return;
-      } else if (window.tier === 1 && currentTeamsCount >= 5) {
-        alert("To create more teams, please upgrade to a higher tier.");
-        return;
-      }
 
       const response = await fetch('/team_management/add_team', {
         method: 'POST',
@@ -368,17 +359,6 @@
       const firstName = document.getElementById('newFirstName').value;
       const surname = document.getElementById('newSurname').value;
       const employerId = document.getElementById('newEmployerId').value;
-
-      const memberTable = document.getElementById('memberTable');
-      const currentMembersCount = memberTable.children.length - 1;
-
-      if ((window.tier === 0 || window.tier === null) && currentMembersCount >= 10) {
-        alert("To get the full AI experience, please upgrade to Professional version");
-        return;
-      } else if (window.tier === 1 && currentMembersCount >= 50) {
-        alert("To add more team members, please upgrade to a higher tier.");
-        return;
-      }
 
       const response = await fetch(`/team_management/add_team_member/${teamId}`, {
         method: 'POST',

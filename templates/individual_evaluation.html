@@ -291,7 +291,9 @@
         <div class="modal-body">
           <div id="aiRecommendationContent"></div>
           <div id="futurePredictionContent"></div>
-          <div id="radarChartContainer" style="margin-top: 20px;"></div>
+          <div class="chart-container">
+            <canvas id="radarChartClone"></canvas>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -496,10 +498,9 @@
     
     function cloneRadarChart() {
       const radarChartCanvas = document.getElementById('radarChart');
-      const clonedCanvas = radarChartCanvas.cloneNode(true);
-      const container = document.getElementById('radarChartContainer');
-      container.innerHTML = ''; // Clear any previous content
-      container.appendChild(clonedCanvas);
+      const radarChartClone = document.getElementById('radarChartClone');
+      
+      radarChartClone.getContext('2d').drawImage(radarChartCanvas, 0, 0);
     }
     
     function saveAsPDF() {
@@ -508,9 +509,18 @@
       const fileName = `AI_Recommendation_${memberName}_${today}.pdf`;
 
       const element = document.createElement('div');
-      element.appendChild(document.getElementById('aiRecommendationContent').cloneNode(true));
-      element.appendChild(document.getElementById('futurePredictionContent').cloneNode(true));
-      element.appendChild(document.getElementById('radarChartContainer').cloneNode(true));
+      const dateElement = document.createElement('div');
+      dateElement.style.marginBottom = '20px';
+      dateElement.innerHTML = `Date: ${today}`;
+      element.appendChild(dateElement);
+
+      const contentElement = document.createElement('div');
+      contentElement.style.margin = '20px';
+      contentElement.appendChild(document.getElementById('aiRecommendationContent').cloneNode(true));
+      contentElement.appendChild(document.getElementById('futurePredictionContent').cloneNode(true));
+      contentElement.appendChild(document.getElementById('radarChartClone').cloneNode(true));
+
+      element.appendChild(contentElement);
 
       html2pdf().set({
         filename: fileName
