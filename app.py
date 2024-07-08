@@ -47,7 +47,8 @@ def create_app():
     # Add logging for environment variables
     required_env_vars = [
         'MAIL_SERVER', 'MAIL_PORT', 'MAIL_USERNAME', 'MAIL_PASSWORD',
-        'AUTH0_CLIENT_ID', 'AUTH0_CLIENT_SECRET', 'AUTH0_DOMAIN', 'AUTH0_CALLBACK_URL'
+        'AUTH0_CLIENT_ID', 'AUTH0_CLIENT_SECRET', 'AUTH0_DOMAIN',
+        'AUTH0_CALLBACK_URL_HEROKU', 'AUTH0_CALLBACK_URL_CUSTOM'
     ]
 
     for var in required_env_vars:
@@ -174,7 +175,7 @@ def create_app():
         session.modified = True  
         app.logger.debug(f"Generated state: {state}")
         app.logger.debug(f"Session before redirect: {dict(session)}")
-        return auth0.authorize_redirect(redirect_uri=os.getenv('AUTH0_CALLBACK_URL'), state=state)
+        return auth0.authorize_redirect(redirect_uri=os.getenv('AUTH0_CALLBACK_URL_HEROKU') or os.getenv('AUTH0_CALLBACK_URL_CUSTOM'), state=state)
 
     @app.route('/callback')
     def callback_handling():
