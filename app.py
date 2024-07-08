@@ -15,7 +15,7 @@ import json
 import time
 from apscheduler.schedulers.background import BackgroundScheduler
 from mail import mail  # Import mail from mail.py
-from urllib.parse import urlencode  # Import urlencode from urllib.parse
+from urllib.parse import urlencode  # Ensure this import is included
 
 load_dotenv()  # Load environment variables from .env file
 
@@ -29,7 +29,7 @@ def create_app():
 
     # Configure session to use the filesystem
     app.config['SESSION_TYPE'] = 'filesystem'
-    app.config['SESSION_FILE_DIR'] = './.flask_session/'  
+    app.config['SESSION_FILE_DIR'] = './.flask_session/'
     app.config['SESSION_PERMANENT'] = False
     app.config['SESSION_USE_SIGNER'] = True
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db?timeout=30'
@@ -98,7 +98,7 @@ def create_app():
     from routes.team_management import team_management_bp
     from routes.client_management import client_management_bp
     from routes.individual_evaluation import individual_evaluation_bp
-    from routes.landing_page import landing_page_bp  
+    from routes.landing_page import landing_page_bp
     from routes.pricing import pricing_bp
     from routes.payment import payment_bp
     from routes.public import public_bp  # Import the public blueprint
@@ -109,7 +109,7 @@ def create_app():
     app.register_blueprint(team_management_bp, url_prefix='/team_management')
     app.register_blueprint(client_management_bp, url_prefix='/client_management')
     app.register_blueprint(individual_evaluation_bp, url_prefix='/individual_evaluation')
-    app.register_blueprint(landing_page_bp, url_prefix='/dashboard') 
+    app.register_blueprint(landing_page_bp, url_prefix='/dashboard')
     app.register_blueprint(pricing_bp, url_prefix='/pricing')
     app.register_blueprint(payment_bp)
     app.register_blueprint(public_bp, url_prefix='/public')  # Register the public blueprint
@@ -173,7 +173,7 @@ def create_app():
     def login():
         state = secrets.token_urlsafe(16)
         session['auth0_state'] = state
-        session.modified = True  
+        session.modified = True
         app.logger.debug(f"Generated state: {state}")
         app.logger.debug(f"Session before redirect: {dict(session)}")
         return auth0.authorize_redirect(redirect_uri=os.getenv('AUTH0_CALLBACK_URL_HEROKU') or os.getenv('AUTH0_CALLBACK_URL_CUSTOM'), state=state)
@@ -210,29 +210,27 @@ def create_app():
             return jsonify({"error": str(e)}), 500
         return redirect('/dashboard')
 
-    @app.route('/logout')
-    def logout():
-        session.clear()
-        auth0_domain = os.getenv('AUTH0_DOMAIN')
-        return_to = url_for('index', _external=True)
-        client_id = os.getenv('AUTH0_CLIENT_ID')
-        params = {
-            'returnTo': return_to,
-            'client_id': client_id
-        }
-        logout_url = f'https://{auth0_domain}/v2/logout?{urlencode(params)}'
-        return redirect(logout_url)
-
     @app.route('/dashboard')
     def dashboard():
         if 'user' not in session:
             return redirect(url_for('login'))
         return render_template('landing_page.html')
 
+    @app.route('/logout')
+    def logout():
+        session.clear()
+        auth0_domain = os.getenv('AUTH0_DOMAIN')
+        params = {
+            'returnTo': url_for('index', _external=True),
+            'client_id': os.getenv('AUTH0_CLIENT_ID')
+        }
+        logout_url = f'https://{auth0_domain}/v2/logout?{urlencode(params)}'
+        return redirect(logout_url)
+
     @app.route('/set_session')
     def set_session():
         session['test'] = 'This is a test'
-        session.modified = True  
+        session.modified = True
         return 'Session data set'
 
     @app.route('/get_session')
