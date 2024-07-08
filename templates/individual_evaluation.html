@@ -291,7 +291,7 @@
         <div class="modal-body">
           <div id="aiRecommendationContent"></div>
           <div id="futurePredictionContent"></div>
-          <canvas id="radarChartModal" style="margin-top: 20px;"></canvas>
+          <canvas id="radarChartModal"></canvas> <!-- Modal Radar Chart -->
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -316,9 +316,9 @@
     let selectedTeamId = null;
     let selectedMemberId = null;
     let selectedMemberName = '';
-    let historicalChart = null;
-    let radarChart = null;
-    let radarChartModal = null;
+    let historicalChart;
+    let radarChart;
+    let radarChartModal;
     
     function fetchTeamMembers(teamId) {
       selectedTeamId = teamId;
@@ -383,7 +383,7 @@
             pointRadius: 0
           };
           renderChart(labels, dataset);
-          renderRadarChart(radarData, 'radarChart');
+          renderRadarChart('radarChart', radarData);
         })
         .catch(error => {
           console.error('Error fetching historical data:', error);
@@ -392,10 +392,10 @@
     
     function renderChart(labels, dataset) {
       const ctx = document.getElementById('historicalChart').getContext('2d');
-      if (window.historicalChart) {
-        window.historicalChart.destroy();
+      if (historicalChart) {
+        historicalChart.destroy();
       }
-      window.historicalChart = new Chart(ctx, {
+      historicalChart = new Chart(ctx, {
         type: 'line',
         data: {
           labels: labels,
@@ -425,7 +425,7 @@
       });
     }
 
-    function renderRadarChart(radarData, canvasId) {
+    function renderRadarChart(canvasId, radarData) {
       const ctx = document.getElementById(canvasId).getContext('2d');
       if (window[canvasId]) {
         window[canvasId].destroy();
@@ -437,12 +437,12 @@
           datasets: [{
             label: selectedMemberName,
             data: radarData,
-            backgroundColor: 'rgba(0, 123, 255, 0.2)',
-            borderColor: 'rgba(0, 123, 255, 1)',
-            pointBackgroundColor: 'rgba(0, 123, 255, 1)',
+            backgroundColor: 'rgba(179,181,198,0.2)',
+            borderColor: 'rgba(179,181,198,1)',
+            pointBackgroundColor: 'rgba(179,181,198,1)',
             pointBorderColor: '#fff',
             pointHoverBackgroundColor: '#fff',
-            pointHoverBorderColor: 'rgba(0, 123, 255, 1)'
+            pointHoverBorderColor: 'rgba(179,181,198,1)'
           }]
         },
         options: {
@@ -485,7 +485,7 @@
           } else {
             document.getElementById('aiRecommendationContent').innerText = data.recommendation;
             document.getElementById('futurePredictionContent').innerText = data.future_prediction;
-            renderRadarChart(data.radar_data, 'radarChartModal'); // Render the radar chart in the modal
+            renderRadarChart('radarChartModal', data.radar_data);
             $('#aiModal').modal('show');
           }
         })
@@ -503,35 +503,28 @@
       const fileName = `AI_Recommendation_${memberName}_${today}.pdf`;
 
       const element = document.createElement('div');
-      const header = document.createElement('h2');
-      header.innerText = 'Individual Evaluation Report';
-      element.appendChild(header);
-
-      const subHeader = document.createElement('div');
-      subHeader.innerHTML = `
+      const header = document.createElement('div');
+      header.innerHTML = `
+        <h1>Individual Evaluation Report</h1>
         <p>Date: ${today}</p>
         <p>Team Member: ${memberName}</p>
-        <p>Confidential GDPR Material</p>
+        <p>Confidential GDPR material</p>
       `;
-      element.appendChild(subHeader);
+      header.style.marginBottom = '20px';
+      header.style.textAlign = 'center';
+      element.appendChild(header);
+      
+      const chartsContainer = document.createElement('div');
+      chartsContainer.appendChild(document.getElementById('radarChartModal').cloneNode(true));
+      element.appendChild(chartsContainer);
 
-      const canvas = document.getElementById('radarChartModal');
-      const imageData = canvas.toDataURL('image/png');
-      const image = document.createElement('img');
-      image.src = imageData;
-      image.style.width = '100%';
-      image.style.height = 'auto';
-      element.appendChild(image);
-
-      const content = document.createElement('div');
-      content.appendChild(document.getElementById('aiRecommendationContent').cloneNode(true));
-      content.appendChild(document.getElementById('futurePredictionContent').cloneNode(true));
-      element.appendChild(content);
+      element.appendChild(document.getElementById('aiRecommendationContent').cloneNode(true));
+      element.appendChild(document.getElementById('futurePredictionContent').cloneNode(true));
 
       html2pdf().set({
         filename: fileName,
+        pagebreak: { mode: 'avoid-all' },
         margin: [20, 20, 20, 20],
-        pagebreak: { mode: 'avoid-all', before: '#content' },
         html2canvas: { scale: 2, useCORS: true }
       }).from(element).save();
     }
