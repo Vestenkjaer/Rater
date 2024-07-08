@@ -217,6 +217,41 @@
       background-color: #005BB5;
       transform: translateY(-2px);
     }
+
+    /* Style for the PDF report */
+    #pdfReportContent {
+      margin: 20mm;
+    }
+
+    #pdfReportContent h1, #pdfReportContent h2, #pdfReportContent h3 {
+      text-align: center;
+    }
+
+    #pdfReportContent img {
+      display: block;
+      margin: 0 auto;
+      width: 100%;
+      height: auto;
+    }
+
+    .pdf-chart {
+      width: 80%;
+      height: auto;
+      margin: 0 auto;
+      display: block;
+    }
+
+    .page-break {
+      page-break-before: always;
+    }
+
+    .page-number {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      font-size: 12px;
+      color: #333;
+    }
   </style>
 </head>
 <body>
@@ -272,10 +307,8 @@
         <tbody id="member-ratings-container">
         </tbody>
       </table>
-      <div class="chart-container" id="historicalChartContainer">
+      <div class="chart-container">
         <canvas id="historicalChart"></canvas>
-      </div>
-      <div class="chart-container" id="radarChartContainer">
         <canvas id="radarChart" style="margin-top: 20px;"></canvas>
       </div>
     </div>
@@ -293,9 +326,7 @@
         <div class="modal-body">
           <div id="aiRecommendationContent"></div>
           <div id="futurePredictionContent"></div>
-          <div class="chart-container" id="radarChartContainerModal">
-            <canvas id="radarChartModal" style="margin-top: 20px;"></canvas>
-          </div>
+          <canvas id="modalRadarChart" style="margin-top: 20px;"></canvas>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -303,6 +334,19 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <div id="pdfReportContent" style="display: none;">
+    <h1>Individual Evaluation Report</h1>
+    <h2>Date: <span id="reportDate"></span></h2>
+    <h3>Team Member: <span id="reportMemberName"></span></h3>
+    <h4>Confidential GDPR Material</h4>
+    <img src="{{ url_for('static', filename='images/raterware.png') }}" alt="Raterware Logo">
+    <div class="page-break"></div>
+    <h2>AI Recommendation and Future Prediction</h2>
+    <div id="pdfAiRecommendationContent"></div>
+    <div id="pdfFuturePredictionContent"></div>
+    <canvas id="pdfRadarChart" class="pdf-chart"></canvas>
   </div>
 
   <script>
@@ -384,7 +428,8 @@
             pointRadius: 0
           };
           renderChart(labels, dataset);
-          renderRadarChart(radarData, 'radarChart');
+          renderRadarChart('radarChart', radarData);
+          renderRadarChart('modalRadarChart', radarData);
         })
         .catch(error => {
           console.error('Error fetching historical data:', error);
@@ -392,21 +437,10 @@
     }
     
     function renderChart(labels, dataset) {
-      // Ensure the canvas element exists
-      let ctx = document.getElementById('historicalChart');
-      if (!ctx) {
-        const container = document.getElementById('historicalChartContainer');
-        ctx = document.createElement('canvas');
-        ctx.id = 'historicalChart';
-        container.appendChild(ctx);
-      }
-      
-      // Destroy the existing chart instance if it exists
+      const ctx = document.getElementById('historicalChart').getContext('2d');
       if (window.historicalChart) {
         window.historicalChart.destroy();
       }
-      
-      // Create a new chart instance
       window.historicalChart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -437,22 +471,11 @@
       });
     }
 
-    function renderRadarChart(radarData, canvasId) {
-      // Ensure the canvas element exists
-      let ctx = document.getElementById(canvasId);
-      if (!ctx) {
-        const container = document.getElementById(canvasId + 'Container');
-        ctx = document.createElement('canvas');
-        ctx.id = canvasId;
-        container.appendChild(ctx);
-      }
-      
-      // Destroy the existing chart instance if it exists
+    function renderRadarChart(canvasId, radarData) {
+      const ctx = document.getElementById(canvasId).getContext('2d');
       if (window[canvasId]) {
         window[canvasId].destroy();
       }
-      
-      // Create a new chart instance
       window[canvasId] = new Chart(ctx, {
         type: 'radar',
         data: {
@@ -480,7 +503,7 @@
         }
       });
     }
-    
+
     function getRandomColor() {
       const letters = '0123456789ABCDEF';
       let color = '#';
@@ -509,7 +532,6 @@
             document.getElementById('aiRecommendationContent').innerText = data.recommendation;
             document.getElementById('futurePredictionContent').innerText = data.future_prediction;
             $('#aiModal').modal('show');
-            renderRadarChart(data.radar_data, 'radarChartModal');
           }
         })
         .catch(error => {
@@ -525,23 +547,16 @@
       const today = new Date().toISOString().slice(0, 10);
       const fileName = `AI_Recommendation_${memberName}_${today}.pdf`;
 
-      const element = document.createElement('div');
-      element.innerHTML = `
-        <h1>Individual Evaluation Report</h1>
-        <p>Date: ${today}</p>
-        <p>Team Member: ${memberName}</p>
-        <p>Confidential GDPR material</p>
-        <img src="/static/images/raterware.png" alt="Raterware" style="width: 100%; height: auto;">
-      `;
-      element.appendChild(document.getElementById('aiRecommendationContent').cloneNode(true));
-      element.appendChild(document.getElementById('futurePredictionContent').cloneNode(true));
-      element.appendChild(document.getElementById('radarChartContainerModal').cloneNode(true));
+      document.getElementById('reportDate').innerText = today;
+      document.getElementById('reportMemberName').innerText = memberName;
+      document.getElementById('pdfAiRecommendationContent').innerText = document.getElementById('aiRecommendationContent').innerText;
+      document.getElementById('pdfFuturePredictionContent').innerText = document.getElementById('futurePredictionContent').innerText;
+      renderRadarChart('pdfRadarChart', window.radarChart.data.datasets[0].data);
 
       html2pdf().set({
-        margin: [20, 20, 20, 20],
         filename: fileName,
-        pagebreak: { mode: 'avoid-all', before: '#radarChartContainerModal' }
-      }).from(element).save();
+        pagebreak: { mode: ['css', 'legacy'] }
+      }).from(document.getElementById('pdfReportContent')).save();
     }
     
     window.addEventListener('load', () => {
