@@ -219,31 +219,33 @@
     }
 
     .report-header {
-      text-align: center;
+      text-align: left;
       margin-bottom: 20px;
     }
 
     .report-header h1 {
       font-size: 24px;
-      margin-bottom: 10px;
+      margin: 0;
     }
 
     .report-header h2 {
-      font-size: 20px;
-      margin-bottom: 5px;
+      font-size: 18px;
+      margin: 5px 0;
     }
 
     .report-header h3 {
-      font-size: 18px;
-      color: red;
+      font-size: 16px;
+      margin: 5px 0;
     }
 
     .report-content {
-      margin: 20px;
+      text-align: left;
+      margin-bottom: 20px;
     }
 
     .report-chart {
-      margin: 20px 0;
+      text-align: center;
+      margin-top: 20px;
     }
   </style>
 </head>
@@ -319,13 +321,13 @@
         <div class="modal-body">
           <div id="reportHeader" class="report-header">
             <h1>Individual Evaluation Report</h1>
-            <h2 id="reportMemberName"></h2>
             <h2 id="reportDate"></h2>
+            <h2 id="reportMemberName"></h2>
             <h3>Confidential GDPR Material</h3>
           </div>
           <div id="aiRecommendationContent" class="report-content"></div>
           <div id="futurePredictionContent" class="report-content"></div>
-          <div id="reportRadarChart" class="report-chart">
+          <div id="radarChartContainerModal" class="report-chart">
             <canvas id="radarChartModal"></canvas>
           </div>
         </div>
@@ -383,7 +385,6 @@
           const member = data.members.find(m => m.id === memberId);
           if (member) {
             document.getElementById('member-name-container').innerHTML = `Selected Member: ${member.first_name} ${member.surname}`;
-            document.getElementById('reportMemberName').innerHTML = `Member: ${member.first_name} ${member.surname}`;
             const container = document.getElementById('member-ratings-container');
             container.innerHTML = '';
             const radarData = [];
@@ -418,6 +419,7 @@
           };
           renderChart(labels, dataset);
           renderRadarChart(radarData, 'radarChart');
+          renderRadarChart(radarData, 'radarChartModal');
         })
         .catch(error => {
           console.error('Error fetching historical data:', error);
@@ -461,7 +463,7 @@
 
     function renderRadarChart(radarData, canvasId) {
       const ctx = document.getElementById(canvasId).getContext('2d');
-      if (window[canvasId]) {
+      if (window[canvasId] && window[canvasId].destroy) {
         window[canvasId].destroy();
       }
       window[canvasId] = new Chart(ctx, {
@@ -517,9 +519,10 @@
           if (data.error) {
             alert(data.error);
           } else {
+            document.getElementById('reportDate').innerText = `Date: ${new Date().toLocaleDateString()}`;
+            document.getElementById('reportMemberName').innerText = `Team Member: ${selectedMemberName}`;
             document.getElementById('aiRecommendationContent').innerText = data.recommendation;
             document.getElementById('futurePredictionContent').innerText = data.future_prediction;
-            renderRadarChart(data.radar_data, 'radarChartModal');
             $('#aiModal').modal('show');
           }
         })
@@ -532,26 +535,17 @@
     }
     
     function saveAsPDF() {
-      const memberName = document.getElementById('member-name-container').innerText.replace('Selected Member: ', '');
-      const today = new Date().toISOString().slice(0, 10);
-      const fileName = `AI_Recommendation_${memberName}_${today}.pdf`;
-
       const element = document.createElement('div');
       element.appendChild(document.getElementById('reportHeader').cloneNode(true));
       element.appendChild(document.getElementById('aiRecommendationContent').cloneNode(true));
       element.appendChild(document.getElementById('futurePredictionContent').cloneNode(true));
-
+      
       html2pdf().set({
         margin: 10,
-        filename: fileName,
-        image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      }).from(element).toPdf().get('pdf').then(pdf => {
-        const chartCanvas = document.getElementById('radarChartModal');
-        const chartDataUrl = chartCanvas.toDataURL('image/png');
-        pdf.addImage(chartDataUrl, 'PNG', 10, pdf.autoTable.previous.finalY + 10, 190, 0);
-      }).save();
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      }).from(element).save();
     }
     
     window.addEventListener('load', () => {
@@ -560,7 +554,6 @@
         teamList.selectedIndex = 1; // Select the only team
         fetchTeamMembers(teamList.value);
       }
-      document.getElementById('reportDate').innerText = `Date: ${new Date().toLocaleDateString()}`;
     });
   </script>
 </body>
