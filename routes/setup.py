@@ -153,9 +153,7 @@ def create_auth0_user(email):
     current_app.logger.info(f"Response status code: {response.status_code}")
     current_app.logger.info(f"Response content: {response.content}")
     
-    if response.status_code != 201:
-        raise Exception(f"Failed to create Auth0 user: {response.content.decode()}")
-    
+    response.raise_for_status()
     auth0_user = response.json()
     current_app.logger.info(f"Auth0 user created: {auth0_user}")
 
