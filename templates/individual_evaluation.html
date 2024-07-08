@@ -291,6 +291,7 @@
         <div class="modal-body">
           <div id="aiRecommendationContent"></div>
           <div id="futurePredictionContent"></div>
+          <div id="radarChartContainer" style="margin-top: 20px;"></div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -481,6 +482,7 @@
           } else {
             document.getElementById('aiRecommendationContent').innerText = data.recommendation;
             document.getElementById('futurePredictionContent').innerText = data.future_prediction;
+            cloneRadarChart();
             $('#aiModal').modal('show');
           }
         })
@@ -492,6 +494,14 @@
         });
     }
     
+    function cloneRadarChart() {
+      const radarChartCanvas = document.getElementById('radarChart');
+      const clonedCanvas = radarChartCanvas.cloneNode(true);
+      const container = document.getElementById('radarChartContainer');
+      container.innerHTML = ''; // Clear any previous content
+      container.appendChild(clonedCanvas);
+    }
+    
     function saveAsPDF() {
       const memberName = document.getElementById('member-name-container').innerText.replace('Selected Member: ', '');
       const today = new Date().toISOString().slice(0, 10);
@@ -500,6 +510,7 @@
       const element = document.createElement('div');
       element.appendChild(document.getElementById('aiRecommendationContent').cloneNode(true));
       element.appendChild(document.getElementById('futurePredictionContent').cloneNode(true));
+      element.appendChild(document.getElementById('radarChartContainer').cloneNode(true));
 
       html2pdf().set({
         filename: fileName
