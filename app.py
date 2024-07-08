@@ -224,7 +224,7 @@ def create_app():
             'returnTo': url_for('index', _external=True),
             'client_id': os.getenv('AUTH0_CLIENT_ID')
         }
-        logout_url = f'https://{auth0_domain}/v2/logout?{urlencode(params)}'
+        logout_url = f'https://{auth0_domain}/v2/logout?' + urlencode(params)
         return redirect(logout_url)
 
     @app.route('/set_session')
