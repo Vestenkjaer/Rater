@@ -467,8 +467,8 @@
           updateHighestIndividualRatingRadialBar(members);
           updateLowestIndividualRatingRadialBar(members);
 
-          await updateLineChart('topPerformersChart', 'Top Performers', topPerformers);
-          await updateLineChart('bottomPerformersChart', 'Bottom Performers', bottomPerformers);
+          await updateLineChart('topPerformersChart', 'Top Performers', topPerformers, ['#D3E0FC', '#009B7C', '#9C007E']);
+          await updateLineChart('bottomPerformersChart', 'Bottom Performers', bottomPerformers, ['#F8D164', '#004295', '#FF6B5C']);
 
           await calculateImprovementAndDrop(members);
         } else {
@@ -646,10 +646,10 @@
       return data;
     }
 
-    async function updateLineChart(chartId, label, members) {
+    async function updateLineChart(chartId, label, members, colors) {
       const ctx = document.getElementById(chartId).getContext('2d');
 
-      const datasets = await Promise.all(members.map(async (member) => {
+      const datasets = await Promise.all(members.map(async (member, index) => {
         const historicalData = await fetchMemberHistoricalData(member.id);
         member.historical_data = historicalData;
 
@@ -665,7 +665,7 @@
           label: `${member.first_name} ${member.surname}`,
           data: scores,
           fill: false,
-          borderColor: getRandomColor(),
+          borderColor: colors[index],
           tension: 0.4,
           pointRadius: 0 // Remove the circles at the data points
         };
@@ -729,15 +729,6 @@
           options: options
         });
       }
-    }
-
-    function getRandomColor() {
-      const letters = '0123456789ABCDEF';
-      let color = '#';
-      for (let i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
-      }
-      return color;
     }
 
     async function fetchUserInfo() {
