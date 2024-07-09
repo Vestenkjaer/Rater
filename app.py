@@ -337,12 +337,17 @@ def create_app():
             customer_email = session_data['customer_details']['email']
             subscription_id = session_data['subscription']
 
+            logger.info(f"Checkout session completed for customer: {customer_email}, subscription: {subscription_id}")
+
             subscription = stripe.Subscription.retrieve(subscription_id)
             plan_id = subscription['items']['data'][0]['price']['product']
             tier = determine_tier(plan_id)
 
+            logger.debug(f"Determined tier: {tier} for plan ID: {plan_id}")
+
             client = Client.query.filter_by(email=customer_email).first()
             if client:
+                logger.debug(f"Updating tier for client: {client.email} to tier {tier}")
                 client.tier = tier
                 db.session.commit()
 
