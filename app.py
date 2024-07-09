@@ -21,6 +21,9 @@ load_dotenv()  # Load environment variables from .env file
 
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 
+# Print the value of STRIPE_WEBHOOK_SECRET for debugging
+print("STRIPE_WEBHOOK_SECRET:", os.getenv('STRIPE_WEBHOOK_SECRET'))
+
 products = {
     'basic': {
         'price_id': 'price_1PZBUCLvebSJUJfhPnFmeZpI',

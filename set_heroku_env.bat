@@ -29,6 +29,7 @@ echo AUTH0_CALLBACK_URL_HEROKU=%AUTH0_CALLBACK_URL_HEROKU%
 echo AUTH0_CALLBACK_URL_CUSTOM=%AUTH0_CALLBACK_URL_CUSTOM%
 echo STRIPE_SECRET_KEY=%STRIPE_SECRET_KEY%
 echo STRIPE_PUBLISHABLE_KEY=%STRIPE_PUBLISHABLE_KEY%
+echo STRIPE_WEBHOOK_SECRET=%STRIPE_WEBHOOK_SECRET%
 
 :: Set environment variables on Heroku one by one
 echo Setting MAIL_SERVER on Heroku
@@ -66,5 +67,8 @@ call heroku config:set STRIPE_SECRET_KEY=%STRIPE_SECRET_KEY% -a raterware
 
 echo Setting STRIPE_PUBLISHABLE_KEY on Heroku
 call heroku config:set STRIPE_PUBLISHABLE_KEY=%STRIPE_PUBLISHABLE_KEY% -a raterware
+
+echo Setting STRIPE_WEBHOOK_SECRET on Heroku
+call heroku config:set STRIPE_WEBHOOK_SECRET=%STRIPE_WEBHOOK_SECRET% -a raterware
 
 echo Environment variables set successfully on Heroku.
