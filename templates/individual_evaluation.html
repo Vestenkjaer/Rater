@@ -289,10 +289,9 @@
           </button>
         </div>
         <div class="modal-body">
-          <img id="raterwareImage" src="{{ url_for('static', filename='images/raterware.png') }}" style="width: 100%; height: auto;">
           <div id="aiRecommendationContent"></div>
           <div id="futurePredictionContent"></div>
-          <canvas id="radarChartModal"></canvas>
+          <canvas id="radarChartModal" style="margin-top: 20px;"></canvas>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -313,11 +312,14 @@
       "capacity_for_learning",
       "adaptability"
     ];
-    
+
     let selectedTeamId = null;
     let selectedMemberId = null;
     let selectedMemberName = '';
-    
+    let historicalChart = null;
+    let radarChart = null;
+    let radarChartModal = null;
+
     function fetchTeamMembers(teamId) {
       selectedTeamId = teamId;
       fetch(`/rate_team/get_team_members/${teamId}`)
@@ -364,7 +366,7 @@
           }
         });
     }
-    
+
     function fetchHistoricalData(memberId, memberName, radarData) {
       fetch(`/rate_team/get_historical_data/${memberId}`)
         .then(response => response.json())
@@ -381,19 +383,19 @@
             pointRadius: 0
           };
           renderChart(labels, dataset);
-          renderRadarChart(radarData, 'radarChart');
+          renderRadarChart(radarData);
         })
         .catch(error => {
           console.error('Error fetching historical data:', error);
         });
     }
-    
+
     function renderChart(labels, dataset) {
       const ctx = document.getElementById('historicalChart').getContext('2d');
-      if (window.historicalChart) {
-        window.historicalChart.destroy();
+      if (historicalChart) {
+        historicalChart.destroy();
       }
-      window.historicalChart = new Chart(ctx, {
+      historicalChart = new Chart(ctx, {
         type: 'line',
         data: {
           labels: labels,
@@ -423,16 +425,44 @@
       });
     }
 
-    function renderRadarChart(radarData, canvasId) {
-      const ctx = document.getElementById(canvasId).getContext('2d');
-      if (window[canvasId]) {
-        if (typeof window[canvasId].destroy === 'function') {
-          window[canvasId].destroy();
-        } else {
-          console.warn(`Canvas element with id ${canvasId} does not have a destroy function.`);
-        }
+    function renderRadarChart(radarData) {
+      const ctx = document.getElementById('radarChart').getContext('2d');
+      if (radarChart) {
+        radarChart.destroy();
       }
-      window[canvasId] = new Chart(ctx, {
+      radarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: criteria.map(criterion => criterion.replace(/_/g, ' ')),
+          datasets: [{
+            label: selectedMemberName,
+            data: radarData,
+            backgroundColor: 'rgba(179,181,198,0.2)',
+            borderColor: 'rgba(179,181,198,1)',
+            pointBackgroundColor: 'rgba(179,181,198,1)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'rgba(179,181,198,1)'
+          }]
+        },
+        options: {
+          scale: {
+            ticks: {
+              beginAtZero: true,
+              min: 0,
+              max: 100,
+              stepSize: 10
+            }
+          }
+        }
+      });
+
+      // Render radar chart in modal
+      const modalCtx = document.getElementById('radarChartModal').getContext('2d');
+      if (radarChartModal) {
+        radarChartModal.destroy();
+      }
+      radarChartModal = new Chart(modalCtx, {
         type: 'radar',
         data: {
           labels: criteria.map(criterion => criterion.replace(/_/g, ' ')),
@@ -459,7 +489,7 @@
         }
       });
     }
-    
+
     function getRandomColor() {
       const letters = '0123456789ABCDEF';
       let color = '#';
@@ -468,7 +498,7 @@
       }
       return color;
     }
-    
+
     function aiRecommendation() {
       if (!selectedMemberId) {
         alert('Please select a member to get AI recommendation.');
@@ -487,8 +517,8 @@
           } else {
             document.getElementById('aiRecommendationContent').innerText = data.recommendation;
             document.getElementById('futurePredictionContent').innerText = data.future_prediction;
+            renderRadarChart(data.radar_data);
             $('#aiModal').modal('show');
-            renderRadarChart(data.radarData, 'radarChartModal'); // Render the radar chart in the modal
           }
         })
         .catch(error => {
@@ -498,36 +528,25 @@
           alert('An error occurred while fetching the AI recommendation.');
         });
     }
-    
+
     function saveAsPDF() {
       const memberName = document.getElementById('member-name-container').innerText.replace('Selected Member: ', '');
       const today = new Date().toISOString().slice(0, 10);
       const fileName = `AI_Recommendation_${memberName}_${today}.pdf`;
 
       const element = document.createElement('div');
-      const header = document.createElement('div');
-      header.innerHTML = `
-        <h1>Individual Evaluation Report</h1>
-        <p>Date: ${today}</p>
-        <p>Team Member: ${memberName}</p>
-        <p>Confidential GDPR Material</p>
-        <img src="{{ url_for('static', filename='images/raterware.png') }}" style="width: 100%; height: auto;">
-      `;
-      element.appendChild(header);
-
       element.appendChild(document.getElementById('aiRecommendationContent').cloneNode(true));
       element.appendChild(document.getElementById('futurePredictionContent').cloneNode(true));
-      const historicalChart = document.getElementById('historicalChart').cloneNode(true);
-      const radarChart = document.getElementById('radarChartModal').cloneNode(true);
-      element.appendChild(historicalChart);
-      element.appendChild(radarChart);
+      element.appendChild(document.getElementById('radarChartModal').cloneNode(true));
 
       html2pdf().set({
-        margin: 20,
-        filename: fileName
+        filename: fileName,
+        margin: [20, 20, 20, 20],
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'legacy'] }
       }).from(element).save();
     }
-    
+
     window.addEventListener('load', () => {
       const teamList = document.getElementById('teamList');
       if (teamList.options.length === 2) { // 1 option for placeholder and 1 for the team
