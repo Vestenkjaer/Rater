@@ -29,7 +29,7 @@
 
     .container {
       display: flex;
-      width: 100%;
+      width: 200% !important;
       max-width: 1900px;
       margin: 0 auto;
       padding: 20px;
@@ -291,9 +291,7 @@
         <div class="modal-body">
           <div id="aiRecommendationContent"></div>
           <div id="futurePredictionContent"></div>
-          <div class="chart-container">
-            <canvas id="radarChartModal"></canvas>
-          </div>
+          <canvas id="radarChartModal"></canvas>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -314,11 +312,11 @@
       "capacity_for_learning",
       "adaptability"
     ];
-
+    
     let selectedTeamId = null;
     let selectedMemberId = null;
     let selectedMemberName = '';
-
+    
     function fetchTeamMembers(teamId) {
       selectedTeamId = teamId;
       fetch(`/rate_team/get_team_members/${teamId}`)
@@ -333,6 +331,10 @@
             li.onclick = () => fetchMemberData(member.id, member.first_name + ' ' + member.surname);
             memberList.appendChild(li);
           });
+          // Automatically fetch members if there is only one team
+          if (data.members.length > 0) {
+            fetchMemberData(data.members[0].id, `${data.members[0].first_name} ${data.members[0].surname}`);
+          }
         });
     }
 
@@ -361,7 +363,7 @@
           }
         });
     }
-
+    
     function fetchHistoricalData(memberId, memberName, radarData) {
       fetch(`/rate_team/get_historical_data/${memberId}`)
         .then(response => response.json())
@@ -378,13 +380,13 @@
             pointRadius: 0
           };
           renderChart(labels, dataset);
-          renderRadarChart('radarChart', radarData);
+          renderRadarChart(radarData, 'radarChart');
         })
         .catch(error => {
           console.error('Error fetching historical data:', error);
         });
     }
-
+    
     function renderChart(labels, dataset) {
       const ctx = document.getElementById('historicalChart').getContext('2d');
       if (window.historicalChart) {
@@ -420,7 +422,7 @@
       });
     }
 
-    function renderRadarChart(canvasId, radarData) {
+    function renderRadarChart(radarData, canvasId) {
       const ctx = document.getElementById(canvasId).getContext('2d');
       if (window[canvasId]) {
         window[canvasId].destroy();
@@ -452,7 +454,7 @@
         }
       });
     }
-
+    
     function getRandomColor() {
       const letters = '0123456789ABCDEF';
       let color = '#';
@@ -461,7 +463,7 @@
       }
       return color;
     }
-
+    
     function aiRecommendation() {
       if (!selectedMemberId) {
         alert('Please select a member to get AI recommendation.');
@@ -480,7 +482,7 @@
           } else {
             document.getElementById('aiRecommendationContent').innerText = data.recommendation;
             document.getElementById('futurePredictionContent').innerText = data.future_prediction;
-            renderRadarChart('radarChartModal', data.radar_data);
+            renderRadarChart(data.radarData, 'radarChartModal');
             $('#aiModal').modal('show');
           }
         })
@@ -491,32 +493,32 @@
           alert('An error occurred while fetching the AI recommendation.');
         });
     }
-
+    
     function saveAsPDF() {
       const memberName = document.getElementById('member-name-container').innerText.replace('Selected Member: ', '');
       const today = new Date().toISOString().slice(0, 10);
       const fileName = `AI_Recommendation_${memberName}_${today}.pdf`;
 
       const element = document.createElement('div');
-      element.innerHTML = `
-        <h2 style="text-align: center;">Individual Evaluation Report</h2>
-        <p style="text-align: center;">Date: ${today}<br>Team Member: ${memberName}<br>Confidential GDPR Material</p>
-        <img src="/static/images/raterware.png" style="display: block; margin: 20px auto; width: 100%; height: auto;">
-        <div>${document.getElementById('aiRecommendationContent').innerHTML}</div>
-        <div>${document.getElementById('futurePredictionContent').innerHTML}</div>
-        <div>${document.getElementById('radarChartModal').outerHTML}</div>
-        <p style="page-break-before: always;">Page 2</p>
-      `;
+      element.appendChild(document.getElementById('aiRecommendationContent').cloneNode(true));
+      element.appendChild(document.getElementById('futurePredictionContent').cloneNode(true));
+
+      const canvas = document.getElementById('radarChartModal');
+      if (canvas) {
+        const img = new Image();
+        img.src = canvas.toDataURL();
+        img.style.width = '100%';
+        img.style.height = 'auto';
+        element.appendChild(img);
+      }
 
       html2pdf().set({
-        margin: [20, 20, 20, 20],
         filename: fileName,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        margin: [20, 20, 20, 20], // Set custom margins here
+        pagebreak: { mode: 'avoid-all' }
       }).from(element).save();
     }
-
+    
     window.addEventListener('load', () => {
       const teamList = document.getElementById('teamList');
       if (teamList.options.length === 2) { // 1 option for placeholder and 1 for the team
