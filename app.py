@@ -37,7 +37,7 @@ products = {
         'tier': 2,
     },
     'enterprise': {
-        'price_id': 'price_abcde',  # Replace with your actual Stripe Price ID for Enterprise Plan
+        'price_id': 'price_abcde',  # Replace with your actual Stripe Price ID for Enterprise Plan Stripe update
         'tier': 3,
     },
 }
