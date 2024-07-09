@@ -16,6 +16,7 @@ import time
 from apscheduler.schedulers.background import BackgroundScheduler
 from mail import mail
 from urllib.parse import urlencode
+from webhook import webhook_bp
 
 # Load environment variables from .env file
 load_dotenv()
@@ -141,6 +142,7 @@ def create_app():
     app.register_blueprint(pricing_bp, url_prefix='/pricing')
     app.register_blueprint(payment_bp)
     app.register_blueprint(public_bp, url_prefix='/public')
+    app.register_blueprint(webhook_bp)  # Register the webhook blueprint
 
     # User blocking/unblocking logic
     def check_and_block_users():
