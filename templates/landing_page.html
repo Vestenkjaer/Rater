@@ -359,12 +359,6 @@
     </div>
   </div>
 
-  <div class="button-container">
-    <button class="btn btn-custom" id="btn-12" onclick="changePeriod('12')">12</button>
-    <button class="btn btn-custom" id="btn-24" onclick="changePeriod('24')">24</button>
-    <button class="btn btn-custom" id="btn-all" onclick="changePeriod('all')">All</button>
-  </div>
-
   <div class="improvement-drop-container">
     <div class="improvement-drop-card">
       <h3>Most Positive Improvement</h3>
@@ -385,8 +379,6 @@
   <script>
     let topPerformersChart;
     let bottomPerformersChart;
-    let currentTeamId = null;
-    let selectedPeriod = '12'; // Default period
 
     $(document).ready(function () {
       fetchTeams().then(data => {
@@ -397,9 +389,8 @@
             $('#selectTeamContainer').hide();
             $('#rateTeamButton').css('margin', '0 auto');
           }
-          currentTeamId = teams[0].id;
-          selectTeam(currentTeamId); // Automatically select the first team
-          fetchLatestSubmission(currentTeamId);
+          selectTeam(teams[0].id); // Automatically select the first team
+          fetchLatestSubmission(teams[0].id);
         }
       });
       fetchUserInfo(); // Fetch and display user info
@@ -418,9 +409,8 @@
             a.href = '#';
             a.textContent = team.name;
             a.onclick = () => {
-              currentTeamId = team.id;
-              selectTeam(currentTeamId);
-              fetchLatestSubmission(currentTeamId);
+              selectTeam(team.id);
+              fetchLatestSubmission(team.id);
             };
             teamDropdownMenu.appendChild(a);
           });
@@ -668,16 +658,8 @@
           return null;
         }
 
-        let dataToShow;
-        if (selectedPeriod === '12') {
-          dataToShow = historicalData.slice(-12).reverse();
-        } else if (selectedPeriod === '24') {
-          dataToShow = historicalData.slice(-24).reverse();
-        } else {
-          dataToShow = historicalData.reverse();
-        }
-
-        const scores = dataToShow.map(entry => entry.score);
+        const last12Data = historicalData.slice(-12).reverse(); // Reverse the order for recent data first
+        const scores = last12Data.map(entry => entry.score);
 
         return {
           label: `${member.first_name} ${member.surname}`,
@@ -692,7 +674,7 @@
       console.log(`Updating chart ${chartId} with datasets:`, datasets);
 
       const chartData = {
-        labels: Array.from({ length: dataToShow.length }, (_, i) => `Session ${dataToShow.length - i}`), // Inverted session labels
+        labels: Array.from({ length: 12 }, (_, i) => `Session ${12 - i}`), // Inverted session labels
         datasets: datasets
       };
 
@@ -746,13 +728,6 @@
           data: chartData,
           options: options
         });
-      }
-    }
-
-    function changePeriod(period) {
-      selectedPeriod = period;
-      if (currentTeamId) {
-        selectTeam(currentTeamId);
       }
     }
 
