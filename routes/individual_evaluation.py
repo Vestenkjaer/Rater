@@ -1,5 +1,7 @@
-from flask import Blueprint, render_template, jsonify, request
+import json
+from flask import Blueprint, request, jsonify, current_app
 from models import Team, TeamMember, Rating
+from datetime import datetime
 
 individual_evaluation_bp = Blueprint('individual_evaluation', __name__)
 
@@ -36,7 +38,7 @@ def get_team_members(team_id):
             'id': member.id,
             'first_name': member.first_name,
             'surname': member.surname,
-            'team_id': member.team_id,  # Corrected attribute name
+            'team_id': member.team_id,
             'ratings': member_ratings,
             'avg_score': avg_score,
             'total_score': total_score
@@ -61,9 +63,27 @@ def get_historical_data(member_id):
             "self_motivation": evaluation.self_motivation,
             "capacity_for_learning": evaluation.capacity_for_learning,
             "adaptability": evaluation.adaptability,
-            "score": evaluation.total_score  # Assuming you have a total_score field
+            "score": evaluation.total_score
         }
         historical_data.append(data_entry)
 
     print("Historical Data for Member {}: {}".format(member_id, historical_data))
     return jsonify(historical_data)
+
+@individual_evaluation_bp.route('/get_ai_recommendation/<int:member_id>', methods=['GET'])
+def get_ai_recommendation(member_id):
+    member = TeamMember.query.get(member_id)
+    if not member:
+        return jsonify({"error": "Member not found"}), 404
+
+    # Simulating AI recommendation
+    recommendation = f"The member {member.first_name} {member.surname} should focus on improving adaptability and self-motivation."
+    future_prediction = "In the next quarter, this member is expected to show significant improvement in necessary skills and capacity for learning."
+
+    radar_data = [member.ratings.ability_to_impart_knowledge, member.ratings.approachable, member.ratings.necessary_skills, member.ratings.trained, member.ratings.absence, member.ratings.self_motivation, member.ratings.capacity_for_learning, member.ratings.adaptability]
+
+    return jsonify({
+        "recommendation": recommendation,
+        "future_prediction": future_prediction,
+        "radarData": radar_data
+    })

@@ -239,8 +239,17 @@
     }
 
     .chart-buttons-container {
-      text-align: center;
+      display: flex;
+      justify-content: center;
       margin: 20px 0;
+    }
+
+    .chart-buttons-container .btn-custom {
+      margin: 0 10px;
+    }
+
+    .btn-primary {
+      background-color: #005BB5;
     }
   </style>
 </head>
@@ -353,12 +362,6 @@
     </div>
   </div>
 
-  <div class="chart-buttons-container">
-    <button class="btn btn-custom" onclick="changePeriod(12)" id="btn-12">12</button>
-    <button class="btn btn-custom" onclick="changePeriod(24)" id="btn-24">24</button>
-    <button class="btn btn-custom" onclick="changePeriod('all')" id="btn-all">All</button>
-  </div>
-
   <div class="charts-container">
     <div class="chart">
       <div class="chart-title">Top Performers (Latest)</div>
@@ -368,6 +371,12 @@
       <div class="chart-title">Bottom Performers (Latest)</div>
       <canvas id="bottomPerformersChart"></canvas>
     </div>
+  </div>
+
+  <div class="chart-buttons-container">
+    <button id="btn-12" class="btn btn-custom btn-primary" onclick="changePeriod('12')">12</button>
+    <button id="btn-24" class="btn btn-custom" onclick="changePeriod('24')">24</button>
+    <button id="btn-all" class="btn btn-custom" onclick="changePeriod('all')">All</button>
   </div>
 
   <div class="improvement-drop-container">
@@ -390,6 +399,7 @@
   <script>
     let topPerformersChart;
     let bottomPerformersChart;
+    let currentTeamId;
     let selectedPeriod = 12;
 
     $(document).ready(function () {
@@ -401,8 +411,9 @@
             $('#selectTeamContainer').hide();
             $('#rateTeamButton').css('margin', '0 auto');
           }
-          selectTeam(teams[0].id); // Automatically select the first team
-          fetchLatestSubmission(teams[0].id);
+          currentTeamId = teams[0].id;
+          selectTeam(currentTeamId); // Automatically select the first team
+          fetchLatestSubmission(currentTeamId);
         }
       });
       fetchUserInfo(); // Fetch and display user info
@@ -421,6 +432,7 @@
             a.href = '#';
             a.textContent = team.name;
             a.onclick = () => {
+              currentTeamId = team.id;
               selectTeam(team.id);
               fetchLatestSubmission(team.id);
             };
@@ -671,11 +683,14 @@
         }
 
         let dataToShow;
-        if (selectedPeriod === 'all') {
-          dataToShow = historicalData.reverse(); // Reverse the order for recent data first
+        if (selectedPeriod === '12') {
+          dataToShow = historicalData.slice(-12).reverse();
+        } else if (selectedPeriod === '24') {
+          dataToShow = historicalData.slice(-24).reverse();
         } else {
-          dataToShow = historicalData.slice(-selectedPeriod).reverse(); // Reverse the order for recent data first
+          dataToShow = historicalData.reverse();
         }
+
         const scores = dataToShow.map(entry => entry.score);
 
         return {
@@ -705,7 +720,7 @@
             },
             ticks: {
               autoSkip: false,
-              maxTicksLimit: 12,
+              maxTicksLimit: dataToShow.length,
               reverse: true // Invert the x-axis
             },
             grid: {
@@ -753,8 +768,16 @@
       document.getElementById('btn-12').classList.remove('btn-primary');
       document.getElementById('btn-24').classList.remove('btn-primary');
       document.getElementById('btn-all').classList.remove('btn-primary');
-      document.getElementById(`btn-${period}`).classList.add('btn-primary');
-      selectTeam(currentTeamId); // Re-fetch and update the charts with the new period
+
+      if (period === '12') {
+        document.getElementById('btn-12').classList.add('btn-primary');
+      } else if (period === '24') {
+        document.getElementById('btn-24').classList.add('btn-primary');
+      } else {
+        document.getElementById('btn-all').classList.add('btn-primary');
+      }
+
+      selectTeam(currentTeamId);
     }
 
     async function fetchUserInfo() {

@@ -290,8 +290,8 @@
         </div>
         <div class="modal-body">
           <div id="aiRecommendationContent"></div>
-          <div id="futurePredictionContent"></div>
-          <canvas id="radarChartModal"></canvas>
+          <canvas id="radarChartModal" style="margin-top: 20px;"></canvas>
+          <div id="futurePredictionContent" style="margin-top: 20px;"></div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -312,17 +312,14 @@
       "capacity_for_learning",
       "adaptability"
     ];
-    
+
     let selectedTeamId = null;
     let selectedMemberId = null;
     let selectedMemberName = '';
-    let historicalChart = null;
-    let radarChart = null;
-    let radarChartModal = null;
-    
+
     function fetchTeamMembers(teamId) {
       selectedTeamId = teamId;
-      fetch(`/rate_team/get_team_members/${teamId}`)
+      fetch(`/individual_evaluation/get_team_members/${teamId}`)
         .then(response => response.json())
         .then(data => {
           document.getElementById('team-name-container').innerHTML = `Selected Team: ${data.team_name}`;
@@ -334,7 +331,6 @@
             li.onclick = () => fetchMemberData(member.id, member.first_name + ' ' + member.surname);
             memberList.appendChild(li);
           });
-          // Automatically fetch members if there is only one team
           if (data.members.length > 0) {
             fetchMemberData(data.members[0].id, `${data.members[0].first_name} ${data.members[0].surname}`);
           }
@@ -344,7 +340,7 @@
     function fetchMemberData(memberId, memberName) {
       selectedMemberId = memberId;
       selectedMemberName = memberName;
-      fetch(`/rate_team/get_team_members/${selectedTeamId}`)
+      fetch(`/individual_evaluation/get_team_members/${selectedTeamId}`)
         .then(response => response.json())
         .then(data => {
           const member = data.members.find(m => m.id === memberId);
@@ -366,9 +362,9 @@
           }
         });
     }
-    
+
     function fetchHistoricalData(memberId, memberName, radarData) {
-      fetch(`/rate_team/get_historical_data/${memberId}`)
+      fetch(`/individual_evaluation/get_historical_data/${memberId}`)
         .then(response => response.json())
         .then(data => {
           console.log('Historical Data:', data);
@@ -383,19 +379,19 @@
             pointRadius: 0
           };
           renderChart(labels, dataset);
-          renderRadarChart(radarData);
+          renderRadarChart('radarChart', radarData);
         })
         .catch(error => {
           console.error('Error fetching historical data:', error);
         });
     }
-    
+
     function renderChart(labels, dataset) {
       const ctx = document.getElementById('historicalChart').getContext('2d');
-      if (historicalChart) {
-        historicalChart.destroy();
+      if (window.historicalChart) {
+        window.historicalChart.destroy();
       }
-      historicalChart = new Chart(ctx, {
+      window.historicalChart = new Chart(ctx, {
         type: 'line',
         data: {
           labels: labels,
@@ -425,7 +421,7 @@
       });
     }
 
-    function renderRadarChart(radarData, canvasId = 'radarChart') {
+    function renderRadarChart(canvasId, radarData) {
       const ctx = document.getElementById(canvasId).getContext('2d');
       if (window[canvasId]) {
         window[canvasId].destroy();
@@ -457,7 +453,7 @@
         }
       });
     }
-    
+
     function getRandomColor() {
       const letters = '0123456789ABCDEF';
       let color = '#';
@@ -466,7 +462,7 @@
       }
       return color;
     }
-    
+
     function aiRecommendation() {
       if (!selectedMemberId) {
         alert('Please select a member to get AI recommendation.');
@@ -475,7 +471,7 @@
 
       document.getElementById('spinnerContainer').style.display = 'block';
 
-      fetch(`/rate_team/get_ai_recommendation/${selectedMemberId}`)
+      fetch(`/individual_evaluation/get_ai_recommendation/${selectedMemberId}`)
         .then(response => response.json())
         .then(data => {
           document.getElementById('spinnerContainer').style.display = 'none';
@@ -484,53 +480,37 @@
             alert(data.error);
           } else {
             document.getElementById('aiRecommendationContent').innerText = data.recommendation;
+            renderRadarChart('radarChartModal', data.radarData);
             document.getElementById('futurePredictionContent').innerText = data.future_prediction;
-            renderRadarChart(data.radarData, 'radarChartModal');
             $('#aiModal').modal('show');
           }
         })
         .catch(error => {
           document.getElementById('spinnerContainer').style.display = 'none';
-
           console.error('Error fetching AI recommendation:', error);
           alert('An error occurred while fetching the AI recommendation.');
         });
     }
-    
+
     function saveAsPDF() {
       const memberName = document.getElementById('member-name-container').innerText.replace('Selected Member: ', '');
       const today = new Date().toISOString().slice(0, 10);
       const fileName = `AI_Recommendation_${memberName}_${today}.pdf`;
 
       const element = document.createElement('div');
-      const header = document.createElement('div');
-      header.innerHTML = `<h1>Individual Evaluation Report</h1>
-                          <p>${today}</p>
-                          <p>Team Member: ${selectedMemberName}</p>
-                          <p><strong>Confidential GDPR material</strong></p>`;
-      const logo = document.createElement('img');
-      logo.src = '{{ url_for('static', filename='images/raterware.png') }}';
-      logo.style.width = '100%';
-      logo.style.height = 'auto';
-      header.appendChild(logo);
-      element.appendChild(header);
       element.appendChild(document.getElementById('aiRecommendationContent').cloneNode(true));
+      element.appendChild(document.getElementById('radarChartModal').cloneNode(true));
       element.appendChild(document.getElementById('futurePredictionContent').cloneNode(true));
 
       html2pdf().set({
-        margin: 20,
-        filename: fileName,
-        html2canvas: {
-          scale: 2,
-          useCORS: true
-        }
+        filename: fileName
       }).from(element).save();
     }
-    
+
     window.addEventListener('load', () => {
       const teamList = document.getElementById('teamList');
-      if (teamList.options.length === 2) { // 1 option for placeholder and 1 for the team
-        teamList.selectedIndex = 1; // Select the only team
+      if (teamList.options.length === 2) {
+        teamList.selectedIndex = 1;
         fetchTeamMembers(teamList.value);
       }
     });
