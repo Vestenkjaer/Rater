@@ -1,11 +1,17 @@
 @echo off
 setlocal enabledelayedexpansion
 
+:: Check if .env file exists
+if not exist .env (
+    echo .env file not found. Exiting.
+    exit /b 1
+)
+
 :: Load .env file
 for /f "usebackq tokens=*" %%a in (.env) do (
     set "line=%%a"
-    if defined line (
-        set "line=!line:#=!"
+    :: Skip empty lines and comments
+    if not "!line!"=="" if not "!line:~0,1!"=="#" (
         for /f "tokens=1,* delims==" %%b in ("!line!") do set %%b=%%c
     )
 )
@@ -20,7 +26,7 @@ echo AUTH0_CLIENT_ID=%AUTH0_CLIENT_ID%
 echo AUTH0_CLIENT_SECRET=%AUTH0_CLIENT_SECRET%
 echo AUTH0_DOMAIN=%AUTH0_DOMAIN%
 echo AUTH0_CALLBACK_URL_HEROKU=%AUTH0_CALLBACK_URL_HEROKU%
-::echo AUTH0_CALLBACK_URL_CUSTOM=%AUTH0_CALLBACK_URL_CUSTOM%
+echo AUTH0_CALLBACK_URL_CUSTOM=%AUTH0_CALLBACK_URL_CUSTOM%
 echo STRIPE_SECRET_KEY=%STRIPE_SECRET_KEY%
 echo STRIPE_PUBLISHABLE_KEY=%STRIPE_PUBLISHABLE_KEY%
 
