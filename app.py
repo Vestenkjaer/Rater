@@ -1,7 +1,7 @@
 import os
 import secrets
 from dotenv import load_dotenv
-from flask import Flask, render_template, redirect, url_for, session, jsonify, request, current_app
+from flask import Flask, render_template, redirect, url_for, session, jsonify, request
 from flask_session import Session
 from config import Config
 from whitenoise import WhiteNoise
@@ -14,12 +14,27 @@ import requests
 import json
 import time
 from apscheduler.schedulers.background import BackgroundScheduler
-from mail import mail  # Import mail from mail.py
+from mail import mail
 from urllib.parse import urlencode
 
 load_dotenv()  # Load environment variables from .env file
 
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
+
+products = {
+    'basic': {
+        'price_id': 'price_1PZBUCLvebSJUJfhPnFmeZpI',  # Replace with your actual Stripe Price ID for Basic Plan
+        'tier': 1,
+    },
+    'professional': {
+        'price_id': 'price_1PaawvLvebSJUJfhPF8pxtIW',  # Replace with your actual Stripe Price ID for Professional Plan
+        'tier': 2,
+    },
+    'enterprise': {
+        'price_id': 'price_abcde',  # Replace with your actual Stripe Price ID for Enterprise Plan
+        'tier': 3,
+    },
+}
 
 def create_app():
     app = Flask(__name__, static_folder='static')
@@ -246,6 +261,35 @@ def create_app():
             'email': user_info.get('email', 'unknown@example.com')
         })
 
+    @app.route('/create-checkout-session/<plan>', methods=['POST'])
+    def create_checkout_session(plan):
+        if plan not in products:
+            return jsonify({'error': 'Invalid plan'}), 400
+
+        price_id = products[plan]['price_id']
+        try:
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[{
+                    'price': price_id,
+                    'quantity': 1,
+                }],
+                mode='subscription',
+                success_url=url_for('success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
+                cancel_url=url_for('cancel', _external=True),
+            )
+            return redirect(checkout_session.url, code=303)
+        except Exception as e:
+            return jsonify(error=str(e)), 403
+
+    @app.route('/success')
+    def success():
+        return render_template('success.html')
+
+    @app.route('/cancel')
+    def cancel():
+        return render_template('cancel.html')
+
     @app.route('/stripe-webhook', methods=['POST'])
     def stripe_webhook():
         payload = request.get_data(as_text=True)
@@ -282,13 +326,10 @@ def create_app():
         return jsonify({'status': 'success'}), 200
 
     def determine_tier(plan_id):
-        if plan_id == 'basic_plan_id':
-            return 1  # Basic tier
-        elif plan_id == 'professional_plan_id':
-            return 2  # Professional tier
-        elif plan_id == 'enterprise_plan_id':
-            return 3  # Enterprise tier
-        return 0  # Free tier
+        for plan, data in products.items():
+            if data['price_id'] == plan_id:
+                return data['tier']
+        return 0  # Default tier if not found
 
     def update_auth0_profile(email, tier):
         url = f'https://{app.config["AUTH0_DOMAIN"]}/api/v2/users-by-email?email={email}'
