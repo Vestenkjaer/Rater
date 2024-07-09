@@ -264,10 +264,12 @@ def create_app():
     @app.route('/create-checkout-session/<plan>', methods=['POST'])
     def create_checkout_session(plan):
         if plan not in products:
+            app.logger.error(f'Invalid plan: {plan}')
             return jsonify({'error': 'Invalid plan'}), 400
 
         price_id = products[plan]['price_id']
         try:
+            app.logger.info(f'Creating checkout session for plan: {plan} with price_id: {price_id}')
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
                 line_items=[{
@@ -278,8 +280,10 @@ def create_app():
                 success_url=url_for('success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
                 cancel_url=url_for('cancel', _external=True),
             )
+            app.logger.info(f'Checkout session created: {checkout_session.url}')
             return redirect(checkout_session.url, code=303)
         except Exception as e:
+            app.logger.error(f'Error creating checkout session: {str(e)}')
             return jsonify(error=str(e)), 403
 
     @app.route('/success')
