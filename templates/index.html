@@ -446,14 +446,17 @@
       if (!sessionStorage.getItem('logged_out')) {
         sessionStorage.setItem('logged_out', 'true');
 
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', '/logout', true);
-        xhr.onreadystatechange = function () {
-          if (xhr.readyState === 4 && xhr.status === 200) {
+        fetch('/logout', {
+          method: 'POST'
+        }).then(response => {
+          if (response.ok) {
             window.location.href = "/";
+          } else {
+            console.error('Failed to log out');
           }
-        };
-        xhr.send();
+        }).catch(error => {
+          console.error('Error:', error);
+        });
       }
     });
   </script>
