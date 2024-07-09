@@ -444,8 +444,18 @@
 
       // Log out the user when they visit the index page
       if (!sessionStorage.getItem('logged_out')) {
+        console.log("Logging out user");
         sessionStorage.setItem('logged_out', 'true');
-        window.location.href = "/logout";
+        fetch("/logout")
+          .then(response => {
+            if (response.ok) {
+              console.log("User logged out successfully");
+              window.location.reload();
+            } else {
+              console.error("Failed to log out user");
+            }
+          })
+          .catch(error => console.error("Error logging out user:", error));
       }
     });
   </script>
