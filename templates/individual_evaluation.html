@@ -263,9 +263,6 @@
         <div class="modal-body">
           <div id="aiRecommendationContent"></div>
           <div id="futurePredictionContent"></div>
-          <div class="chart-container">
-            <canvas id="radarChartModal"></canvas>
-          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -289,7 +286,6 @@
 
     let historicalChart;
     let radarChart;
-    let radarChartModal;
     let selectedTeamId = null;
     let selectedMemberId = null;
     let selectedMemberName = '';
@@ -358,7 +354,6 @@
           };
           renderChart(labels, dataset);
           renderRadarChart(radarData, 'radarChart');
-          renderRadarChart(radarData, 'radarChartModal');
         })
         .catch(error => {
           console.error('Error fetching historical data:', error);
@@ -482,7 +477,7 @@
         <h1>Individual Evaluation Report</h1>
         <h2>${today} - ${memberName}</h2>
         <p>Confidential GDPR material</p>
-        <img src="/static/images/raterware.png" style="width: 130%; height: auto;" />
+        <img src="/static/images/raterware.png" style="width: 100%; height: auto;" />
         <div>${document.getElementById('aiRecommendationContent').innerHTML}</div>
         <div>${document.getElementById('futurePredictionContent').innerHTML}</div>
       `;

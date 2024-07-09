@@ -445,7 +445,15 @@
       // Log out the user when they visit the index page
       if (!sessionStorage.getItem('logged_out')) {
         sessionStorage.setItem('logged_out', 'true');
-        window.location.href = "/logout";
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', '/logout', true);
+        xhr.onreadystatechange = function () {
+          if (xhr.readyState === 4 && xhr.status === 200) {
+            window.location.href = "/";
+          }
+        };
+        xhr.send();
       }
     });
   </script>
