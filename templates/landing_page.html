@@ -240,16 +240,7 @@
 
     .chart-buttons-container {
       text-align: center;
-      margin-top: 20px;
-    }
-    .btn-primary {
-        background-color: #007AFF;
-        color: white;
-    }
-
-    .btn-secondary {
-        background-color: #f0f0f5;
-        color: black;
+      margin: 20px 0;
     }
   </style>
 </head>
@@ -362,6 +353,12 @@
     </div>
   </div>
 
+  <div class="chart-buttons-container">
+    <button class="btn btn-custom" onclick="changePeriod(12)" id="btn-12">12</button>
+    <button class="btn btn-custom" onclick="changePeriod(24)" id="btn-24">24</button>
+    <button class="btn btn-custom" onclick="changePeriod('all')" id="btn-all">All</button>
+  </div>
+
   <div class="charts-container">
     <div class="chart">
       <div class="chart-title">Top Performers (Latest)</div>
@@ -371,12 +368,6 @@
       <div class="chart-title">Bottom Performers (Latest)</div>
       <canvas id="bottomPerformersChart"></canvas>
     </div>
-  </div>
-
-  <div class="chart-buttons-container">
-    <button class="btn btn-primary period-button" data-period="12">12</button>
-    <button class="btn btn-secondary period-button" data-period="24">24</button>
-    <button class="btn btn-secondary period-button" data-period="all">All</button>
   </div>
 
   <div class="improvement-drop-container">
@@ -399,8 +390,7 @@
   <script>
     let topPerformersChart;
     let bottomPerformersChart;
-    let selectedPeriod = 12; // Default period
-    let currentTeamId;
+    let selectedPeriod = 12;
 
     $(document).ready(function () {
       fetchTeams().then(data => {
@@ -416,18 +406,6 @@
         }
       });
       fetchUserInfo(); // Fetch and display user info
-
-      // Add event listeners for period buttons
-      document.querySelectorAll('.period-button').forEach(button => {
-        button.addEventListener('click', function() {
-          document.querySelectorAll('.period-button').forEach(btn => btn.classList.remove('btn-primary'));
-          document.querySelectorAll('.period-button').forEach(btn => btn.classList.add('btn-secondary'));
-          this.classList.remove('btn-secondary');
-          this.classList.add('btn-primary');
-          selectedPeriod = this.getAttribute('data-period');
-          selectTeam(currentTeamId); // Re-fetch and update charts with the selected period
-        });
-      });
     });
 
     async function fetchTeams() {
@@ -478,7 +456,6 @@
     }
 
     async function selectTeam(teamId) {
-      currentTeamId = teamId;
       console.log(`Selected team ID: ${teamId}`);
       try {
         const response = await fetch(`/rate_team/get_team_members/${teamId}`);
@@ -612,7 +589,7 @@
           continue;
         }
 
-        const recentData = historicalData.slice(-selectedPeriod);
+        const recentData = historicalData.slice(-12);
 
         criteriaList.forEach(criteria => {
           const data = recentData.map(entry => entry[criteria]);
@@ -693,7 +670,12 @@
           return null;
         }
 
-        const dataToShow = selectedPeriod === 'all' ? historicalData : historicalData.slice(-selectedPeriod).reverse();
+        let dataToShow;
+        if (selectedPeriod === 'all') {
+          dataToShow = historicalData.reverse(); // Reverse the order for recent data first
+        } else {
+          dataToShow = historicalData.slice(-selectedPeriod).reverse(); // Reverse the order for recent data first
+        }
         const scores = dataToShow.map(entry => entry.score);
 
         return {
@@ -723,7 +705,7 @@
             },
             ticks: {
               autoSkip: false,
-              maxTicksLimit: selectedPeriod === 'all' ? dataToShow.length : selectedPeriod,
+              maxTicksLimit: 12,
               reverse: true // Invert the x-axis
             },
             grid: {
@@ -764,6 +746,15 @@
           options: options
         });
       }
+    }
+
+    function changePeriod(period) {
+      selectedPeriod = period;
+      document.getElementById('btn-12').classList.remove('btn-primary');
+      document.getElementById('btn-24').classList.remove('btn-primary');
+      document.getElementById('btn-all').classList.remove('btn-primary');
+      document.getElementById(`btn-${period}`).classList.add('btn-primary');
+      selectTeam(currentTeamId); // Re-fetch and update the charts with the new period
     }
 
     async function fetchUserInfo() {
