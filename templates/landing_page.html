@@ -187,33 +187,6 @@
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
-    .improvement-drop-container {
-      display: flex;
-      justify-content: space-around;
-      margin: 20px 0;
-    }
-
-    .improvement-drop-card {
-      width: 45%;
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      text-align: center;
-    }
-
-    .improvement-drop-card h3 {
-      font-family: "San Francisco", sans-serif;
-      font-size: 24px;
-      color: #333;
-      margin-bottom: 10px;
-    }
-
-    .improvement-drop-card p {
-      font-size: 18px;
-      margin: 5px 0;
-    }
-
     .dropdown-custom {
       display: inline-block;
       margin-left: 10px;
@@ -359,21 +332,6 @@
     </div>
   </div>
 
-  <div class="improvement-drop-container">
-    <div class="improvement-drop-card">
-      <h3>Most Positive Improvement</h3>
-      <p id="mostPositiveImprovementName">Name: </p>
-      <p id="mostPositiveImprovementCriteria">Criteria: </p>
-      <p id="mostPositiveImprovementValues">From: 0 To: 0</p>
-    </div>
-    <div class="improvement-drop-card">
-      <h3>Most Significant Drop</h3>
-      <p id="mostSignificantDropName">Name: </p>
-      <p id="mostSignificantDropCriteria">Criteria: </p>
-      <p id="mostSignificantDropValues">From: 0 To: 0</p>
-    </div>
-  </div>
-
   <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
@@ -469,8 +427,6 @@
 
           await updateLineChart('topPerformersChart', 'Top Performers', topPerformers, ['#009B7C', '#007AFF', '#9C007E']);
           await updateLineChart('bottomPerformersChart', 'Bottom Performers', bottomPerformers, ['#F8D164', '#FF6B5C', '#004295']);
-
-          await calculateImprovementAndDrop(members);
         } else {
           console.error('Failed to fetch team members');
         }
@@ -538,112 +494,6 @@
       const progressElement = document.getElementById(elementId);
       const percentage = value * 100; // Convert value to percentage out of 100
       progressElement.style.strokeDasharray = `${percentage}, 100`;
-    }
-
-    async function calculateImprovementAndDrop(members) {
-      let mostPositiveImprovement = {
-        member: null,
-        criteria: '',
-        from: 0,
-        to: 0,
-        improvement: -Infinity
-      };
-      let mostSignificantDrop = {
-        member: null,
-        criteria: '',
-        from: 0,
-        to: 0,
-        drop: Infinity
-      };
-
-      const criteriaList = [
-        'ability_to_impart_knowledge',
-        'approachable',
-        'necessary_skills',
-        'trained',
-        'absence',
-        'self_motivation',
-        'capacity_for_learning',
-        'adaptability'
-      ];
-
-      for (const member of members) {
-        const historicalData = await fetchMemberHistoricalData(member.id);
-
-        console.log(`Historical data for ${member.first_name} ${member.surname}:`, historicalData);
-
-        if (historicalData.length < 12) {
-          console.log(`Not enough historical data for member ${member.first_name} ${member.surname}`);
-          continue;
-        }
-
-        const recentData = historicalData.slice(-12);
-
-        criteriaList.forEach(criteria => {
-          const data = recentData.map(entry => entry[criteria]);
-          if (data.length < 2) {
-            console.log(`Not enough data for member ${member.first_name} ${member.surname} for criteria ${criteria}`);
-            return;
-          }
-
-          const fromValue = parseFloat(data[0]);
-          const toValue = parseFloat(data[data.length - 1]);
-          const change = toValue - fromValue;
-
-          console.log(`Member: ${member.first_name} ${member.surname}, Criteria: ${criteria}, From: ${fromValue}, To: ${toValue}, Change: ${change}`);
-
-          if (change > mostPositiveImprovement.improvement) {
-            mostPositiveImprovement = {
-              member,
-              criteria,
-              from: fromValue,
-              to: toValue,
-              improvement: change
-            };
-          }
-
-          if (change < mostSignificantDrop.drop) {
-            mostSignificantDrop = {
-              member,
-              criteria,
-              from: fromValue,
-              to: toValue,
-              drop: change
-            };
-          }
-        });
-      }
-
-      console.log('Most Positive Improvement:', mostPositiveImprovement);
-      console.log('Most Significant Drop:', mostSignificantDrop);
-
-      if (mostPositiveImprovement.member) {
-        document.getElementById('mostPositiveImprovementName').innerText = `Name: ${mostPositiveImprovement.member.first_name} ${mostPositiveImprovement.member.surname}`;
-        document.getElementById('mostPositiveImprovementCriteria').innerText = `Criteria: ${mostPositiveImprovement.criteria}`;
-        document.getElementById('mostPositiveImprovementValues').innerText = `From: ${mostPositiveImprovement.from} To: ${mostPositiveImprovement.to}`;
-      } else {
-        console.error('No positive improvement found.');
-      }
-
-      if (mostSignificantDrop.member) {
-        document.getElementById('mostSignificantDropName').innerText = `Name: ${mostSignificantDrop.member.first_name} ${mostSignificantDrop.member.surname}`;
-        document.getElementById('mostSignificantDropCriteria').innerText = `Criteria: ${mostSignificantDrop.criteria}`;
-        document.getElementById('mostSignificantDropValues').innerText = `From: ${mostSignificantDrop.from} To: ${mostSignificantDrop.to}`;
-      } else {
-        console.error('No significant drop found.');
-      }
-    }
-
-    async function fetchMemberHistoricalData(memberId) {
-      console.log(`Fetching historical data for member ID: ${memberId}`);
-      const response = await fetch(`/rate_team/get_historical_data/${memberId}`);
-      if (!response.ok) {
-        console.error(`Failed to fetch historical data for member ID: ${memberId}`);
-        return [];
-      }
-      const data = await response.json();
-      console.log(`Historical data for member ID ${memberId}:`, data);
-      return data;
     }
 
     async function updateLineChart(chartId, label, members, colors) {
@@ -729,6 +579,18 @@
           options: options
         });
       }
+    }
+
+    async function fetchMemberHistoricalData(memberId) {
+      console.log(`Fetching historical data for member ID: ${memberId}`);
+      const response = await fetch(`/rate_team/get_historical_data/${memberId}`);
+      if (!response.ok) {
+        console.error(`Failed to fetch historical data for member ID: ${memberId}`);
+        return [];
+      }
+      const data = await response.json();
+      console.log(`Historical data for member ID ${memberId}:`, data);
+      return data;
     }
 
     async function fetchUserInfo() {
