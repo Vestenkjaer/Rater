@@ -17,13 +17,16 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from mail import mail
 from urllib.parse import urlencode
 
-load_dotenv()  # Load environment variables from .env file
+# Load environment variables from .env file
+load_dotenv()
 
+# Set up Stripe API key
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 
 # Print the value of STRIPE_WEBHOOK_SECRET for debugging
 print("STRIPE_WEBHOOK_SECRET:", os.getenv('STRIPE_WEBHOOK_SECRET'))
 
+# Define product information
 products = {
     'basic': {
         'price_id': 'price_1PZBUCLvebSJUJfhPnFmeZpI',
@@ -39,6 +42,7 @@ products = {
     },
 }
 
+# Create the Flask app
 def create_app():
     app = Flask(__name__, static_folder='static')
     app.config.from_object(Config)
@@ -63,7 +67,11 @@ def create_app():
         mimetypes={'text/css': 'text/css; charset=UTF-8'}  # Specify MIME types if needed
     )
 
-    # Add logging for environment variables
+    # Set up logging
+    logging.basicConfig(level=logging.DEBUG)
+    logger = logging.getLogger(__name__)
+
+    # Log environment variables
     required_env_vars = [
         'MAIL_SERVER', 'MAIL_PORT', 'MAIL_USERNAME', 'MAIL_PASSWORD',
         'AUTH0_CLIENT_ID', 'AUTH0_CLIENT_SECRET', 'AUTH0_DOMAIN',
@@ -74,7 +82,7 @@ def create_app():
         value = os.getenv(var)
         if not value:
             raise ValueError(f"Missing required environment variable: {var}")
-        app.logger.debug(f"{var}: {value}")
+        logger.debug(f"{var}: {value}")
 
     # Configure Flask-Mail
     app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
@@ -86,12 +94,15 @@ def create_app():
     app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
     mail.init_app(app)  # Initialize the mail instance
 
+    # Initialize session
     Session(app)
 
+    # Initialize database and migration
     db.init_app(app)
-    migrate = Migrate(app, db)  # Ensure Migrate is initialized
+    migrate = Migrate(app, db)
     oauth = OAuth(app)
 
+    # Configure Auth0
     auth0 = oauth.register(
         'auth0',
         client_id=os.getenv('AUTH0_CLIENT_ID'),
@@ -105,11 +116,10 @@ def create_app():
         },
     )
 
-    logging.basicConfig(level=logging.DEBUG)
-
     with app.app_context():
         db.create_all()
 
+    # Register blueprints
     from routes.main import main_bp
     from routes.rate_team import rate_team_bp
     from routes.setup import setup_bp
@@ -119,7 +129,7 @@ def create_app():
     from routes.landing_page import landing_page_bp  
     from routes.pricing import pricing_bp
     from routes.payment import payment_bp
-    from routes.public import public_bp  # Import the public blueprint
+    from routes.public import public_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(rate_team_bp, url_prefix='/rate_team')
@@ -130,8 +140,9 @@ def create_app():
     app.register_blueprint(landing_page_bp, url_prefix='/dashboard') 
     app.register_blueprint(pricing_bp, url_prefix='/pricing')
     app.register_blueprint(payment_bp)
-    app.register_blueprint(public_bp, url_prefix='/public')  # Register the public blueprint
+    app.register_blueprint(public_bp, url_prefix='/public')
 
+    # User blocking/unblocking logic
     def check_and_block_users():
         clients = Client.query.all()
         for client in clients:
@@ -145,6 +156,7 @@ def create_app():
                     unblock_user_in_auth0(user.email)
 
     def block_user_in_auth0(email):
+        logger.debug(f"Blocking user in Auth0: {email}")
         auth0_domain = os.getenv('AUTH0_DOMAIN')
         token = get_auth0_token()
         headers = {
@@ -160,6 +172,7 @@ def create_app():
             requests.patch(f'https://{auth0_domain}/api/v2/users/{user_id}', headers=headers, json=block_payload)
 
     def unblock_user_in_auth0(email):
+        logger.debug(f"Unblocking user in Auth0: {email}")
         auth0_domain = os.getenv('AUTH0_DOMAIN')
         token = get_auth0_token()
         headers = {
@@ -183,6 +196,7 @@ def create_app():
     def shutdown_session(exception=None):
         db.session.remove()
 
+    # Define routes
     @app.route('/')
     def index():
         return redirect(url_for('dashboard'))
@@ -192,8 +206,8 @@ def create_app():
         state = secrets.token_urlsafe(16)
         session['auth0_state'] = state
         session.modified = True  
-        app.logger.debug(f"Generated state: {state}")
-        app.logger.debug(f"Session before redirect: {dict(session)}")
+        logger.debug(f"Generated state: {state}")
+        logger.debug(f"Session before redirect: {dict(session)}")
         return auth0.authorize_redirect(redirect_uri=os.getenv('AUTH0_CALLBACK_URL_HEROKU') or os.getenv('AUTH0_CALLBACK_URL_CUSTOM'), state=state)
 
     @app.route('/callback')
@@ -201,12 +215,12 @@ def create_app():
         state = request.args.get('state')
         session_state = session.get('auth0_state')
 
-        app.logger.debug(f"State in callback: {state}")
-        app.logger.debug(f"State in session: {session_state}")
-        app.logger.debug(f"Session in callback: {dict(session)}")
+        logger.debug(f"State in callback: {state}")
+        logger.debug(f"State in session: {session_state}")
+        logger.debug(f"Session in callback: {dict(session)}")
 
         if state != session_state:
-            app.logger.warning("CSRF check failed")
+            logger.warning("CSRF check failed")
             return jsonify({"error": "CSRF Warning! State not equal in request and response."}), 400
 
         try:
@@ -223,8 +237,8 @@ def create_app():
 
             session.pop('auth0_state', None)
         except Exception as e:
-            app.logger.error(f"Error during Auth0 callback: {str(e)}")
-            app.logger.exception("Exception during Auth0 callback")
+            logger.error(f"Error during Auth0 callback: {str(e)}")
+            logger.exception("Exception during Auth0 callback")
             return jsonify({"error": str(e)}), 500
         return redirect('/dashboard')
 
@@ -267,12 +281,12 @@ def create_app():
     @app.route('/create-checkout-session/<plan>', methods=['POST'])
     def create_checkout_session(plan):
         if plan not in products:
-            app.logger.error(f'Invalid plan: {plan}')
+            logger.error(f'Invalid plan: {plan}')
             return jsonify({'error': 'Invalid plan'}), 400
 
         price_id = products[plan]['price_id']
         try:
-            app.logger.info(f'Creating checkout session for plan: {plan} with price_id: {price_id}')
+            logger.info(f'Creating checkout session for plan: {plan} with price_id: {price_id}')
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
                 line_items=[{
@@ -283,18 +297,20 @@ def create_app():
                 success_url=url_for('success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
                 cancel_url=url_for('cancel', _external=True),
             )
-            app.logger.info(f'Checkout session created: {checkout_session.url}')
+            logger.info(f'Checkout session created: {checkout_session.url}')
             return redirect(checkout_session.url, code=303)
         except Exception as e:
-            app.logger.error(f'Error creating checkout session: {str(e)}')
+            logger.error(f'Error creating checkout session: {str(e)}')
             return jsonify(error=str(e)), 403
 
     @app.route('/success')
     def success():
+        logger.info("Successfully completed the checkout session.")
         return render_template('success.html')
 
     @app.route('/cancel')
     def cancel():
+        logger.info("Checkout session was canceled.")
         return render_template('cancel.html')
 
     @app.route('/stripe-webhook', methods=['POST'])
@@ -310,10 +326,10 @@ def create_app():
                 payload, sig_header, endpoint_secret
             )
         except ValueError as e:
-            app.logger.error(f"Webhook error: {str(e)}")
+            logger.error(f"Webhook error: {str(e)}")
             return jsonify({'error': str(e)}), 400
         except stripe.error.SignatureVerificationError as e:
-            app.logger.error(f"Signature verification failed: {str(e)}")
+            logger.error(f"Signature verification failed: {str(e)}")
             return jsonify({'error': str(e)}), 400
 
         if event['type'] == 'checkout.session.completed':
@@ -341,6 +357,7 @@ def create_app():
         return 0  # Default tier if not found
 
     def update_auth0_profile(email, tier):
+        logger.debug(f"Updating Auth0 profile for email: {email} with tier: {tier}")
         url = f'https://{app.config["AUTH0_DOMAIN"]}/api/v2/users-by-email?email={email}'
         headers = {
             'Authorization': f'Bearer {get_auth0_token()}',
