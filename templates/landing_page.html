@@ -237,6 +237,20 @@
       width: 50px; /* Adjust the size as needed */
       margin: 0 5px;
     }
+
+    .chart-buttons-container {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .btn-primary {
+        background-color: #007AFF;
+        color: white;
+    }
+
+    .btn-secondary {
+        background-color: #f0f0f5;
+        color: black;
+    }
   </style>
 </head>
 <body>
@@ -359,6 +373,12 @@
     </div>
   </div>
 
+  <div class="chart-buttons-container">
+    <button class="btn btn-primary period-button" data-period="12">12</button>
+    <button class="btn btn-secondary period-button" data-period="24">24</button>
+    <button class="btn btn-secondary period-button" data-period="all">All</button>
+  </div>
+
   <div class="improvement-drop-container">
     <div class="improvement-drop-card">
       <h3>Most Positive Improvement</h3>
@@ -379,6 +399,8 @@
   <script>
     let topPerformersChart;
     let bottomPerformersChart;
+    let selectedPeriod = 12; // Default period
+    let currentTeamId;
 
     $(document).ready(function () {
       fetchTeams().then(data => {
@@ -394,6 +416,18 @@
         }
       });
       fetchUserInfo(); // Fetch and display user info
+
+      // Add event listeners for period buttons
+      document.querySelectorAll('.period-button').forEach(button => {
+        button.addEventListener('click', function() {
+          document.querySelectorAll('.period-button').forEach(btn => btn.classList.remove('btn-primary'));
+          document.querySelectorAll('.period-button').forEach(btn => btn.classList.add('btn-secondary'));
+          this.classList.remove('btn-secondary');
+          this.classList.add('btn-primary');
+          selectedPeriod = this.getAttribute('data-period');
+          selectTeam(currentTeamId); // Re-fetch and update charts with the selected period
+        });
+      });
     });
 
     async function fetchTeams() {
@@ -444,6 +478,7 @@
     }
 
     async function selectTeam(teamId) {
+      currentTeamId = teamId;
       console.log(`Selected team ID: ${teamId}`);
       try {
         const response = await fetch(`/rate_team/get_team_members/${teamId}`);
@@ -577,7 +612,7 @@
           continue;
         }
 
-        const recentData = historicalData.slice(-12);
+        const recentData = historicalData.slice(-selectedPeriod);
 
         criteriaList.forEach(criteria => {
           const data = recentData.map(entry => entry[criteria]);
@@ -658,8 +693,8 @@
           return null;
         }
 
-        const last12Data = historicalData.slice(-12).reverse(); // Reverse the order for recent data first
-        const scores = last12Data.map(entry => entry.score);
+        const dataToShow = selectedPeriod === 'all' ? historicalData : historicalData.slice(-selectedPeriod).reverse();
+        const scores = dataToShow.map(entry => entry.score);
 
         return {
           label: `${member.first_name} ${member.surname}`,
@@ -674,7 +709,7 @@
       console.log(`Updating chart ${chartId} with datasets:`, datasets);
 
       const chartData = {
-        labels: Array.from({ length: 12 }, (_, i) => `Session ${12 - i}`), // Inverted session labels
+        labels: Array.from({ length: dataToShow.length }, (_, i) => `Session ${dataToShow.length - i}`), // Inverted session labels
         datasets: datasets
       };
 
@@ -688,7 +723,7 @@
             },
             ticks: {
               autoSkip: false,
-              maxTicksLimit: 12,
+              maxTicksLimit: selectedPeriod === 'all' ? dataToShow.length : selectedPeriod,
               reverse: true // Invert the x-axis
             },
             grid: {

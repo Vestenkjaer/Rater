@@ -29,7 +29,7 @@
 
     .container {
       display: flex;
-      width: 200% !important;
+      width: 100%;
       max-width: 1900px;
       margin: 0 auto;
       padding: 20px;
@@ -290,8 +290,8 @@
         </div>
         <div class="modal-body">
           <div id="aiRecommendationContent"></div>
+          <canvas id="radarChartModal" style="margin-top: 20px;"></canvas>
           <div id="futurePredictionContent"></div>
-          <canvas id="radarChartModal"></canvas>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -380,7 +380,7 @@
             pointRadius: 0
           };
           renderChart(labels, dataset);
-          renderRadarChart(radarData, 'radarChart');
+          renderRadarChart('radarChart', radarData);
         })
         .catch(error => {
           console.error('Error fetching historical data:', error);
@@ -422,7 +422,7 @@
       });
     }
 
-    function renderRadarChart(radarData, canvasId) {
+    function renderRadarChart(canvasId, radarData) {
       const ctx = document.getElementById(canvasId).getContext('2d');
       if (window[canvasId]) {
         window[canvasId].destroy();
@@ -482,7 +482,7 @@
           } else {
             document.getElementById('aiRecommendationContent').innerText = data.recommendation;
             document.getElementById('futurePredictionContent').innerText = data.future_prediction;
-            renderRadarChart(data.radarData, 'radarChartModal');
+            renderRadarChart('radarChartModal', data.radar_data);
             $('#aiModal').modal('show');
           }
         })
@@ -500,22 +500,34 @@
       const fileName = `AI_Recommendation_${memberName}_${today}.pdf`;
 
       const element = document.createElement('div');
+      const header = document.createElement('div');
+      header.style.textAlign = 'center';
+      header.style.marginBottom = '20px';
+      header.innerHTML = `
+        <h1>Individual Evaluation Report</h1>
+        <h3>${today}</h3>
+        <h3>${memberName}</h3>
+        <h3>Confidential GDPR Material</h3>
+        <img src="{{ url_for('static', filename='images/raterware.png') }}" style="width: 100%; height: auto;">
+      `;
+
+      element.appendChild(header);
       element.appendChild(document.getElementById('aiRecommendationContent').cloneNode(true));
       element.appendChild(document.getElementById('futurePredictionContent').cloneNode(true));
-
-      const canvas = document.getElementById('radarChartModal');
-      if (canvas) {
-        const img = new Image();
-        img.src = canvas.toDataURL();
-        img.style.width = '100%';
-        img.style.height = 'auto';
-        element.appendChild(img);
-      }
+      const radarChart = document.getElementById('radarChartModal');
+      const radarImage = radarChart.toDataURL('image/png');
+      const imgElement = document.createElement('img');
+      imgElement.src = radarImage;
+      imgElement.style.width = '100%';
+      imgElement.style.height = 'auto';
+      element.appendChild(imgElement);
 
       html2pdf().set({
+        margin: 20,
         filename: fileName,
-        margin: [20, 20, 20, 20], // Set custom margins here
-        pagebreak: { mode: 'avoid-all' }
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       }).from(element).save();
     }
     
