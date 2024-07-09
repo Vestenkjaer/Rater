@@ -18,7 +18,6 @@
       padding: 0;
       background-color: #F0F0F5;
     }
-
     h2 {
       font-family: "San Francisco", sans-serif;
       font-size: 36px;
@@ -26,7 +25,6 @@
       text-align: center;
       margin: 20px 0;
     }
-
     .container {
       display: flex;
       width: 200% !important;
@@ -37,7 +35,6 @@
       box-shadow: 0 0 15px rgba(0,0,0,0.1);
       border-radius: 20px;
     }
-
     .team-members-list, .criteria-data {
       background-color: #FAFAFA;
       border: 1px solid #E0E0E0;
@@ -46,25 +43,21 @@
       margin: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.05);
     }
-
     .team-members-list {
       flex: 1;
       max-width: 25%;
       margin-right: 10px;
       position: relative;
     }
-
     .criteria-data {
       flex: 3;
       max-width: 75%;
       margin-left: 5px;
     }
-
     .teams-list ul, .team-members-list ul {
       list-style-type: none;
       padding: 0;
     }
-
     .teams-list li, .team-members-list li {
       font-family: "San Francisco", sans-serif;
       font-size: 18px;
@@ -80,18 +73,15 @@
       transition: background-color 0.3s, transform 0.3s;
       box-shadow: 0 0 10px rgba(0,0,0,0.05);
     }
-
     .team-members-list li {
       background-color: #007AFF;
       color: #FFF;
     }
-
     .teams-list li:hover, .team-members-list li:hover {
       background-color: #005BB5;
       color: #FFF;
       transform: scale(1.02);
     }
-
     .btn-custom {
       background-color: #007AFF;
       border: none;
@@ -106,60 +96,48 @@
       border-radius: 10px;
       transition: background-color 0.3s, transform 0.3s;
     }
-
     .btn-custom:hover {
       background-color: #005BB5;
       transform: translateY(-2px);
     }
-
     .btn-custom-thin-border {
       border: 1px solid white;
     }
-
     .navbar {
       margin-bottom: 20px;
       background-color: #007AFF;
     }
-
     .navbar-brand {
       font-family: "San Francisco", sans-serif;
       font-size: 36px;
       color: white;
     }
-
     .navbar-nav .nav-item .nav-link {
       color: white;
       font-size: 18px;
       margin-left: 10px;
     }
-
     .navbar-nav .nav-item .nav-link:hover {
       color: #D1D1D6;
     }
-
     table {
       width: 100%;
       table-layout: fixed;
     }
-
     th, td {
       padding: 10px;
       text-align: center;
       border: 1px solid #ddd;
     }
-
     th.criteria {
       white-space: normal;
     }
-
     .modal-content {
       text-align: center;
     }
-
     .chart-container {
       margin-top: 40px;
     }
-
     .spinner {
       border: 8px solid #f3f3f3;
       border-top: 8px solid #3498db;
@@ -172,12 +150,10 @@
       left: 50%;
       transform: translate(-50%, -50%);
     }
-
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-
     .spinner-message {
       position: absolute;
       top: 55%;
@@ -188,18 +164,15 @@
       font-size: 24px;
       text-align: center;
     }
-
     .top-container {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-
     .team-member-container {
       display: flex;
       flex-direction: column;
     }
-
     .dropdown {
       width: 100%;
       font-size: 18px;
@@ -212,7 +185,6 @@
       cursor: pointer;
       transition: background-color 0.3s, transform 0.3s;
     }
-
     .dropdown:hover {
       background-color: #005BB5;
       transform: translateY(-2px);
@@ -291,6 +263,9 @@
         <div class="modal-body">
           <div id="aiRecommendationContent"></div>
           <div id="futurePredictionContent"></div>
+          <div class="chart-container">
+            <canvas id="radarChartModal"></canvas>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -311,11 +286,14 @@
       "capacity_for_learning",
       "adaptability"
     ];
-    
+
+    let historicalChart;
+    let radarChart;
+    let radarChartModal;
     let selectedTeamId = null;
     let selectedMemberId = null;
     let selectedMemberName = '';
-    
+
     function fetchTeamMembers(teamId) {
       selectedTeamId = teamId;
       fetch(`/rate_team/get_team_members/${teamId}`)
@@ -362,7 +340,7 @@
           }
         });
     }
-    
+
     function fetchHistoricalData(memberId, memberName, radarData) {
       fetch(`/rate_team/get_historical_data/${memberId}`)
         .then(response => response.json())
@@ -379,19 +357,20 @@
             pointRadius: 0
           };
           renderChart(labels, dataset);
-          renderRadarChart(radarData);
+          renderRadarChart(radarData, 'radarChart');
+          renderRadarChart(radarData, 'radarChartModal');
         })
         .catch(error => {
           console.error('Error fetching historical data:', error);
         });
     }
-    
+
     function renderChart(labels, dataset) {
       const ctx = document.getElementById('historicalChart').getContext('2d');
-      if (window.historicalChart) {
-        window.historicalChart.destroy();
+      if (historicalChart instanceof Chart) {
+        historicalChart.destroy();
       }
-      window.historicalChart = new Chart(ctx, {
+      historicalChart = new Chart(ctx, {
         type: 'line',
         data: {
           labels: labels,
@@ -421,12 +400,12 @@
       });
     }
 
-    function renderRadarChart(radarData) {
-      const ctx = document.getElementById('radarChart').getContext('2d');
-      if (window.radarChart) {
-        window.radarChart.destroy();
+    function renderRadarChart(radarData, canvasId) {
+      const ctx = document.getElementById(canvasId).getContext('2d');
+      if (window[canvasId] instanceof Chart) {
+        window[canvasId].destroy();
       }
-      window.radarChart = new Chart(ctx, {
+      window[canvasId] = new Chart(ctx, {
         type: 'radar',
         data: {
           labels: criteria.map(criterion => criterion.replace(/_/g, ' ')),
@@ -453,7 +432,7 @@
         }
       });
     }
-    
+
     function getRandomColor() {
       const letters = '0123456789ABCDEF';
       let color = '#';
@@ -462,7 +441,7 @@
       }
       return color;
     }
-    
+
     function aiRecommendation() {
       if (!selectedMemberId) {
         alert('Please select a member to get AI recommendation.');
@@ -482,30 +461,41 @@
             document.getElementById('aiRecommendationContent').innerText = data.recommendation;
             document.getElementById('futurePredictionContent').innerText = data.future_prediction;
             $('#aiModal').modal('show');
+            renderRadarChart(data.radar_data, 'radarChartModal');
           }
         })
         .catch(error => {
           document.getElementById('spinnerContainer').style.display = 'none';
-
           console.error('Error fetching AI recommendation:', error);
           alert('An error occurred while fetching the AI recommendation.');
         });
     }
-    
+
     function saveAsPDF() {
       const memberName = document.getElementById('member-name-container').innerText.replace('Selected Member: ', '');
       const today = new Date().toISOString().slice(0, 10);
       const fileName = `AI_Recommendation_${memberName}_${today}.pdf`;
 
       const element = document.createElement('div');
-      element.appendChild(document.getElementById('aiRecommendationContent').cloneNode(true));
-      element.appendChild(document.getElementById('futurePredictionContent').cloneNode(true));
+      element.style.margin = '20mm';
+      element.innerHTML = `
+        <h1>Individual Evaluation Report</h1>
+        <h2>${today} - ${memberName}</h2>
+        <p>Confidential GDPR material</p>
+        <img src="/static/images/raterware.png" style="width: 100%; height: auto;" />
+        <div>${document.getElementById('aiRecommendationContent').innerHTML}</div>
+        <div>${document.getElementById('futurePredictionContent').innerHTML}</div>
+      `;
 
       html2pdf().set({
-        filename: fileName
+        margin: 10,
+        filename: fileName,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       }).from(element).save();
     }
-    
+
     window.addEventListener('load', () => {
       const teamList = document.getElementById('teamList');
       if (teamList.options.length === 2) { // 1 option for placeholder and 1 for the team
