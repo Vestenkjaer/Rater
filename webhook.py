@@ -1,206 +1,102 @@
 import os
-import secrets
-from dotenv import load_dotenv
-from flask import Flask, render_template, redirect, url_for, session, jsonify, request, abort
-from flask_session import Session
-from config import Config
-from models import db
-from flask_migrate import Migrate
-from authlib.integrations.flask_client import OAuth
-import logging
 import stripe
-import requests
-import json
+from flask import Blueprint, request, jsonify, current_app
+from models import db, Client
+from datetime import datetime
 
-load_dotenv()  # Load environment variables from .env file
+webhook_bp = Blueprint('webhook', __name__)
 
+# Load Stripe API key from environment
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 
-def create_app():
-    app = Flask(__name__)
-    app.config.from_object(Config)
-    app.secret_key = app.config['SECRET_KEY']
-    app.config['STRIPE_PUBLISHABLE_KEY'] = os.getenv('STRIPE_PUBLISHABLE_KEY')
+# Define the mapping from plan IDs to tiers
+PLAN_ID_TO_TIER = {
+    'basic_plan_id': 1,       # Replace with your actual plan IDs
+    'professional_plan_id': 2, # Replace with your actual plan IDs
+    'enterprise_plan_id': 3    # Replace with your actual plan IDs
+}
 
-    # Configure session to use the filesystem
-    app.config['SESSION_TYPE'] = 'filesystem'
-    app.config['SESSION_FILE_DIR'] = './.flask_session/'  # Ensure this directory exists and is writable
-    app.config['SESSION_PERMANENT'] = False
-    app.config['SESSION_USE_SIGNER'] = True
-    
-    Session(app)
+def determine_tier(plan_id):
+    return PLAN_ID_TO_TIER.get(plan_id, 0)  # Default to 0 (Free) if plan_id is not found
 
-    db.init_app(app)
-    migrate = Migrate(app, db)
-    oauth = OAuth(app)
+# Define the webhook endpoint
+@webhook_bp.route('/stripe-webhook', methods=['POST'])
+def stripe_webhook():
+    payload = request.get_data(as_text=True)
+    sig_header = request.headers.get('Stripe-Signature')
+    endpoint_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
 
-    auth0 = oauth.register(
-        'auth0',
-        client_id=app.config['AUTH0_CLIENT_ID'],
-        client_secret=app.config['AUTH0_CLIENT_SECRET'],
-        api_base_url=f"https://{app.config['AUTH0_DOMAIN']}",
-        access_token_url=f"https://{app.config['AUTH0_DOMAIN']}/oauth/token",
-        authorize_url=f"https://{app.config['AUTH0_DOMAIN']}/authorize",
-        server_metadata_url=f"https://{app.config['AUTH0_DOMAIN']}/.well-known/openid-configuration",
-        client_kwargs={
-            'scope': 'openid profile email',
-        },
-    )
+    event = None
 
-    logging.basicConfig(level=logging.DEBUG)
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, endpoint_secret
+        )
+    except ValueError as e:
+        # Invalid payload
+        current_app.logger.error(f'Invalid payload: {e}')
+        return jsonify({'error': 'Invalid payload'}), 400
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid signature
+        current_app.logger.error(f'Invalid signature: {e}')
+        return jsonify({'error': 'Invalid signature'}), 400
 
-    with app.app_context():
-        db.create_all()
+    # Handle the event
+    if event['type'] in ['checkout.session.completed', 'invoice.payment_succeeded']:
+        session_data = event['data']['object']
+        customer_email = session_data['customer_details']['email']
+        subscription_id = session_data['subscription']
 
-    from routes.main import main_bp
-    from routes.rate_team import rate_team_bp
-    from routes.setup import setup_bp
-    from routes.team_management import team_management_bp
-    from routes.client_management import client_management_bp
-    from routes.individual_evaluation import individual_evaluation_bp
-    from routes.landing_page import landing_page_bp
-    from routes.pricing import pricing_bp
-    from routes.payment import payment_bp
-    
-    app.register_blueprint(main_bp)
-    app.register_blueprint(rate_team_bp, url_prefix='/rate_team')
-    app.register_blueprint(setup_bp, url_prefix='/setup')
-    app.register_blueprint(team_management_bp, url_prefix='/team_management')
-    app.register_blueprint(client_management_bp, url_prefix='/client_management')
-    app.register_blueprint(individual_evaluation_bp, url_prefix='/individual_evaluation')
-    app.register_blueprint(landing_page_bp, url_prefix='/dashboard')
-    app.register_blueprint(pricing_bp, url_prefix='/pricing')
-    app.register_blueprint(payment_bp)
+        subscription = stripe.Subscription.retrieve(subscription_id)
+        plan_id = subscription['items']['data'][0]['price']['product']
+        tier = determine_tier(plan_id)
 
-    @app.route('/login')
-    def login():
-        state = secrets.token_urlsafe(16)
-        session['auth0_state'] = state
-        session.modified = True  # Ensure session is marked as modified
-        app.logger.debug(f"Generated state: {state}")
-        app.logger.debug(f"Session before redirect: {dict(session)}")
-        return auth0.authorize_redirect(redirect_uri=app.config['AUTH0_CALLBACK_URL'], state=state)
+        client = Client.query.filter_by(email=customer_email).first()
+        if client:
+            client.tier = tier
+            db.session.commit()
+        
+        # Optionally, update Auth0 profile here if needed
+        # update_auth0_profile(customer_email, tier)
 
-    @app.route('/callback')
-    def callback_handling():
-        state = request.args.get('state')
-        session_state = session.get('auth0_state')
+    return jsonify({'status': 'success'}), 200
 
-        app.logger.debug(f"State in callback: {state}")
-        app.logger.debug(f"State in session: {session_state}")
-        app.logger.debug(f"Session in callback: {dict(session)}")
+def update_auth0_profile(email, tier):
+    url = f'https://{os.getenv("AUTH0_DOMAIN")}/api/v2/users-by-email?email={email}'
+    headers = {
+        'Authorization': f'Bearer {get_auth0_token()}',
+        'Content-Type': 'application/json'
+    }
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        user_id = response.json()[0]['user_id']
+        update_url = f'https://{os.getenv("AUTH0_DOMAIN")}/api/v2/users/{user_id}'
+        data = {'user_metadata': {'tier': tier}}
+        requests.patch(update_url, headers=headers, data=json.dumps(data))
 
-        if state != session_state:
-            app.logger.warning("CSRF check failed")
-            return jsonify({"error": "CSRF Warning! State not equal in request and response."}), 400
+def get_auth0_token():
+    if 'auth0_token' not in get_auth0_token.__dict__:
+        get_auth0_token.auth0_token = None
+        get_auth0_token.auth0_token_expiry = 0
 
-        try:
-            token_response = auth0.authorize_access_token()
-            response = auth0.get('userinfo')
-            session['user'] = response.json()
-            session.pop('auth0_state', None)
-        except Exception as e:
-            app.logger.error(f"Error during Auth0 callback: {str(e)}")
-            app.logger.exception("Exception during Auth0 callback")
-            return jsonify({"error": str(e)}), 500
-        return redirect('/dashboard')
+    if time.time() < get_auth0_token.auth0_token_expiry:
+        return get_auth0_token.auth0_token
 
-    @app.route('/dashboard')
-    def dashboard():
-        if 'user' not in session:
-            return redirect(url_for('login'))
-        return render_template('landing_page.html')
+    url = f'https://{os.getenv("AUTH0_DOMAIN")}/oauth/token'
+    headers = {'content-type': 'application/json'}
+    data = {
+        'client_id': os.getenv('AUTH0_CLIENT_ID'),
+        'client_secret': os.getenv('AUTH0_CLIENT_SECRET'),
+        'audience': f'https://{os.getenv("AUTH0_DOMAIN")}/api/v2/',
+        'grant_type': 'client_credentials'
+    }
+    response = requests.post(url, json=data, headers=headers)
+    response.raise_for_status()
+    token_info = response.json()
+    get_auth0_token.auth0_token = token_info['access_token']
+    get_auth0_token.auth0_token_expiry = time.time() + token_info['expires_in'] - 60  # Refresh 1 minute before expiry
 
-    @app.route('/logout')
-    def logout():
-        session.clear()
-        return redirect(auth0.api_base_url + '/v2/logout?client_id=' + app.config['AUTH0_CLIENT_ID'] + '&returnTo=' + url_for('index', _external=True))
+    return get_auth0_token.auth0_token
 
-    @app.route('/')
-    def index():
-        return render_template('index.html')
-
-    # Test routes to check session behavior
-    @app.route('/set_session')
-    def set_session():
-        session['test'] = 'This is a test'
-        session.modified = True  # Ensure session is marked as modified
-        return 'Session data set'
-
-    @app.route('/get_session')
-    def get_session():
-        test_data = session.get('test', 'Not set')
-        return f'Session data: {test_data}'
-
-    @app.route('/user_info')
-    def user_info():
-        user_info = session.get('user', {})
-        return jsonify({
-            'name': user_info.get('name', 'Unknown User'),
-            'email': user_info.get('email', 'unknown@example.com')
-        })
-
-    @app.route('/stripe-webhook', methods=['POST'])
-    def stripe_webhook():
-        payload = request.get_data(as_text=True)
-        sig_header = request.headers.get('Stripe-Signature')
-        endpoint_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
-
-        event = None
-
-        try:
-            event = stripe.Webhook.construct_event(
-                payload, sig_header, endpoint_secret
-            )
-        except ValueError as e:
-            # Invalid payload
-            return jsonify({'error': str(e)}), 400
-        except stripe.error.SignatureVerificationError as e:
-            # Invalid signature
-            return jsonify({'error': str(e)}), 400
-
-        # Handle the event
-        if event['type'] == 'checkout.session.completed':
-            session = event['data']['object']
-            customer_email = session['customer_details']['email']
-            subscription_id = session['subscription']
-
-            # Retrieve subscription details
-            subscription = stripe.Subscription.retrieve(subscription_id)
-
-            # Determine the plan and features
-            plan_id = subscription['items']['data'][0]['price']['product']
-            features = determine_features(plan_id)
-
-            # Update Auth0 profile
-            update_auth0_profile(customer_email, features)
-
-        return jsonify({'status': 'success'}), 200
-
-    def determine_features(plan_id):
-        if plan_id == 'basic_plan_id':
-            return {'access_level': 'basic', 'features': ['feature1', 'feature2']}
-        elif plan_id == 'professional_plan_id':
-            return {'access_level': 'professional', 'features': ['feature1', 'feature2', 'feature3']}
-        elif plan_id == 'enterprise_plan_id':
-            return {'access_level': 'enterprise', 'features': ['feature1', 'feature2', 'feature3', 'feature4']}
-        return {}
-
-    def update_auth0_profile(email, features):
-        url = f'https://{app.config["AUTH0_DOMAIN"]}/api/v2/users-by-email?email={email}'
-        headers = {
-            'Authorization': f'Bearer {os.getenv("AUTH0_API_TOKEN")}',
-            'Content-Type': 'application/json'
-        }
-        response = requests.get(url, headers=headers)
-        if response.status_code == 200:
-            user_id = response.json()[0]['user_id']
-            update_url = f'https://{app.config["AUTH0_DOMAIN"]}/api/v2/users/{user_id}'
-            data = {'user_metadata': features}
-            requests.patch(update_url, headers=headers, data=json.dumps(data))
-
-    return app
-
-if __name__ == '__main__':
-    app = create_app()
-    app.run(debug=True)
+# Register the blueprint in your main app
+# app.register_blueprint(webhook_bp)
