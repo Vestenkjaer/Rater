@@ -29,7 +29,7 @@
 
     .container {
       display: flex;
-      width: 100%; /* Updated to full width */
+      width: 200% !important;
       max-width: 1900px;
       margin: 0 auto;
       padding: 20px;
@@ -379,7 +379,7 @@
             pointRadius: 0
           };
           renderChart(labels, dataset);
-          renderRadarChart(radarData, 'radarChart'); // Ensure radar chart is rendered on the page
+          renderRadarChart(radarData);
         })
         .catch(error => {
           console.error('Error fetching historical data:', error);
@@ -421,12 +421,12 @@
       });
     }
 
-    function renderRadarChart(radarData, canvasId) {
-      const ctx = document.getElementById(canvasId).getContext('2d');
-      if (window[canvasId]) {
-        window[canvasId].destroy();
+    function renderRadarChart(radarData) {
+      const ctx = document.getElementById('radarChart').getContext('2d');
+      if (window.radarChart) {
+        window.radarChart.destroy();
       }
-      window[canvasId] = new Chart(ctx, {
+      window.radarChart = new Chart(ctx, {
         type: 'radar',
         data: {
           labels: criteria.map(criterion => criterion.replace(/_/g, ' ')),
@@ -498,28 +498,11 @@
       const fileName = `AI_Recommendation_${memberName}_${today}.pdf`;
 
       const element = document.createElement('div');
-      element.style.padding = '20mm'; // Add margin to the PDF
-      const header = document.createElement('h2');
-      header.innerText = 'Individual Evaluation Report';
-      const dateMember = document.createElement('p');
-      dateMember.innerText = `${today} - ${memberName}`;
-      const confidential = document.createElement('p');
-      confidential.innerText = 'Confidential GDPR Material';
-      confidential.style.color = 'red';
-      const img = document.createElement('img');
-      img.src = '{{ url_for("static", filename="images/raterware.png") }}';
-      img.style.width = '100%';
-      img.style.height = 'auto';
-      element.appendChild(header);
-      element.appendChild(dateMember);
-      element.appendChild(confidential);
-      element.appendChild(img);
       element.appendChild(document.getElementById('aiRecommendationContent').cloneNode(true));
       element.appendChild(document.getElementById('futurePredictionContent').cloneNode(true));
 
       html2pdf().set({
-        filename: fileName,
-        pagebreak: { mode: 'avoid-all', before: '#aiRecommendationContent' }
+        filename: fileName
       }).from(element).save();
     }
     

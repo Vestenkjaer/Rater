@@ -375,9 +375,9 @@
   </div>
 
   <div class="button-container">
-    <button class="btn btn-custom" id="btn-12" onclick="changePeriod('12')">12</button>
-    <button class="btn btn-custom" id="btn-24" onclick="changePeriod('24')">24</button>
-    <button class="btn btn-custom" id="btn-all" onclick="changePeriod('all')">All</button>
+    <button id="btn-12" class="btn-custom" onclick="changePeriod('12')">12</button>
+    <button id="btn-24" class="btn-custom" onclick="changePeriod('24')">24</button>
+    <button id="btn-all" class="btn-custom" onclick="changePeriod('all')">All</button>
   </div>
 
   <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
@@ -385,19 +385,19 @@
   <script>
     let topPerformersChart;
     let bottomPerformersChart;
-    let currentTeamId = null;
-    let selectedPeriod = '12';
+    let currentTeamId;
+    let selectedPeriod = '12'; // Default period
 
     $(document).ready(function () {
       fetchTeams().then(data => {
         const teams = data.teams;
         if (teams.length > 0) {
-          currentTeamId = teams[0].id; // Set the initial current team ID
           if (teams.length === 1) {
             // Hide the "Select Team" button and center the "Rate Your Team" button
             $('#selectTeamContainer').hide();
             $('#rateTeamButton').css('margin', '0 auto');
           }
+          currentTeamId = teams[0].id; // Set the initial team ID
           selectTeam(currentTeamId); // Automatically select the first team
           fetchLatestSubmission(currentTeamId);
         }
@@ -418,7 +418,7 @@
             a.href = '#';
             a.textContent = team.name;
             a.onclick = () => {
-              currentTeamId = team.id;
+              currentTeamId = team.id; // Update the current team ID
               selectTeam(currentTeamId);
               fetchLatestSubmission(currentTeamId);
             };
@@ -670,13 +670,12 @@
 
         let dataToShow;
         if (selectedPeriod === '12') {
-          dataToShow = historicalData.slice(-12).reverse();
+          dataToShow = historicalData.slice(-12).reverse(); // Reverse the order for recent data first
         } else if (selectedPeriod === '24') {
-          dataToShow = historicalData.slice(-24).reverse();
+          dataToShow = historicalData.slice(-24).reverse(); // Reverse the order for recent data first
         } else {
-          dataToShow = historicalData.reverse();
+          dataToShow = historicalData.reverse(); // Reverse the order for recent data first
         }
-
         const scores = dataToShow.map(entry => entry.score);
 
         return {
@@ -749,6 +748,16 @@
       }
     }
 
+    function changePeriod(period) {
+      selectedPeriod = period;
+      selectTeam(currentTeamId); // Re-fetch and update the charts with the new period
+
+      // Update button styles to reflect the selected period
+      document.getElementById('btn-12').classList.toggle('selected', period === '12');
+      document.getElementById('btn-24').classList.toggle('selected', period === '24');
+      document.getElementById('btn-all').classList.toggle('selected', period === 'all');
+    }
+
     async function fetchUserInfo() {
       try {
         const response = await fetch('/user_info');
@@ -763,27 +772,6 @@
         console.error('Error fetching user info:', error);
       }
     }
-
-    function changePeriod(period) {
-      selectedPeriod = period;
-      selectTeam(currentTeamId);
-
-      document.getElementById('btn-12').classList.remove('selected');
-      document.getElementById('btn-24').classList.remove('selected');
-      document.getElementById('btn-all').classList.remove('selected');
-
-      document.getElementById(`btn-${period}`).classList.add('selected');
-    }
-
-    // Add 'selected' class to the button styles
-    const style = document.createElement('style');
-    style.innerHTML = `
-      .btn-custom.selected {
-        background-color: #005BB5;
-        color: white;
-      }
-    `;
-    document.head.appendChild(style);
   </script>
 </body>
 </html>
