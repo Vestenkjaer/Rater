@@ -289,6 +289,7 @@
           </button>
         </div>
         <div class="modal-body">
+          <img id="raterwareImage" src="{{ url_for('static', filename='images/raterware.png') }}" style="width: 100%; height: auto;">
           <div id="aiRecommendationContent"></div>
           <div id="futurePredictionContent"></div>
           <canvas id="radarChartModal"></canvas>
@@ -422,10 +423,14 @@
       });
     }
 
-    function renderRadarChart(radarData, canvasId = 'radarChart') {
+    function renderRadarChart(radarData, canvasId) {
       const ctx = document.getElementById(canvasId).getContext('2d');
       if (window[canvasId]) {
-        window[canvasId].destroy();
+        if (typeof window[canvasId].destroy === 'function') {
+          window[canvasId].destroy();
+        } else {
+          console.warn(`Canvas element with id ${canvasId} does not have a destroy function.`);
+        }
       }
       window[canvasId] = new Chart(ctx, {
         type: 'radar',
@@ -434,12 +439,12 @@
           datasets: [{
             label: selectedMemberName,
             data: radarData,
-            backgroundColor: 'rgba(0, 123, 255, 0.2)',
-            borderColor: 'rgba(0, 123, 255, 1)',
-            pointBackgroundColor: 'rgba(0, 123, 255, 1)',
+            backgroundColor: 'rgba(179,181,198,0.2)',
+            borderColor: 'rgba(179,181,198,1)',
+            pointBackgroundColor: 'rgba(179,181,198,1)',
             pointBorderColor: '#fff',
             pointHoverBackgroundColor: '#fff',
-            pointHoverBorderColor: 'rgba(0, 123, 255, 1)'
+            pointHoverBorderColor: 'rgba(179,181,198,1)'
           }]
         },
         options: {
@@ -482,8 +487,8 @@
           } else {
             document.getElementById('aiRecommendationContent').innerText = data.recommendation;
             document.getElementById('futurePredictionContent').innerText = data.future_prediction;
-            renderRadarChart(data.radar_data, 'radarChartModal');  // Render radar chart in modal
             $('#aiModal').modal('show');
+            renderRadarChart(data.radarData, 'radarChartModal'); // Render the radar chart in the modal
           }
         })
         .catch(error => {
@@ -501,31 +506,19 @@
 
       const element = document.createElement('div');
       const header = document.createElement('div');
-      const raterwareImage = document.createElement('img');
-      raterwareImage.src = "{{ url_for('static', filename='images/raterware.png') }}";
-      raterwareImage.style.width = '100%';
-      raterwareImage.style.height = 'auto';
-
-      const title = document.createElement('h1');
-      title.innerText = 'Individual Evaluation Report';
-      const dateConfidential = document.createElement('p');
-      dateConfidential.innerText = `Date: ${today} - ${memberName} - Confidential GDPR Material`;
-
-      header.appendChild(raterwareImage);
-      header.appendChild(title);
-      header.appendChild(dateConfidential);
-
+      header.innerHTML = `
+        <h1>Individual Evaluation Report</h1>
+        <p>Date: ${today}</p>
+        <p>Team Member: ${memberName}</p>
+        <p>Confidential GDPR Material</p>
+        <img src="{{ url_for('static', filename='images/raterware.png') }}" style="width: 100%; height: auto;">
+      `;
       element.appendChild(header);
+
       element.appendChild(document.getElementById('aiRecommendationContent').cloneNode(true));
       element.appendChild(document.getElementById('futurePredictionContent').cloneNode(true));
-
-      // Clone radar chart
-      const radarCanvas = document.getElementById('radarChartModal').cloneNode(true);
-      element.appendChild(radarCanvas);
-
-      // Clone and append charts
       const historicalChart = document.getElementById('historicalChart').cloneNode(true);
-      const radarChart = document.getElementById('radarChart').cloneNode(true);
+      const radarChart = document.getElementById('radarChartModal').cloneNode(true);
       element.appendChild(historicalChart);
       element.appendChild(radarChart);
 
