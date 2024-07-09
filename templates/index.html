@@ -443,11 +443,10 @@
       }
 
       // Log out the user when they visit the index page
-      fetch('/logout', { method: 'POST' }).then(() => {
-        console.log('User logged out');
-      }).catch((error) => {
-        console.error('Error logging out:', error);
-      });
+      if (!sessionStorage.getItem('logged_out')) {
+        sessionStorage.setItem('logged_out', 'true');
+        window.location.href = "/logout";
+      }
     });
   </script>
 </body>
