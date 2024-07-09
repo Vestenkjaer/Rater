@@ -23,11 +23,11 @@ stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 
 products = {
     'basic': {
-        'price_id': 'price_1PZBUCLvebSJUJfhPnFmeZpI',  # Replace with your actual Stripe Price ID for Basic Plan
+        'price_id': 'price_1PZBUCLvebSJUJfhPnFmeZpI',
         'tier': 1,
     },
     'professional': {
-        'price_id': 'price_1PaawvLvebSJUJfhPF8pxtIW',  # Replace with your actual Stripe Price ID for Professional Plan
+        'price_id': 'price_1PaawvLvebSJUJfhPF8pxtIW',
         'tier': 2,
     },
     'enterprise': {
@@ -300,10 +300,6 @@ def create_app():
         sig_header = request.headers.get('Stripe-Signature')
         endpoint_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
 
-        if not endpoint_secret:
-            app.logger.error("STRIPE_WEBHOOK_SECRET is not set in the environment")
-            return jsonify({'error': 'STRIPE_WEBHOOK_SECRET is not set in the environment'}), 500
-
         event = None
 
         try:
@@ -311,32 +307,25 @@ def create_app():
                 payload, sig_header, endpoint_secret
             )
         except ValueError as e:
-            app.logger.error(f'Error parsing webhook payload: {str(e)}')
+            app.logger.error(f"Webhook error: {str(e)}")
             return jsonify({'error': str(e)}), 400
         except stripe.error.SignatureVerificationError as e:
-            app.logger.error(f'Signature verification failed: {str(e)}')
+            app.logger.error(f"Signature verification failed: {str(e)}")
             return jsonify({'error': str(e)}), 400
-
-        app.logger.info(f'Webhook event received: {event["type"]}')
 
         if event['type'] == 'checkout.session.completed':
             session_data = event['data']['object']
             customer_email = session_data['customer_details']['email']
             subscription_id = session_data['subscription']
-            
-            app.logger.info(f'Checkout session completed for customer: {customer_email}, subscription: {subscription_id}')
 
             subscription = stripe.Subscription.retrieve(subscription_id)
             plan_id = subscription['items']['data'][0]['price']['product']
             tier = determine_tier(plan_id)
-            
-            app.logger.info(f'Plan ID: {plan_id}, Tier: {tier}')
 
             client = Client.query.filter_by(email=customer_email).first()
             if client:
                 client.tier = tier
                 db.session.commit()
-                app.logger.info(f'Client tier updated: {client.email} -> Tier {tier}')
 
             update_auth0_profile(customer_email, tier)
 
