@@ -247,13 +247,10 @@ def create_app():
             return jsonify({"error": str(e)}), 500
         return redirect('/dashboard')
 
-# ----------------------------------------
-#Test route
+    # Test route
     @app.route('/test-success')
     def test_success():
         return render_template('test_success.html')
-
-# ----------------------------------------
 
     @app.route('/dashboard')
     def dashboard():
@@ -318,13 +315,14 @@ def create_app():
 
     @app.route('/success')
     def success():
-     session_id = request.args.get('session_id')
-     logger.info(f"Session ID: {session_id}")
-     session_data = stripe.checkout.Session.retrieve(session_id)
-     logger.info(f"Session Data: {session_data}")
-    
-    # For now, just render a simple success page
-    return render_template('success.html', session_data=session_data)
+        session_id = request.args.get('session_id')
+        logger.info(f"Session ID: {session_id}")
+        if session_id:
+            session_data = stripe.checkout.Session.retrieve(session_id)
+            logger.info(f"Session Data: {session_data}")
+            return render_template('success.html', session_data=session_data)
+        else:
+            return render_template('success.html')
 
     @app.route('/cancel')
     def cancel():
