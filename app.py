@@ -60,6 +60,9 @@ def create_app():
     app.config['SESSION_USE_SIGNER'] = True
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db?timeout=30'
 
+ # Add this line to disable caching of static files
+    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+
     # Initialize Whitenoise
     app.wsgi_app = WhiteNoise(
         app.wsgi_app,
@@ -247,7 +250,14 @@ def create_app():
             return jsonify({"error": str(e)}), 500
         return redirect('/dashboard')
 
-    
+# ----------------------------------------
+#Test route
+    @app.route('/test-success')
+    def test_success():
+        return render_template('test_success.html')
+
+# ----------------------------------------
+
     @app.route('/dashboard')
     def dashboard():
         if 'user' not in session:
@@ -313,12 +323,10 @@ def create_app():
     def success():
         session_id = request.args.get('session_id')
         logger.info(f"Session ID: {session_id}")
-        if session_id:
-            session_data = stripe.checkout.Session.retrieve(session_id)
-            logger.info(f"Session Data: {session_data}")
-            return render_template('success_page.html', session_data=session_data)
-        else:
-            return render_template('success_page.html')
+        session_data = stripe.checkout.Session.retrieve(session_id)
+        logger.info(f"Session Data: {session_data}")
+
+        return render_template('success_page.html', session_data=session_data)
 
     @app.route('/cancel')
     def cancel():
