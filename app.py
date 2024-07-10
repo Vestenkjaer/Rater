@@ -308,7 +308,12 @@ def create_app():
 
     @app.route('/success')
     def success():
-        logger.info("Successfully completed the checkout session.")
+        session_id = request.args.get('session_id')
+        if not session_id:
+            logger.error("No session_id found in query parameters.")
+            return jsonify({"error": "No session_id provided"}), 400
+        
+        logger.info(f"Successfully completed the checkout session with session_id: {session_id}")
         return render_template('success.html')
 
     @app.route('/cancel')
