@@ -6,35 +6,50 @@ payment_bp = Blueprint('payment', __name__)
 
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 
-def get_stripe_price(price_id):
-    price = stripe.Price.retrieve(price_id)
-    return price.unit_amount, price.currency
+# Fetch the prices from Stripe
+def get_stripe_prices():
+    prices = stripe.Price.list()
+    price_ids = {price['nickname']: price['id'] for price in prices['data']}
+    return price_ids
 
-# Define Stripe price IDs
-price_ids = {
-    'basic': 'price_1PZBUCLvebSJUJfhPnFmeZpI',
-    'professional': 'price_1PaawvLvebSJUJfhPF8pxtIW',
-    'enterprise': 'price_abcde'  # Replace with your actual Stripe Price ID for Enterprise Plan
-}
+price_ids = get_stripe_prices()
 
-@payment_bp.route('/create-checkout-session/<plan>', methods=['POST'])
-def create_checkout_session(plan):
-    if plan not in price_ids:
+@payment_bp.route('/buy/<plan>', methods=['POST'])
+def buy(plan):
+    # Define product details based on the plan
+    plans = {
+        'basic': {
+            'name': 'Basic Plan',
+            'price_id': price_ids.get('Basic Plan'),  # Use the price ID fetched from Stripe
+        },
+        'professional': {
+            'name': 'Professional Plan',
+            'price_id': price_ids.get('Professional Plan'),  # Use the price ID fetched from Stripe
+        },
+        'enterprise': {
+            'name': 'Enterprise Plan',
+            'price_id': price_ids.get('Enterprise Plan'),  # Use the price ID fetched from Stripe
+        }
+    }
+
+    if plan not in plans:
         return jsonify({"error": "Invalid plan"}), 400
 
     # For Enterprise plan, redirect to contact sales page
     if plan == 'enterprise':
         return redirect(url_for('payment.contact_sales'))
 
-    price_id = price_ids[plan]
+    plan_details = plans[plan]
 
     try:
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
-            line_items=[{
-                'price': price_id,
-                'quantity': 1,
-            }],
+            line_items=[
+                {
+                    'price': plan_details['price_id'],
+                    'quantity': 1,
+                },
+            ],
             mode='subscription',
             success_url=url_for('payment.success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
             cancel_url=url_for('payment.cancel', _external=True),
