@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, jsonify, request, current_app, url_for, redirect
+from flask import Blueprint, render_template, jsonify, request, url_for, redirect
 import stripe
 import os
 
@@ -6,35 +6,37 @@ payment_bp = Blueprint('payment', __name__)
 
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 
+def get_stripe_price(price_id):
+    price = stripe.Price.retrieve(price_id)
+    return price.unit_amount, price.currency
+
+# Define Stripe price IDs
+price_ids = {
+    'basic': 'price_1PZBUCLvebSJUJfhPnFmeZpI',
+    'professional': 'price_1PaawvLvebSJUJfhPF8pxtIW',
+    'enterprise': 'price_abcde'  # Replace with your actual Stripe Price ID for Enterprise Plan
+}
+
 @payment_bp.route('/buy/<plan>')
 def buy(plan):
-    # Define product details based on the plan
-    plans = {
-        'basic': {
-            'name': 'Basic Plan',
-            'amount': 199,  # Amount in cents ($19.99)
-            'currency': 'usd'
-        },
-        'professional': {
-            'name': 'Professional Plan',
-            'amount': 2999,  # Amount in cents ($299.99)
-            'currency': 'usd'
-        },
-        'enterprise': {
-            'name': 'Enterprise Plan',
-            'amount': 0,  # Amount for contact sales
-            'currency': 'usd'
-        }
-    }
-
-    if plan not in plans:
+    if plan not in price_ids:
         return jsonify({"error": "Invalid plan"}), 400
 
     # For Enterprise plan, redirect to contact sales page
     if plan == 'enterprise':
         return redirect(url_for('payment.contact_sales'))
 
-    plan_details = plans[plan]
+    # Fetch price details from Stripe
+    try:
+        amount, currency = get_stripe_price(price_ids[plan])
+    except Exception as e:
+        return jsonify(error=str(e)), 403
+
+    plan_details = {
+        'name': f'{plan.capitalize()} Plan',
+        'amount': amount,
+        'currency': currency
+    }
 
     try:
         checkout_session = stripe.checkout.Session.create(

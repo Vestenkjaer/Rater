@@ -60,7 +60,7 @@ def create_app():
     app.config['SESSION_USE_SIGNER'] = True
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db?timeout=30'
 
- # Add this line to disable caching of static files
+    # Add this line to disable caching of static files
     app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
     # Initialize Whitenoise
@@ -146,7 +146,7 @@ def create_app():
     app.register_blueprint(individual_evaluation_bp, url_prefix='/individual_evaluation')
     app.register_blueprint(landing_page_bp, url_prefix='/dashboard') 
     app.register_blueprint(pricing_bp, url_prefix='/pricing')
-    app.register_blueprint(payment_bp)
+    app.register_blueprint(payment_bp)  # Register the payment blueprint
     app.register_blueprint(public_bp, url_prefix='/public')
     app.register_blueprint(webhook_bp)  # Register the webhook blueprint
 
@@ -250,13 +250,6 @@ def create_app():
             return jsonify({"error": str(e)}), 500
         return redirect('/dashboard')
 
-# ----------------------------------------
-#Test route
-    @app.route('/test-success')
-    def test_success():
-        return render_template('test_success.html')
-
-# ----------------------------------------
 
     @app.route('/dashboard')
     def dashboard():
@@ -293,45 +286,6 @@ def create_app():
             'name': user_info.get('name', 'Unknown User'),
             'email': user_info.get('email', 'unknown@example.com')
         })
-
-    @app.route('/create-checkout-session/<plan>', methods=['POST'])
-    def create_checkout_session(plan):
-        if plan not in products:
-            logger.error(f'Invalid plan: {plan}')
-            return jsonify({'error': 'Invalid plan'}), 400
-
-        price_id = products[plan]['price_id']
-        try:
-            logger.info(f'Creating checkout session for plan: {plan} with price_id: {price_id}')
-            checkout_session = stripe.checkout.Session.create(
-                payment_method_types=['card'],
-                line_items=[{
-                    'price': price_id,
-                    'quantity': 1,
-                }],
-                mode='subscription',
-                success_url=url_for('success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
-                cancel_url=url_for('cancel', _external=True),
-            )
-            logger.info(f'Checkout session created: {checkout_session.url}')
-            return redirect(checkout_session.url, code=303)
-        except Exception as e:
-            logger.error(f'Error creating checkout session: {str(e)}')
-            return jsonify(error=str(e)), 403
-
-    @app.route('/success')
-    def success():
-        session_id = request.args.get('session_id')
-        logger.info(f"Session ID: {session_id}")
-        session_data = stripe.checkout.Session.retrieve(session_id)
-        logger.info(f"Session Data: {session_data}")
-
-        return render_template('success_page.html', session_data=session_data)
-
-    @app.route('/cancel')
-    def cancel():
-        logger.info("Checkout session was canceled.")
-        return render_template('cancel.html')
 
     @app.route('/register', methods=['POST'])
     def register():
