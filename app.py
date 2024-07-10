@@ -247,6 +247,14 @@ def create_app():
             return jsonify({"error": str(e)}), 500
         return redirect('/dashboard')
 
+# ----------------------------------------
+#Test route
+    @app.route('/test-success')
+    def test_success():
+        return render_template('test_success.html')
+
+# ----------------------------------------
+
     @app.route('/dashboard')
     def dashboard():
         if 'user' not in session:
