@@ -247,11 +247,7 @@ def create_app():
             return jsonify({"error": str(e)}), 500
         return redirect('/dashboard')
 
-    # Test route
-    @app.route('/test-success')
-    def test_success():
-        return render_template('test_success.html')
-
+    
     @app.route('/dashboard')
     def dashboard():
         if 'user' not in session:
@@ -320,9 +316,9 @@ def create_app():
         if session_id:
             session_data = stripe.checkout.Session.retrieve(session_id)
             logger.info(f"Session Data: {session_data}")
-            return render_template('success.html', session_data=session_data)
+            return render_template('success_page.html', session_data=session_data)
         else:
-            return render_template('success.html')
+            return render_template('success_page.html')
 
     @app.route('/cancel')
     def cancel():
