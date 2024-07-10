@@ -1,5 +1,6 @@
 import os
 import secrets
+import string
 from dotenv import load_dotenv
 from flask import Flask, render_template, redirect, url_for, session, jsonify, request
 from flask_session import Session
@@ -17,6 +18,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from mail import mail
 from urllib.parse import urlencode
 from werkzeug.security import generate_password_hash
+from flask_mail import Message
 from webhook import webhook_bp
 
 # Load environment variables from .env file
@@ -325,10 +327,9 @@ def create_app():
     def register():
         data = request.get_json()
         email = data.get('email')
-        password = data.get('password')
 
-        if not email or not password:
-            return jsonify({'error': 'Email and password are required'}), 400
+        if not email:
+            return jsonify({'error': 'Email is required'}), 400
 
         # Check if user already exists
         existing_user = User.query.filter_by(email=email).first()
@@ -336,15 +337,21 @@ def create_app():
             return jsonify({'error': 'User already exists'}), 400
 
         try:
-            # Hash the password
-            hashed_password = generate_password_hash(password, method='sha256')
+            # Generate a temporary password
+            temp_password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(10))
+            hashed_password = generate_password_hash(temp_password, method='sha256')
 
             # Create a new user
             new_user = User(email=email, password=hashed_password)
             db.session.add(new_user)
             db.session.commit()
 
-            return jsonify({'message': 'Registration successful'}), 200
+            # Send an email with the temporary password
+            msg = Message('Your Temporary Password', recipients=[email])
+            msg.body = f'Your temporary password is: {temp_password}'
+            mail.send(msg)
+
+            return jsonify({'message': 'Registration successful. A temporary password has been sent to your email.'}), 200
         except Exception as e:
             logger.error(f"Error during registration: {str(e)}")
             return jsonify({'error': 'Registration failed'}), 500
