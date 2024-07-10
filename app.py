@@ -400,7 +400,7 @@ def create_app():
             'Content-Type': 'application/json'
         }
         response = requests.get(url, headers=headers)
-        if response.status_code == 200 {
+        if response.status_code == 200:
             user_id = response.json()[0]['user_id']
             update_url = f'https://{app.config["AUTH0_DOMAIN"]}/api/v2/users/{user_id}'
             data = {'user_metadata': {'tier': tier}}
