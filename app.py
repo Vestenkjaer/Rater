@@ -16,6 +16,7 @@ import time
 from apscheduler.schedulers.background import BackgroundScheduler
 from mail import mail
 from urllib.parse import urlencode
+from werkzeug.security import generate_password_hash
 from webhook import webhook_bp
 
 # Load environment variables from .env file
@@ -315,6 +316,34 @@ def create_app():
         logger.info("Checkout session was canceled.")
         return render_template('cancel.html')
 
+    @app.route('/register', methods=['POST'])
+    def register():
+        data = request.get_json()
+        email = data.get('email')
+        password = data.get('password')
+
+        if not email or not password:
+            return jsonify({'error': 'Email and password are required'}), 400
+
+        # Check if user already exists
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            return jsonify({'error': 'User already exists'}), 400
+
+        try:
+            # Hash the password
+            hashed_password = generate_password_hash(password, method='sha256')
+
+            # Create a new user
+            new_user = User(email=email, password=hashed_password)
+            db.session.add(new_user)
+            db.session.commit()
+
+            return jsonify({'message': 'Registration successful'}), 200
+        except Exception as e:
+            logger.error(f"Error during registration: {str(e)}")
+            return jsonify({'error': 'Registration failed'}), 500
+
     @app.route('/stripe-webhook', methods=['POST'])
     def stripe_webhook():
         payload = request.get_data(as_text=True)
@@ -371,7 +400,7 @@ def create_app():
             'Content-Type': 'application/json'
         }
         response = requests.get(url, headers=headers)
-        if response.status_code == 200:
+        if response.status_code == 200 {
             user_id = response.json()[0]['user_id']
             update_url = f'https://{app.config["AUTH0_DOMAIN"]}/api/v2/users/{user_id}'
             data = {'user_metadata': {'tier': tier}}
