@@ -17,8 +17,8 @@ price_ids = {
     'enterprise': 'price_abcde'  # Replace with your actual Stripe Price ID for Enterprise Plan
 }
 
-@payment_bp.route('/buy/<plan>')
-def buy(plan):
+@payment_bp.route('/create-checkout-session/<plan>', methods=['POST'])
+def create_checkout_session(plan):
     if plan not in price_ids:
         return jsonify({"error": "Invalid plan"}), 400
 
