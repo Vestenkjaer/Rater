@@ -61,7 +61,9 @@ def buy(plan):
 
 @payment_bp.route('/success')
 def success():
-    return "Payment was successful!"
+    session_id = request.args.get('session_id')
+    session_data = stripe.checkout.Session.retrieve(session_id)
+    return render_template('success_page.html', session_data=session_data)
 
 @payment_bp.route('/cancel')
 def cancel():
