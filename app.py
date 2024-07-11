@@ -30,21 +30,8 @@ stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 # Print the value of STRIPE_WEBHOOK_SECRET for debugging
 print("STRIPE_WEBHOOK_SECRET:", os.getenv('STRIPE_WEBHOOK_SECRET'))
 
-# Define product information
-products = {
-    'basic': {
-        'price_id': 'price_1PZBUCLvebSJUJfhPnFmeZpI',
-        'tier': 1,
-    },
-    'professional': {
-        'price_id': 'price_1PaawvLvebSJUJfhPF8pxtIW',
-        'tier': 2,
-    },
-    'enterprise': {
-        'price_id': 'price_abcde',  # Replace with your actual Stripe Price ID for Enterprise Plan Stripe update
-        'tier': 3,
-    },
-}
+
+
 
 # Create the Flask app
 def create_app():
@@ -203,6 +190,11 @@ def create_app():
     @app.teardown_appcontext
     def shutdown_session(exception=None):
         db.session.remove()
+
+    @app.route('/pricing')
+    def pricing():
+     stripe_publishable_key = os.getenv('STRIPE_PUBLISHABLE_KEY')
+     return render_template('pricing.html', stripe_publishable_key=stripe_publishable_key)
 
     # Define routes
     @app.route('/')

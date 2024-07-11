@@ -30,6 +30,9 @@ echo AUTH0_CALLBACK_URL_CUSTOM=%AUTH0_CALLBACK_URL_CUSTOM%
 echo STRIPE_SECRET_KEY=%STRIPE_SECRET_KEY%
 echo STRIPE_PUBLISHABLE_KEY=%STRIPE_PUBLISHABLE_KEY%
 echo STRIPE_WEBHOOK_SECRET=%STRIPE_WEBHOOK_SECRET%
+echo BASIC_PLAN_PRICE_ID=%BASIC_PLAN_PRICE_ID%
+echo PROFESSIONAL_PLAN_PRICE_ID=%PROFESSIONAL_PLAN_PRICE_ID%
+echo ENTERPRISE_PLAN_PRICE_ID=%ENTERPRISE_PLAN_PRICE_ID%
 
 :: Set environment variables on Heroku one by one
 echo Setting MAIL_SERVER on Heroku
@@ -70,5 +73,14 @@ call heroku config:set STRIPE_PUBLISHABLE_KEY=%STRIPE_PUBLISHABLE_KEY% -a raterw
 
 echo Setting STRIPE_WEBHOOK_SECRET on Heroku
 call heroku config:set STRIPE_WEBHOOK_SECRET=%STRIPE_WEBHOOK_SECRET% -a raterware
+
+echo Setting BASIC_PLAN_PRICE_ID on Heroku
+call heroku config:set BASIC_PLAN_PRICE_ID=%BASIC_PLAN_PRICE_ID% -a raterware
+
+echo Setting PROFESSIONAL_PLAN_PRICE_ID on Heroku
+call heroku config:set PROFESSIONAL_PLAN_PRICE_ID=%PROFESSIONAL_PLAN_PRICE_ID% -a raterware
+
+echo Setting ENTERPRISE_PLAN_PRICE_ID on Heroku
+call heroku config:set ENTERPRISE_PLAN_PRICE_ID=%ENTERPRISE_PLAN_PRICE_ID% -a raterware
 
 echo Environment variables set successfully on Heroku.
