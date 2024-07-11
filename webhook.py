@@ -1,8 +1,10 @@
 import os
 import stripe
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify, current_app, session
 from models import db, Client
 from datetime import datetime
+import requests
+import time
 
 webhook_bp = Blueprint('webhook', __name__)
 
@@ -52,10 +54,13 @@ def stripe_webhook():
         tier = determine_tier(plan_id)
 
         client = Client.query.filter_by(email=customer_email).first()
-        if client:
-            client.tier = tier
+        if not client:
+            client = Client(email=customer_email, tier=tier)
+            db.session.add(client)
             db.session.commit()
         
+        session['client_id'] = client.id  # Store client ID in session
+
         # Optionally, update Auth0 profile here if needed
         # update_auth0_profile(customer_email, tier)
 

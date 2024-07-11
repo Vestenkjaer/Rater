@@ -285,15 +285,12 @@ def create_app():
             if not email:
                 return jsonify({'error': 'Email is required'}), 400
 
-            # Retrieve client_id from the session
             client_id = session.get('client_id')
             if not client_id:
-                # Find the client_id based on the provided email
                 client = Client.query.filter_by(email=email).first()
-                if client:
-                    client_id = client.id
-                else:
+                if not client:
                     return jsonify({'error': 'Client ID is missing in session and no client found with provided email'}), 400
+                client_id = client.id
 
             # Check if user already exists
             existing_user = User.query.filter_by(email=email).first()
@@ -317,6 +314,7 @@ def create_app():
             return jsonify({'message': 'Registration successful. A temporary password has been sent to your email.'}), 200
         except Exception as e:
             logger.error(f"Error during registration: {str(e)}")
+            logger.exception("Exception during registration")
             return jsonify({'error': 'Registration failed.'}), 500
 
     @app.route('/stripe-webhook', methods=['POST'])
