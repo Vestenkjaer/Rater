@@ -291,7 +291,7 @@ def create_app():
 
             # Generate a temporary password
             temp_password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(10))
-            hashed_password = generate_password_hash(temp_password, method='sha256')
+            hashed_password = generate_password_hash(temp_password, method='pbkdf2:sha256')
 
             # Create a new user
             new_user = User(email=email, password=hashed_password)
