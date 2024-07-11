@@ -87,6 +87,7 @@
       <h1>Register</h1>
       <form id="registrationForm">
         <input type="email" id="email" name="email" placeholder="Email" required>
+        <input type="text" id="username" name="username" placeholder="Username" required>
         <button type="submit">Register</button>
       </form>
     </div>
@@ -96,13 +97,14 @@
     document.getElementById('registrationForm').addEventListener('submit', async function(event) {
       event.preventDefault();
       const email = document.getElementById('email').value;
+      const username = document.getElementById('username').value;
 
       const response = await fetch('/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, username }),
       });
 
       if (response.ok) {
