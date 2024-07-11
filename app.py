@@ -27,7 +27,6 @@ load_dotenv()
 
 # Set up Stripe API key
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
-
 # Print the value of STRIPE_WEBHOOK_SECRET for debugging
 print("STRIPE_WEBHOOK_SECRET:", os.getenv('STRIPE_WEBHOOK_SECRET'))
 
