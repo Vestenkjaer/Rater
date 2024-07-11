@@ -30,9 +30,6 @@ stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 # Print the value of STRIPE_WEBHOOK_SECRET for debugging
 print("STRIPE_WEBHOOK_SECRET:", os.getenv('STRIPE_WEBHOOK_SECRET'))
 
-
-
-
 # Create the Flask app
 def create_app():
     app = Flask(__name__, static_folder='static')
@@ -42,7 +39,7 @@ def create_app():
 
     # Configure session to use the filesystem
     app.config['SESSION_TYPE'] = 'filesystem'
-    app.config['SESSION_FILE_DIR'] = './.flask_session/'  
+    app.config['SESSION_FILE_DIR'] = './.flask_session/'
     app.config['SESSION_PERMANENT'] = False
     app.config['SESSION_USE_SIGNER'] = True
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db?timeout=30'
@@ -122,7 +119,6 @@ def create_app():
     from routes.individual_evaluation import individual_evaluation_bp
     from routes.landing_page import landing_page_bp  
     from routes.pricing import pricing_bp
-    from routes.payment import payment_bp
     from routes.public import public_bp
 
     app.register_blueprint(main_bp)
@@ -131,9 +127,9 @@ def create_app():
     app.register_blueprint(team_management_bp, url_prefix='/team_management')
     app.register_blueprint(client_management_bp, url_prefix='/client_management')
     app.register_blueprint(individual_evaluation_bp, url_prefix='/individual_evaluation')
-    app.register_blueprint(landing_page_bp, url_prefix='/dashboard') 
+    app.register_blueprint(landing_page_bp, url_prefix='/dashboard')
     app.register_blueprint(pricing_bp, url_prefix='/pricing')
-    app.register_blueprint(payment_bp)  # Register the payment blueprint
+    app.register_blueprint(payment_bp, url_prefix='/payment')  # Register the payment blueprint
     app.register_blueprint(public_bp, url_prefix='/public')
     app.register_blueprint(webhook_bp)  # Register the webhook blueprint
 
@@ -193,8 +189,8 @@ def create_app():
 
     @app.route('/pricing')
     def pricing():
-     stripe_publishable_key = os.getenv('STRIPE_PUBLISHABLE_KEY')
-     return render_template('pricing.html', stripe_publishable_key=stripe_publishable_key)
+        stripe_publishable_key = os.getenv('STRIPE_PUBLISHABLE_KEY')
+        return render_template('pricing.html', stripe_publishable_key=stripe_publishable_key)
 
     # Define routes
     @app.route('/')
@@ -205,7 +201,7 @@ def create_app():
     def login():
         state = secrets.token_urlsafe(16)
         session['auth0_state'] = state
-        session.modified = True  
+        session.modified = True
         logger.debug(f"Generated state: {state}")
         logger.debug(f"Session before redirect: {dict(session)}")
         return auth0.authorize_redirect(redirect_uri=os.getenv('AUTH0_CALLBACK_URL_HEROKU') or os.getenv('AUTH0_CALLBACK_URL_CUSTOM'), state=state)
@@ -242,7 +238,6 @@ def create_app():
             return jsonify({"error": str(e)}), 500
         return redirect('/dashboard')
 
-
     @app.route('/dashboard')
     def dashboard():
         if 'user' not in session:
@@ -263,7 +258,7 @@ def create_app():
     @app.route('/set_session')
     def set_session():
         session['test'] = 'This is a test'
-        session.modified = True  
+        session.modified = True
         return 'Session data set'
 
     @app.route('/get_session')
