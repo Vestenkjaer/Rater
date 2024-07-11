@@ -290,7 +290,7 @@ def create_app():
                 client = Client.query.filter_by(email=email).first()
                 if not client:
                     # Create a new Client if not found
-                    client = Client(email=email, tier=1)  # Set the default tier to 1 (Basic)
+                    client = Client(name=email.split('@')[0], email=email, tier=1)  # Set the default tier to 1 (Basic)
                     db.session.add(client)
                     db.session.commit()
                 client_id = client.id
