@@ -278,7 +278,6 @@ def create_app():
     @app.route('/register', methods=['POST'])
     def register():
         try:
-
             data = request.get_json()
             email = data.get('email')
             username = data.get('username')  # Get the username from the request if provided
@@ -289,7 +288,7 @@ def create_app():
             # Check if user already exists
             existing_user = User.query.filter_by(email=email).first()
             if existing_user:
-               return jsonify({'error': 'User already exists'}), 400
+                return jsonify({'error': 'User already exists'}), 400
 
             # Generate a temporary password
             temp_password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(10))
@@ -308,6 +307,7 @@ def create_app():
             return jsonify({'message': 'Registration successful. A temporary password has been sent to your email.'}), 200
         except Exception as e:
             logger.error(f"Error during registration: {str(e)}")
+            logger.exception("Exception during registration")
             return jsonify({'error': 'Registration failed.'}), 500
 
     @app.route('/stripe-webhook', methods=['POST'])

@@ -99,7 +99,7 @@
       const email = document.getElementById('email').value;
       const username = document.getElementById('username').value;
 
-      const response = await fetch('/setup/create_user', {
+      const response = await fetch('/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -110,7 +110,8 @@
       if (response.ok) {
         alert('Registration successful! A temporary password has been sent to your email.');
       } else {
-        alert('Registration failed. Please try again.');
+        const errorData = await response.json();
+        alert('Registration failed: ' + errorData.error);
       }
     });
   </script>
