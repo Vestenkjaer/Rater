@@ -1,8 +1,4 @@
-import os
-import secrets
-import string
-from dotenv import load_dotenv
-from flask import Flask, render_template, redirect, url_for, session, jsonify, request
+from flask import Flask, render_template, redirect, url_for, session, jsonify, request, current_app
 from flask_session import Session
 from config import Config
 from whitenoise import WhiteNoise
@@ -285,6 +281,11 @@ def create_app():
             if not email:
                 return jsonify({'error': 'Email is required'}), 400
 
+            # Get the client from the session
+            client_id = session.get('client_id')
+            if not client_id:
+                return jsonify({'error': 'Client ID is missing from session'}), 400
+
             # Check if user already exists
             existing_user = User.query.filter_by(email=email).first()
             if existing_user:
@@ -295,7 +296,7 @@ def create_app():
             hashed_password = generate_password_hash(temp_password, method='pbkdf2:sha256')
 
             # Create a new user
-            new_user = User(username=username or 'default_username', email=email, password_hash=hashed_password)
+            new_user = User(username=username or 'default_username', email=email, password_hash=hashed_password, client_id=client_id)
             db.session.add(new_user)
             db.session.commit()
 
