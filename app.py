@@ -1,15 +1,17 @@
+from flask import Flask, render_template, redirect, url_for, session, jsonify, request
+from flask_session import Session
+from werkzeug.security import generate_password_hash
+from flask_mail import Message
 import os
 import secrets
 import string
+import logging
 from dotenv import load_dotenv
-from flask import Flask, render_template, redirect, url_for, session, jsonify, request
-from flask_session import Session
 from config import Config
 from whitenoise import WhiteNoise
 from models import db, Client, User, Settings, Team, TeamMember, Rating
 from flask_migrate import Migrate
 from authlib.integrations.flask_client import OAuth
-import logging
 import stripe
 import requests
 import json
@@ -17,10 +19,6 @@ import time
 from apscheduler.schedulers.background import BackgroundScheduler
 from mail import mail
 from urllib.parse import urlencode
-from werkzeug.security import generate_password_hash
-from flask_mail import Message
-from webhook import webhook_bp
-from routes.payment import payment_bp
 import traceback
 
 # Load environment variables from .env file

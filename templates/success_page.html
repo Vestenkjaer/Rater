@@ -87,7 +87,6 @@
       <h1>Register</h1>
       <form id="registrationForm">
         <input type="email" id="email" name="email" placeholder="Email" required>
-        <input type="text" id="username" name="username" placeholder="Username" required>
         <button type="submit">Register</button>
       </form>
     </div>
@@ -97,21 +96,21 @@
     document.getElementById('registrationForm').addEventListener('submit', async function(event) {
       event.preventDefault();
       const email = document.getElementById('email').value;
-      const username = document.getElementById('username').value;
 
       const response = await fetch('/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, username }),
+        body: JSON.stringify({ email }),
       });
 
       if (response.ok) {
         alert('Registration successful! A temporary password has been sent to your email.');
       } else {
         const errorData = await response.json();
-        alert('Registration failed: ' + errorData.error);
+        console.error('Registration failed:', errorData);
+        alert(`Registration failed: ${errorData.error}`);
       }
     });
   </script>
