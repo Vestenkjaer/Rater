@@ -1,18 +1,25 @@
-from flask import Blueprint, render_template, jsonify, request, url_for, redirect
+from flask import Flask, render_template, Blueprint, jsonify, request, url_for, redirect
 import stripe
 import os
+from dotenv import load_dotenv
 
-payment_bp = Blueprint('payment', __name__)
+# Load environment variables from .env file
+load_dotenv()
 
+# Initialize the Flask application
+app = Flask(__name__)
+
+# Set up Stripe API key
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 
-# Fetch the prices from Stripe
-def get_stripe_prices():
-    prices = stripe.Price.list()
-    price_ids = {price['nickname']: price['id'] for price in prices['data']}
-    return price_ids
+# Create the payment blueprint
+payment_bp = Blueprint('payment', __name__)
 
-price_ids = get_stripe_prices()
+@app.route('/pricing')
+def pricing():
+    stripe_publishable_key = os.getenv('STRIPE_PUBLISHABLE_KEY')
+    return render_template('pricing.html', stripe_publishable_key=stripe_publishable_key)
+
 
 @payment_bp.route('/buy/<plan>', methods=['POST'])
 def buy(plan):
@@ -20,15 +27,18 @@ def buy(plan):
     plans = {
         'basic': {
             'name': 'Basic Plan',
-            'price_id': price_ids.get('Basic Plan'),  # Use the price ID fetched from Stripe
+            'amount': 199,  # Amount in cents ($1.99)
+            'currency': 'usd'
         },
         'professional': {
             'name': 'Professional Plan',
-            'price_id': price_ids.get('Professional Plan'),  # Use the price ID fetched from Stripe
+            'amount': 2999,  # Amount in cents ($29.99)
+            'currency': 'usd'
         },
         'enterprise': {
             'name': 'Enterprise Plan',
-            'price_id': price_ids.get('Enterprise Plan'),  # Use the price ID fetched from Stripe
+            'amount': 0,  # Amount for contact sales
+            'currency': 'usd'
         }
     }
 
@@ -46,7 +56,13 @@ def buy(plan):
             payment_method_types=['card'],
             line_items=[
                 {
-                    'price': plan_details['price_id'],
+                    'price_data': {
+                        'currency': plan_details['currency'],
+                        'product_data': {
+                            'name': plan_details['name'],
+                        },
+                        'unit_amount': plan_details['amount'],
+                    },
                     'quantity': 1,
                 },
             ],
@@ -71,3 +87,9 @@ def cancel():
 @payment_bp.route('/contact/sales')
 def contact_sales():
     return "Please contact our sales team for enterprise solutions."
+
+# Register the blueprint
+app.register_blueprint(payment_bp, url_prefix='/payment')
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)

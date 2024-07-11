@@ -173,28 +173,21 @@
       </div>
     </div>
   </div>
-
   <script src="https://js.stripe.com/v3/"></script>
   <script>
-    var stripe = Stripe('your-publishable-key-here');
-    document.querySelectorAll('form').forEach(function(form) {
-      form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        fetch(form.action, { method: 'POST' })
-          .then(function(response) {
-            return response.json();
-          })
-          .then(function(sessionId) {
-            return stripe.redirectToCheckout({ sessionId: sessionId.id });
-          })
-          .then(function(result) {
-            if (result.error) {
-              alert(result.error.message);
-            }
-          })
-          .catch(function(error) {
-            console.error('Error:', error);
-          });
+    const stripe = Stripe('{{ stripe_publishable_key }}');
+
+    document.querySelectorAll('form').forEach(form => {
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const response = await fetch(event.target.action, {
+          method: 'POST'
+        });
+        const { id: sessionId } = await response.json();
+        const { error } = await stripe.redirectToCheckout({ sessionId });
+        if (error) {
+          console.error("Error redirecting to checkout:", error);
+        }
       });
     });
   </script>
