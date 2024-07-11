@@ -20,6 +20,7 @@ from urllib.parse import urlencode
 from werkzeug.security import generate_password_hash
 from flask_mail import Message
 from webhook import webhook_bp
+from routes.payment import payment_bp
 
 # Load environment variables from .env file
 load_dotenv()

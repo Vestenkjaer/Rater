@@ -1,3 +1,4 @@
+# payment.py
 from flask import Blueprint, jsonify, request, url_for, redirect, render_template
 import stripe
 import os
@@ -8,7 +9,6 @@ stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 
 @payment_bp.route('/buy/<plan>', methods=['POST'])
 def buy(plan):
-    # Define product details based on the plan
     plans = {
         'basic': {
             'name': 'Basic Plan',
@@ -27,7 +27,6 @@ def buy(plan):
     if plan not in plans:
         return jsonify({"error": "Invalid plan"}), 400
 
-    # For Enterprise plan, redirect to contact sales page
     if plan == 'enterprise':
         return redirect(url_for('payment.contact_sales'))
 
