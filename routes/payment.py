@@ -1,4 +1,3 @@
-# payment.py
 from flask import Blueprint, jsonify, request, url_for, redirect, render_template
 import stripe
 import os
