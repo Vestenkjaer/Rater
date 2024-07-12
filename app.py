@@ -289,11 +289,12 @@ def create_app():
             if not client_id:
                 client = Client.query.filter_by(email=email).first()
                 if not client:
-                    # Create a new Client if not found
-                    client = Client(name=email.split('@')[0], email=email, tier=1)  # Set the default tier to 1 (Basic)
+                    client = Client(name=username or 'default_name', email=email, tier=0)
                     db.session.add(client)
                     db.session.commit()
-                client_id = client.id
+                    client_id = client.id
+                else:
+                    client_id = client.id
 
             # Check if user already exists
             existing_user = User.query.filter_by(email=email).first()
@@ -356,6 +357,10 @@ def create_app():
             if client:
                 logger.debug(f"Updating tier for client: {client.email} to tier {tier}")
                 client.tier = tier
+                db.session.commit()
+            else:
+                client = Client(name=session_data['customer_details']['name'], email=customer_email, tier=tier)
+                db.session.add(client)
                 db.session.commit()
 
             update_auth0_profile(customer_email, tier)
