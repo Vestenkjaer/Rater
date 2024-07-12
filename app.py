@@ -289,7 +289,7 @@ def create_app():
             if not client_id:
                 client = Client.query.filter_by(email=email).first()
                 if not client:
-                    client = Client(name=username or 'default_name', email=email, tier=0)
+                    client = Client(name='default_client_name', tier=1, email=email)
                     db.session.add(client)
                     db.session.commit()
                     client_id = client.id
@@ -314,6 +314,9 @@ def create_app():
             msg = Message('Your Temporary Password', recipients=[email])
             msg.body = f'Your temporary password is: {temp_password}'
             mail.send(msg)
+
+            # Create user in Auth0
+            create_auth0_user(email, temp_password)
 
             return jsonify({'message': 'Registration successful. A temporary password has been sent to your email.'}), 200
         except Exception as e:
@@ -357,10 +360,6 @@ def create_app():
             if client:
                 logger.debug(f"Updating tier for client: {client.email} to tier {tier}")
                 client.tier = tier
-                db.session.commit()
-            else:
-                client = Client(name=session_data['customer_details']['name'], email=customer_email, tier=tier)
-                db.session.add(client)
                 db.session.commit()
 
             update_auth0_profile(customer_email, tier)
@@ -410,6 +409,23 @@ def create_app():
         get_auth0_token.auth0_token_expiry = time.time() + token_info['expires_in'] - 60  # Refresh 1 minute before expiry
 
         return get_auth0_token.auth0_token
+
+    def create_auth0_user(email, password):
+        logger.debug(f"Creating Auth0 user for email: {email}")
+        url = f'https://{os.getenv("AUTH0_DOMAIN")}/api/v2/users'
+        headers = {
+            'Authorization': f'Bearer {get_auth0_token()}',
+            'Content-Type': 'application/json'
+        }
+        data = {
+            'email': email,
+            'password': password,
+            'connection': 'Username-Password-Authentication'
+        }
+        response = requests.post(url, headers=headers, json=data)
+        if response.status_code != 201:
+            logger.error(f"Failed to create Auth0 user: {response.text}")
+            raise Exception(f"Failed to create Auth0 user: {response.text}")
 
     return app
 
