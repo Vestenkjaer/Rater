@@ -79,7 +79,7 @@
     <div class="success-message">
       <h1>Yay! You have Subscribed! Awesome!</h1>
       <p>Now type the email of the administrative user.</p>
-      <p>For Professional subscription, the administrative user will be able to setup your Raterware.</p>
+      <p>For Professional subscription, the administrative user will be able to set up your Raterware.</p>
       <p>For Basic subscription, this is the actual user of Raterware.</p>
     </div>
 
@@ -93,28 +93,27 @@
     </div>
 
     <div id="homeButtonContainer" style="display: none;">
-      <a href="{{ url_for('dashboard') }}" class="btn btn-custom">Home</a> <!-- Home Button -->
+      <a href="{{ url_for('dashboard') }}" class="btn btn-custom">Home</a>
     </div>
   </div>
 
   <script>
-    let isRegistrationComplete = false; // This will be set to true when registration is complete
+    const desiredTier = {{ tier }}; // This variable should be passed from the server to indicate the desired tier
 
     document.getElementById('registrationForm').addEventListener('submit', async function(event) {
       event.preventDefault();
       const email = document.getElementById('email').value;
-      const username = document.getElementById('username').value; // Get the username from the form
+      const username = document.getElementById('username').value;
 
       const response = await fetch('/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, username }), // Include the username in the request body
+        body: JSON.stringify({ email, username }),
       });
 
       if (response.ok) {
-        isRegistrationComplete = true;
         document.getElementById('registrationFormContainer').style.display = 'none';
         document.getElementById('homeButtonContainer').style.display = 'block';
         alert('Registration successful! A temporary password has been sent to your email.');
@@ -125,7 +124,6 @@
       }
     });
 
-    // Function to check if the user is logged in and their tier
     async function checkUserTier() {
       const response = await fetch('/user_info');
       const userData = await response.json();
@@ -150,7 +148,6 @@
       }
     }
 
-    // Check user tier on page load
     checkUserTier();
   </script>
 </body>

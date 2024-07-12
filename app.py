@@ -426,6 +426,14 @@ def create_app():
 
         return get_auth0_token.auth0_token
 
+    @app.route('/payment/success')
+    def payment_success():
+        session_id = request.args.get('session_id')
+        if 'user' in session:
+            return render_template('payment_success.html', session_id=session_id, show_home_button=True)
+        else:
+            return render_template('payment_success.html', session_id=session_id, show_home_button=False)
+
     return app
 
 if __name__ == '__main__':
