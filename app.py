@@ -289,7 +289,9 @@ def create_app():
             if not client_id:
                 client = Client.query.filter_by(email=email).first()
                 if not client:
-                    return jsonify({'error': 'Client ID is missing in session and no client found with provided email'}), 400
+                    client = Client(name='default_client_name', email=email, tier=0)
+                    db.session.add(client)
+                    db.session.commit()
                 client_id = client.id
 
             # Check if user already exists
