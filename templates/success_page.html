@@ -83,18 +83,23 @@
       <p>For Basic subscription, this is the actual user of Raterware.</p>
     </div>
 
-    <div class="registration-form">
+    <div class="registration-form" id="registrationFormContainer">
       <h1>Register</h1>
       <form id="registrationForm">
         <input type="email" id="email" name="email" placeholder="Email" required>
         <input type="text" id="username" name="username" placeholder="Username" required>
         <button type="submit">Register</button>
       </form>
+    </div>
+
+    <div id="homeButtonContainer" style="display: none;">
       <a href="{{ url_for('dashboard') }}" class="btn btn-custom">Home</a> <!-- Home Button -->
     </div>
   </div>
 
   <script>
+    let isRegistrationComplete = false; // This will be set to true when registration is complete
+
     document.getElementById('registrationForm').addEventListener('submit', async function(event) {
       event.preventDefault();
       const email = document.getElementById('email').value;
@@ -109,6 +114,9 @@
       });
 
       if (response.ok) {
+        isRegistrationComplete = true;
+        document.getElementById('registrationFormContainer').style.display = 'none';
+        document.getElementById('homeButtonContainer').style.display = 'block';
         alert('Registration successful! A temporary password has been sent to your email.');
       } else {
         const errorData = await response.json();
@@ -116,6 +124,34 @@
         alert(`Registration failed: ${errorData.error}`);
       }
     });
+
+    // Function to check if the user is logged in and their tier
+    async function checkUserTier() {
+      const response = await fetch('/user_info');
+      const userData = await response.json();
+
+      if (userData.email && userData.tier < desiredTier) {
+        const tierUpdateResponse = await fetch('/update_tier', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email: userData.email, tier: desiredTier }),
+        });
+
+        if (tierUpdateResponse.ok) {
+          document.getElementById('registrationFormContainer').style.display = 'none';
+          document.getElementById('homeButtonContainer').style.display = 'block';
+          alert('Congratulations! Your subscription has been updated.');
+        } else {
+          console.error('Tier update failed:', await tierUpdateResponse.json());
+          alert('Failed to update your subscription.');
+        }
+      }
+    }
+
+    // Check user tier on page load
+    checkUserTier();
   </script>
 </body>
 </html>
