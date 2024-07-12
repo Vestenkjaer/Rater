@@ -78,54 +78,43 @@
   <div class="container">
     <div class="success-message">
       <h1>Yay! You have Subscribed! Awesome!</h1>
-      <p id="admin-message">Now type the email of the administrative user.</p>
-      <p id="pro-message">For Professional subscription, the administrative user will be able to setup your Raterware.</p>
-      <p id="basic-message">For Basic subscription, this is the actual user of Raterware.</p>
+      <p>Now type the email of the administrative user.</p>
+      <p>For Professional subscription, the administrative user will be able to setup your Raterware.</p>
+      <p>For Basic subscription, this is the actual user of Raterware.</p>
     </div>
 
-    <div id="registration-section">
-      <div class="registration-form">
-        <h1>Register</h1>
-        <form id="registrationForm">
-          <input type="email" id="email" name="email" placeholder="Email" required>
-          <button type="submit">Register</button>
-        </form>
-      </div>
+    <div class="registration-form">
+      <h1>Register</h1>
+      <form id="registrationForm">
+        <input type="email" id="email" name="email" placeholder="Email" required>
+        <input type="text" id="username" name="username" placeholder="Username" required>
+        <button type="submit">Register</button>
+      </form>
+      <a href="{{ url_for('dashboard') }}" class="btn btn-custom">Home</a> <!-- Home Button -->
     </div>
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const isLoggedIn = {{ 'true' if 'user' in session else 'false' }};
-      const registrationSection = document.getElementById('registration-section');
+    document.getElementById('registrationForm').addEventListener('submit', async function(event) {
+      event.preventDefault();
+      const email = document.getElementById('email').value;
+      const username = document.getElementById('username').value; // Get the username from the form
 
-      if (isLoggedIn) {
-        document.getElementById('admin-message').textContent = "Congrats on upgrading your subscription!";
-        document.getElementById('pro-message').style.display = 'none';
-        document.getElementById('basic-message').style.display = 'none';
-        registrationSection.style.display = 'none';
-      }
-
-      document.getElementById('registrationForm').addEventListener('submit', async function(event) {
-        event.preventDefault();
-        const email = document.getElementById('email').value;
-
-        const response = await fetch('/register', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email }),
-        });
-
-        if (response.ok) {
-          alert('Registration successful! A temporary password has been sent to your email.');
-        } else {
-          const errorData = await response.json();
-          console.error('Registration failed:', errorData);
-          alert(`Registration failed: ${errorData.error}`);
-        }
+      const response = await fetch('/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, username }), // Include the username in the request body
       });
+
+      if (response.ok) {
+        alert('Registration successful! A temporary password has been sent to your email.');
+      } else {
+        const errorData = await response.json();
+        console.error('Registration failed:', errorData);
+        alert(`Registration failed: ${errorData.error}`);
+      }
     });
   </script>
 </body>
