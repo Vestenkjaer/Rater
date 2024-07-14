@@ -428,11 +428,16 @@ def create_app():
 
     @app.route('/payment/success')
     def payment_success():
-        session_id = request.args.get('session_id')
-        if 'user' in session:
-            return render_template('payment_success.html', session_id=session_id, show_home_button=True)
-        else:
-            return render_template('payment_success.html', session_id=session_id, show_home_button=False)
+      session_id = request.args.get('session_id')
+      desired_tier = request.args.get('tier')  # Get the desired tier from the query parameters
+      if not session_id:
+        return jsonify({'error': 'Session ID is missing'}), 400
+
+      if 'user' in session:
+        return render_template('success_page.html', session_id=session_id, tier=desired_tier, show_home_button=True)
+      else:
+        return render_template('success_page.html', session_id=session_id, tier=desired_tier, show_home_button=False)
+
 
     return app
 
