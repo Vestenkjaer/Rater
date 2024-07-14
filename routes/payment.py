@@ -11,15 +11,18 @@ def buy(plan):
     plans = {
         'basic': {
             'name': 'Basic Plan',
-            'price_id': os.getenv('BASIC_PLAN_PRICE_ID'),  # Use environment variables to store Stripe price IDs
+            'price_id': os.getenv('BASIC_PLAN_PRICE_ID'),
+            'tier': 1
         },
         'professional': {
             'name': 'Professional Plan',
             'price_id': os.getenv('PROFESSIONAL_PLAN_PRICE_ID'),
+            'tier': 2
         },
         'enterprise': {
             'name': 'Enterprise Plan',
             'price_id': os.getenv('ENTERPRISE_PLAN_PRICE_ID'),
+            'tier': 3
         }
     }
 
@@ -30,6 +33,7 @@ def buy(plan):
         return redirect(url_for('payment.contact_sales'))
 
     plan_details = plans[plan]
+    session['desired_tier'] = plan_details['tier']
 
     try:
         checkout_session = stripe.checkout.Session.create(
@@ -44,8 +48,6 @@ def buy(plan):
             success_url=url_for('payment.success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
             cancel_url=url_for('payment.cancel', _external=True),
         )
-        session['checkout_session_id'] = checkout_session.id  # Store session ID in Flask session
-        session['plan'] = plan  # Store the plan in Flask session
         return jsonify({'id': checkout_session.id})
     except Exception as e:
         return jsonify(error=str(e)), 403
@@ -54,21 +56,27 @@ def buy(plan):
 def success():
     session_id = request.args.get('session_id')
     if not session_id:
-        session_id = session.get('checkout_session_id')  # Retrieve session ID from Flask session
-
-    plan = session.get('plan')  # Retrieve the plan from Flask session
-
-    if not session_id or not plan:
-        return jsonify({"error": "Session ID or plan is missing"}), 400
+        return jsonify({"error": "Session ID is missing"}), 400
 
     try:
         session_data = stripe.checkout.Session.retrieve(session_id)
-        registration_needed = True if not session.get('user') else False
-        show_home_button = not registration_needed
+        customer_email = session_data['customer_details']['email']
 
-        return render_template('success_page.html', session_data=session_data, registration_needed=registration_needed, show_home_button=show_home_button)
+        # Retrieve the client by email
+        client = Client.query.filter_by(email=customer_email).first()
+        if client:
+            desired_tier = session.get('desired_tier', client.tier)
+            client.tier = max(client.tier, desired_tier)
+            db.session.commit()
+            session['tier'] = client.tier
+        else:
+            return jsonify({"error": "Client not found"}), 404
+
+        registration_needed = False if 'user' in session else True
+
+        return render_template('success_page.html', session_data=session_data, registration_needed=registration_needed)
     except stripe.error.InvalidRequestError as e:
-        return jsonify({"error": str(e)}), 400
+        return jsonify(error=str(e)), 400
 
 @payment_bp.route('/cancel')
 def cancel():
