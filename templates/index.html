@@ -278,6 +278,11 @@
 <body>
   <h1>Unlock the True Potential of Your Team with RATERWARE</h1>
   <p class="intro-text">In today's fast-paced world, making informed decisions about your team is more critical than ever. Meet Raterware, the ultimate software solution designed for you to objectively rate and monitor the progress of your team members based on comprehensive, data-driven parameters.</p>
+
+  {% if session.client_id %}
+    <p class="intro-text">Current Client Tier: {{ session.tier }}</p>
+  {% endif %}
+
   <div class="button-container">
     <button class="button" id="loginBtn">Login</button>
     <div class="or-divider">or</div>
