@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request, url_for, redirect, render_template, session
 import stripe
 import os
+from models import Client, db  # Ensure these are imported
 
 payment_bp = Blueprint('payment', __name__)
 
@@ -64,15 +65,23 @@ def success():
 
         # Retrieve the client by email
         client = Client.query.filter_by(email=customer_email).first()
+        desired_tier = session.get('desired_tier', 1)
+        
         if client:
-            desired_tier = session.get('desired_tier', client.tier)
+            # Update the client's tier if it's lower than the desired tier
             client.tier = max(client.tier, desired_tier)
-            db.session.commit()
-            session['tier'] = client.tier
         else:
-            return jsonify({"error": "Client not found"}), 404
+            # Create a new client if not existing
+            client = Client(email=customer_email, name=customer_email, tier=desired_tier)
+            db.session.add(client)
+        
+        db.session.commit()
+        
+        # Update the session with the client's tier
+        session['tier'] = client.tier
+        session['client_id'] = client.id
 
-        registration_needed = False if 'user' in session else True
+        registration_needed = 'user' not in session
 
         return render_template('success_page.html', session_data=session_data, registration_needed=registration_needed)
     except stripe.error.InvalidRequestError as e:
