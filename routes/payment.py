@@ -1,22 +1,10 @@
 from flask import Blueprint, jsonify, request, url_for, redirect, render_template, session
 import stripe
 import os
-from models import db, User
-import logging
 
 payment_bp = Blueprint('payment', __name__)
 
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
-
-logger = logging.getLogger(__name__)
-
-def determine_tier(plan):
-    plan_tiers = {
-        'basic': 1,
-        'professional': 2,
-        'enterprise': 3
-    }
-    return plan_tiers.get(plan, 0)
 
 @payment_bp.route('/buy/<plan>', methods=['POST'])
 def buy(plan):
@@ -53,45 +41,34 @@ def buy(plan):
                 },
             ],
             mode='subscription',
-            success_url=url_for('payment.success', plan=plan, _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
+            success_url=url_for('payment.success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
             cancel_url=url_for('payment.cancel', _external=True),
         )
+        session['checkout_session_id'] = checkout_session.id  # Store session ID in Flask session
+        session['plan'] = plan  # Store the plan in Flask session
         return jsonify({'id': checkout_session.id})
     except Exception as e:
-        logger.error(f"Error creating checkout session: {str(e)}")
         return jsonify(error=str(e)), 403
 
 @payment_bp.route('/success')
 def success():
     session_id = request.args.get('session_id')
-    plan = request.args.get('plan')
+    if not session_id:
+        session_id = session.get('checkout_session_id')  # Retrieve session ID from Flask session
+
+    plan = session.get('plan')  # Retrieve the plan from Flask session
+
     if not session_id or not plan:
         return jsonify({"error": "Session ID or plan is missing"}), 400
 
     try:
         session_data = stripe.checkout.Session.retrieve(session_id)
-        customer_email = session_data['customer_details']['email']
-        subscription_id = session_data['subscription']
-        subscription = stripe.Subscription.retrieve(subscription_id)
-        plan_id = subscription['items']['data'][0]['price']['product']
-        tier = determine_tier(plan)
+        registration_needed = True if not session.get('user') else False
+        show_home_button = not registration_needed
 
-        if 'user' in session:
-            # Update existing user tier if logged in
-            email = session['user']['email']
-            user = User.query.filter_by(email=email).first()
-            if user:
-                user.client.tier = tier
-                db.session.commit()
-                return render_template('success_page.html', session_id=session_id, show_home_button=True, registration_needed=False)
-            else:
-                return jsonify({'error': 'User not found'}), 404
-        else:
-            # No user in session, show registration form
-            return render_template('success_page.html', session_id=session_id, show_home_button=False, registration_needed=True, plan=plan)
-    except stripe.error.StripeError as e:
-        logger.error(f"Stripe error: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        return render_template('success_page.html', session_data=session_data, registration_needed=registration_needed, show_home_button=show_home_button)
+    except stripe.error.InvalidRequestError as e:
+        return jsonify({"error": str(e)}), 400
 
 @payment_bp.route('/cancel')
 def cancel():

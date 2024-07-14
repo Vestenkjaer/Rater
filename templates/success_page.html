@@ -83,7 +83,6 @@
       <p>For Basic subscription, this is the actual user of Raterware.</p>
     </div>
 
-    <!-- Check if registration is needed -->
     {% if registration_needed %}
     <div class="registration-form" id="registrationFormContainer">
       <h1>Register</h1>
@@ -95,7 +94,6 @@
     </div>
     {% endif %}
 
-    <!-- Show home button if registration is not needed -->
     {% if show_home_button %}
     <div id="homeButtonContainer">
       <a href="{{ url_for('dashboard') }}" class="btn btn-custom">Home</a>
