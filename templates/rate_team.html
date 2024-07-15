@@ -300,7 +300,7 @@
     let settings = {};
     let tier = {{ tier }};
     let tooltipTimer;
-    let isFirstSubmission = true; // Track if it's the first submission
+    let hasExistingRatings = false; // Track if there are existing ratings
 
     async function fetchSettings() {
       try {
@@ -382,6 +382,8 @@
         const container = document.getElementById('members-ratings-container');
         container.innerHTML = '';
         teamMembers = data.members;
+
+        hasExistingRatings = teamMembers.some(member => member.ratings && Object.keys(member.ratings).length > 0);
 
         teamMembers.sort((a, b) => a.total_score - b.total_score);
 
@@ -475,9 +477,9 @@
       Promise.all(promises)
         .then(async results => {
           console.log(results);
-          if (isFirstSubmission) {
+          if (!hasExistingRatings) {
             await createInitialSubmissions(ratings);
-            isFirstSubmission = false;
+            hasExistingRatings = true;
           }
           alert('Ratings submitted successfully!');
           if (selectedTeamId) {
