@@ -275,11 +275,11 @@
     </div>
   </div>
 
-  <div id="popupOverlay" class="popup-overlay"></div>
-  <div id="popup" class="popup">
-    <h3 id="popupTitle"></h3>
-    <p id="popupMessage"></p>
-    <button onclick="closePopup()">OK</button>
+  <div id="popupOverlay" class="popup-overlay" style="display: none;"></div>
+  <div id="popup" class="popup" style="display: none;">
+    <h3 id="popupTitle">New to Raterware? Fear not!</h3>
+    <p id="popupMessage">Start creating your team by clicking the Team Management button.</p>
+    <button id="popupButton" onclick="closePopup()">Got it!</button>
   </div>
 
   <script>
@@ -300,7 +300,6 @@
     let selectedTeamId = null;
     let selectedMemberId = null;
     let selectedMemberName = '';
-    let userTier = {{ user_tier }};  // Assuming user_tier is passed from the server
 
     function fetchTeamMembers(teamId) {
       selectedTeamId = teamId;
@@ -456,14 +455,23 @@
     }
 
     function checkTierAndGenerateAIRecommendation() {
-      if (userTier < 2) {
-        showPopup(
-          "To get the full experience of Raterware, please upgrade to the Professional version",
-          ""
-        );
-      } else {
-        aiRecommendation();
-      }
+      fetch('/user_info')
+        .then(response => response.json())
+        .then(data => {
+          const tier = data.tier;
+          if (tier < 2) {
+            showPopup(
+              "To get the full experience of Raterware, please upgrade to the Professional version",
+              "",
+              "/pricing"
+            );
+          } else {
+            aiRecommendation();
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching user tier:', error);
+        });
     }
 
     function aiRecommendation() {
@@ -521,18 +529,6 @@
       }).from(element).save();
     }
 
-    function showPopup(title, message) {
-      document.getElementById('popupTitle').innerText = title;
-      document.getElementById('popupMessage').innerText = message;
-      document.getElementById('popupOverlay').style.display = 'block';
-      document.getElementById('popup').style.display = 'block';
-    }
-
-    function closePopup() {
-      document.getElementById('popupOverlay').style.display = 'none';
-      document.getElementById('popup').style.display = 'none';
-    }
-
     window.addEventListener('load', () => {
       const teamList = document.getElementById('teamList');
       if (teamList.options.length === 2) { // 1 option for placeholder and 1 for the team
@@ -540,6 +536,24 @@
         fetchTeamMembers(teamList.value);
       }
     });
+
+    function showPopup(title, message, redirectUrl) {
+      document.getElementById('popupTitle').innerText = title;
+      document.getElementById('popupMessage').innerText = message;
+      document.getElementById('popupOverlay').style.display = 'block';
+      document.getElementById('popup').style.display = 'block';
+      document.getElementById('popupButton').onclick = () => {
+        closePopup();
+        if (redirectUrl) {
+          window.location.href = redirectUrl;
+        }
+      };
+    }
+
+    function closePopup() {
+      document.getElementById('popupOverlay').style.display = 'none';
+      document.getElementById('popup').style.display = 'none';
+    }
   </script>
 </body>
 </html>
