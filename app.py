@@ -335,29 +335,29 @@ def create_app():
             if auth0_response.status_code != 201:
                 raise Exception('Auth0 user creation failed')
 
-            # Send an email with the password and welcome message
+            # Inside the register route where the email is constructed and sent
             msg = Message('Welcome to Raterware!', recipients=[email])
-            msg.body = f"""
-            Hi {username},
+            msg.html = f"""
+              <p>Hi {username},</p>
 
-            Welcome to Raterware! We're thrilled to have you on board. 
+             <p>Welcome to Raterware! We're thrilled to have you on board.</p>
 
-            Raterware is your ultimate tool for objectively rating and monitoring the progress of your team members.
-            Whether you’re managing a business team, a sports team, or any group of individuals that require regular evaluation,
-            Raterware adapts to your unique requirements.
+             <p>Raterware is your ultimate tool for objectively rating and monitoring the progress of your team members.
+             Whether you’re managing a business team, a sports team, or any group of individuals that require regular evaluation,
+             Raterware adapts to your unique requirements.</p>
 
-            Here is your password to get started:
-            {password}
+             <p>Here is your password to get started:</p>
+             <p><strong style="font-size: 18px; color: blue;">{password}</strong></p>
 
-            Please log in using your email and this password. In the log in dialog box, you can change your password to something more secure and personal.
+             <p>Please log in using your email and this password. In the log in dialog box, you can change your password to something more secure and personal.</p>
 
-            We're here to help you unlock the true potential of your team. If you have any questions or need assistance, feel free to reach out to our support team.
+             <p>We're here to help you unlock the true potential of your team. If you have any questions or need assistance, feel free to reach out to our support team.</p>
 
-            Best regards,
-            The Raterware Team
-
-            Empowering Your Team with Data-Driven Insights
+             <p>Best regards,</p>
+             <p>The Raterware Team</p>
+             <p>Empowering Your Team with Data-Driven Insights</p>
             """
+
             mail.send(msg)
 
 
