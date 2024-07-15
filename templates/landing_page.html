@@ -6,7 +6,6 @@
   <title>RATER Dashboard</title>
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/rater.ico') }}">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
   <style>
@@ -398,9 +397,15 @@
   </div>
   <div id="tierPopup" class="popup" style="display: none;">
     <h3>To get the full experience of Raterware, please upgrade to the Professional version</h3>
-    <button onclick="redirectToPricing()">OK</button>
+    <button onclick="redirectToPricing()">Upgrade Now</button>
+  </div>
+  <div id="rateTeamPopup" class="popup" style="display: none;">
+    <h3>Rate your team now!</h3>
+    <button onclick="closePopup()">OK</button>
   </div>
 
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     let topPerformersChart;
     let bottomPerformersChart;
@@ -415,7 +420,12 @@
             $('#rateTeamButton').css('margin', '0 auto');
           }
           selectTeam(teams[0].id); // Automatically select the first team
-          fetchLatestSubmission(teams[0].id);
+          fetchLatestSubmission(teams[0].id).then(submissionExists => {
+            if (!submissionExists) {
+              showPopup('rateTeamPopup');
+              highlightRateTeamButton();
+            }
+          });
         } else {
           showPopup('fearNotPopup');
           highlightTeamManagementButton();
@@ -460,16 +470,18 @@
           const data = await response.json();
           if (data.date) {
             document.getElementById('latestSubmissionContainer').innerHTML = `Latest submission: <strong>${data.date}</strong>`;
+            return true;
           } else {
             document.getElementById('latestSubmissionContainer').innerHTML = 'No submissions found';
-            highlightRateTeamButton();
-            showPopup('rateTeamPopup');
+            return false;
           }
         } else {
           console.error('Failed to fetch latest submission');
+          return false;
         }
       } catch (error) {
         console.error('Error fetching latest submission:', error);
+        return false;
       }
     }
 
@@ -672,7 +684,7 @@
           const userInfo = await response.json();
           const userInfoDiv = document.getElementById('user-info');
           userInfoDiv.innerHTML = `Logged in as: ${userInfo.name} (${userInfo.email})`;
-          sessionStorage.setItem('tier', userInfo.tier);
+          userInfoDiv.dataset.tier = userInfo.tier; // Store the tier in a data attribute
         } else {
           console.error('Failed to fetch user info');
         }
@@ -688,7 +700,9 @@
 
     function closePopup() {
       document.getElementById('popupOverlay').style.display = 'none';
-      document.getElementById('fearNotPopup').style.display = 'none';
+      document.querySelectorAll('.popup').forEach(popup => {
+        popup.style.display = 'none';
+      });
     }
 
     function highlightTeamManagementButton() {
@@ -702,15 +716,18 @@
     }
 
     function checkTierAndRedirect(event) {
-      const tier = sessionStorage.getItem('tier');
-      if (tier < 2) {
-        event.preventDefault();
+      event.preventDefault();
+      const userInfoDiv = document.getElementById('user-info');
+      const tier = userInfoDiv.dataset.tier;
+      if (parseInt(tier, 10) < 2) {
         showPopup('tierPopup');
+      } else {
+        window.location.href = "/setup";
       }
     }
 
     function redirectToPricing() {
-      window.location.href = '/pricing';
+      window.location.href = "/pricing";
     }
   </script>
 </body>
