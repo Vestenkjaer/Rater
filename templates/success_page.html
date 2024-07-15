@@ -93,6 +93,10 @@
     </div>
     {% endif %}
 
+    <div id="resendButtonContainer" style="display: none;">
+      <button class="btn-custom" id="resendButton">Resend Welcome Email</button>
+    </div>
+
     <div id="homeButtonContainer" style="display: none;">
       <a href="{{ url_for('dashboard') }}" class="btn btn-custom">Get Started</a>
     </div>
@@ -100,11 +104,13 @@
 
   <script>
     let isRegistrationComplete = false; // This will be set to true when registration is complete
+    let userEmail = ''; // Store the user email for resending email
 
     document.getElementById('registrationForm').addEventListener('submit', async function(event) {
       event.preventDefault();
       const email = document.getElementById('email').value;
       const username = document.getElementById('username').value;
+      userEmail = email; // Save the email for later use
 
       const response = await fetch('/register', {
         method: 'POST',
@@ -123,10 +129,29 @@
           <p>Please check your email for the temporary password to get started with Raterware.</p>
         `;
         document.getElementById('homeButtonContainer').style.display = 'block';
+        document.getElementById('resendButtonContainer').style.display = 'block';
       } else {
         const errorData = await response.json();
         console.error('Registration failed:', errorData);
         alert(`Registration failed: ${errorData.error}`);
+      }
+    });
+
+    document.getElementById('resendButton').addEventListener('click', async function() {
+      const response = await fetch('/resend_welcome_email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: userEmail }),
+      });
+
+      if (response.ok) {
+        alert('Welcome email resent successfully!');
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to resend email:', errorData);
+        alert(`Failed to resend email: ${errorData.error}`);
       }
     });
 
