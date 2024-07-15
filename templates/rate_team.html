@@ -383,9 +383,7 @@
         container.innerHTML = '';
         teamMembers = data.members;
 
-        const hasRatingsResponse = await fetch(`/get_ratings/${teamId}`);
-        const hasRatingsData = await hasRatingsResponse.json();
-        hasExistingRatings = hasRatingsData.has_ratings;
+        hasExistingRatings = teamMembers.some(member => member.ratings && Object.keys(member.ratings).length > 0);
 
         teamMembers.sort((a, b) => a.total_score - b.total_score);
 
