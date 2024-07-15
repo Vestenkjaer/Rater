@@ -324,10 +324,29 @@ def create_app():
             if auth0_response.status_code != 201:
                 raise Exception('Auth0 user creation failed')
 
-            # Send an email with the temporary password
-            msg = Message('Your Temporary Password', recipients=[email])
-            msg.body = f'Your temporary password is: {temp_password}'
+            # Send an email with the temporary password and welcome message
+            msg = Message('Welcome to Raterware!', recipients=[email])
+            msg.body = f"""
+            Hi {username or 'User'},
+
+            Welcome to Raterware! We're thrilled to have you on board. 
+
+            Raterware is your ultimate tool for objectively rating and monitoring the progress of your team members. Whether you’re managing a business team, a sports team, or any group of individuals that require regular evaluation, Raterware adapts to your unique requirements.
+
+            Here is your temporary password to get started:
+            {temp_password}
+
+            Please log in using your email and this temporary password. Once logged in, you can change your password to something more secure and personal.
+
+            We're here to help you unlock the true potential of your team. If you have any questions or need assistance, feel free to reach out to our support team.
+
+            Best regards,
+            The Raterware Team
+
+            Empowering Your Team with Data-Driven Insights
+            """
             mail.send(msg)
+
 
             return jsonify({'message': 'Registration successful. A temporary password has been sent to your email.'}), 200
         except Exception as e:
