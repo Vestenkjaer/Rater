@@ -275,8 +275,8 @@
 
   <div id="popupOverlay" class="popup-overlay"></div>
   <div id="popup" class="popup">
-    <h3>Write the name of your team for example 'Sales', 'Technical Support' etc. and press Add Team.</h3>
-    <p>Then start creating members.</p>
+    <h3 id="popupTitle"></h3>
+    <p id="popupMessage"></p>
     <button onclick="closePopup()">Got it!</button>
   </div>
 
@@ -284,9 +284,26 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.min.js"></script>
 
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      fetchTeams();
+    let userTier;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await fetchUserInfo();
+      await fetchTeams();
     });
+
+    async function fetchUserInfo() {
+      try {
+        const response = await fetch('/user_info');
+        if (response.ok) {
+          const userInfo = await response.json();
+          userTier = userInfo.tier;
+        } else {
+          console.error('Failed to fetch user info');
+        }
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+      }
+    }
 
     async function fetchTeams() {
       try {
@@ -297,7 +314,7 @@
           const teamList = document.getElementById('teamList');
           teamList.innerHTML = '';
           if (teams.length === 0) {
-            showPopup();
+            showPopup('Write the name of your team for example \'Sales\', \'Technical Support\' etc. and press Add Team.', 'Then start creating members.');
           } else {
             teams.forEach(team => {
               const li = createTeamListItem(team);
@@ -338,6 +355,15 @@
       event.preventDefault();
 
       const teamName = document.getElementById('teamName').value;
+      const teamCount = document.querySelectorAll('.teams-list li').length;
+
+      if (userTier === 1 && teamCount >= 1) {
+        showPopup('Upgrade Required', 'To get the full experience of Raterware, please upgrade to the Professional version.');
+        return;
+      } else if (userTier === 2 && teamCount >= 5) {
+        showPopup('Upgrade Required', 'To get the full experience of Raterware, please upgrade to the Enterprise version.');
+        return;
+      }
 
       const response = await fetch('/team_management/add_team', {
         method: 'POST',
@@ -410,6 +436,15 @@
       const firstName = document.getElementById('newFirstName').value;
       const surname = document.getElementById('newSurname').value;
       const employerId = document.getElementById('newEmployerId').value;
+      const memberCount = document.querySelectorAll('#memberTable tr[data-id]').length;
+
+      if (userTier === 1 && memberCount >= 10) {
+        showPopup('Upgrade Required', 'To get the full experience of Raterware, please upgrade to the Professional version.');
+        return;
+      } else if (userTier === 2 && memberCount >= 20) {
+        showPopup('Upgrade Required', 'To get the full experience of Raterware, please upgrade to the Enterprise version.');
+        return;
+      }
 
       const response = await fetch(`/team_management/add_team_member/${teamId}`, {
         method: 'POST',
@@ -552,7 +587,9 @@
       }
     }
 
-    function showPopup() {
+    function showPopup(title, message) {
+      document.getElementById('popupTitle').textContent = title;
+      document.getElementById('popupMessage').textContent = message;
       document.getElementById('popupOverlay').style.display = 'block';
       document.getElementById('popup').style.display = 'block';
     }

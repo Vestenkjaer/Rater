@@ -29,6 +29,12 @@ def add_team():
         client_id = session.get('client_id')  # Get client_id from session
         if not client_id:
             return jsonify({"error": "Client not found in session"}), 401
+
+        tier = session.get('tier')  # Get user tier from session
+        team_count = Team.query.filter_by(client_id=client_id).count()
+
+        if (tier == 1 and team_count >= 1) or (tier == 2 and team_count >= 5):
+            return jsonify({"error": "Team limit reached for your current tier"}), 403
         
         new_team = Team(name=data['team_name'], user_id=1, client_id=client_id)  # Assuming user_id is 1 for now
         db.session.add(new_team)
@@ -64,6 +70,10 @@ def add_team_member(team_id):
         team = Team.query.get(team_id)
         if not team:
             return jsonify({"error": "Team not found"}), 404
+
+        member_count = TeamMember.query.filter_by(team_id=team_id).count()
+        if (tier == 1 and member_count >= 10) or (tier == 2 and member_count >= 20):
+            return jsonify({"error": "Member limit reached for your current tier"}), 403
 
         new_member = TeamMember(
             team_id=team_id, 
