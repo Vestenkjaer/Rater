@@ -299,12 +299,23 @@ def create_app():
             if existing_user:
                 return jsonify({'error': 'User already exists'}), 400
 
-            # Generate a temporary password
-            temp_password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(10))
-            hashed_password = generate_password_hash(temp_password, method='pbkdf2:sha256')
+            # Ensure unique username
+            if not username:
+                username = 'default_username'
+            if User.query.filter_by(username=username).first():
+                suffix = 1
+                new_username = f"{username}{suffix}"
+                while User.query.filter_by(username=new_username).first():
+                    suffix += 1
+                    new_username = f"{username}{suffix}"
+                username = new_username
+
+            # Generate a password
+            password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(10))
+            hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
 
             # Create a new user
-            new_user = User(username=username or 'default_username', email=email, password_hash=hashed_password, client_id=client_id)
+            new_user = User(username=username, email=email, password_hash=hashed_password, client_id=client_id)
             db.session.add(new_user)
             db.session.commit()
 
@@ -317,17 +328,17 @@ def create_app():
             }
             auth0_data = {
                 'email': email,
-                'password': temp_password,
+                'password': password,
                 'connection': 'Username-Password-Authentication'
             }
             auth0_response = requests.post(f'https://{auth0_domain}/api/v2/users', headers=auth0_headers, json=auth0_data)
             if auth0_response.status_code != 201:
                 raise Exception('Auth0 user creation failed')
 
-            # Send an email with the temporary password and welcome message
+            # Send an email with the password and welcome message
             msg = Message('Welcome to Raterware!', recipients=[email])
             msg.body = f"""
-            Hi {username or 'User'},
+            Hi {username},
 
             Welcome to Raterware! We're thrilled to have you on board. 
 
@@ -335,10 +346,10 @@ def create_app():
             Whether you’re managing a business team, a sports team, or any group of individuals that require regular evaluation,
             Raterware adapts to your unique requirements.
 
-            Here is your temporary password to get started:
-            {temp_password}
+            Here is your password to get started:
+            {password}
 
-            Please log in using your email and this temporary password. In the log in dialog box, you can change your password to something more secure and personal.
+            Please log in using your email and this password. In the log in dialog box, you can change your password to something more secure and personal.
 
             We're here to help you unlock the true potential of your team. If you have any questions or need assistance, feel free to reach out to our support team.
 
@@ -350,7 +361,7 @@ def create_app():
             mail.send(msg)
 
 
-            return jsonify({'message': 'Registration successful. A temporary password has been sent to your email.'}), 200
+            return jsonify({'message': 'Registration successful. A password has been sent to your email.'}), 200
         except Exception as e:
             logger.error(f"Error during registration: {str(e)}")
             logger.exception("Exception during registration")
@@ -449,25 +460,25 @@ def create_app():
 
     @app.route('/payment/success')
     def payment_success():
-      session_id = request.args.get('session_id')
-      desired_tier = request.args.get('tier')  # Get the desired tier from the query parameters
-      if not session_id:
-        return jsonify({'error': 'Session ID is missing'}), 400
+        session_id = request.args.get('session_id')
+        desired_tier = request.args.get('tier')  # Get the desired tier from the query parameters
+        if not session_id:
+            return jsonify({'error': 'Session ID is missing'}), 400
 
-      session_data = stripe.checkout.Session.retrieve(session_id)
-      customer_email = session_data['customer_details']['email']
-      client = Client.query.filter_by(email=customer_email).first()
+        session_data = stripe.checkout.Session.retrieve(session_id)
+        customer_email = session_data['customer_details']['email']
+        client = Client.query.filter_by(email=customer_email).first()
     
-      if client:
-        # Existing client, upgrading tier
-        registration_needed = False
-        client.tier = desired_tier
-        db.session.commit()
-      else:
-        # New client
-        registration_needed = True
+        if client:
+            # Existing client, upgrading tier
+            registration_needed = False
+            client.tier = desired_tier
+            db.session.commit()
+        else:
+            # New client
+            registration_needed = True
 
-      return render_template('success_page.html', session_id=session_id, registration_needed=registration_needed, show_home_button=not registration_needed)
+        return render_template('success_page.html', session_id=session_id, registration_needed=registration_needed, show_home_button=not registration_needed)
 
 
     return app
