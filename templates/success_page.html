@@ -77,17 +77,8 @@
 <body>
   <div class="container">
     <div class="success-message">
-      {% if registration_needed %}
-        <h1>Welcome to Raterware</h1>
-        <p>Congratulations on your registration! Please check your email for the temporary password to get started.</p>
-        <button id="resendEmailButton" class="btn btn-custom">Resend Welcome Email</button>
-      {% else %}
-        <h1>Congratulations on your Upgrade!</h1>
-        <p>Your subscription has been successfully upgraded. You can now enjoy the benefits of the new tier.</p>
-        <div id="homeButtonContainer">
-          <a href="{{ url_for('dashboard') }}" class="btn btn-custom">Get Started</a>
-        </div>
-      {% endif %}
+      <h1>Welcome to Raterware</h1>
+      <p>Congratulations on your registration! Please check your email for the temporary password to get started.</p>
     </div>
 
     {% if registration_needed %}
@@ -100,6 +91,10 @@
       </form>
     </div>
     {% endif %}
+
+    <div id="homeButtonContainer" style="display: none;">
+      <a href="{{ url_for('dashboard') }}" class="btn btn-custom">Get Started</a>
+    </div>
   </div>
 
   <script>
@@ -153,26 +148,6 @@
         }
       }
     }
-
-    document.getElementById('resendEmailButton').addEventListener('click', async function() {
-      const email = document.getElementById('email').value;
-
-      const response = await fetch('/resend_welcome_email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      if (response.ok) {
-        alert('Welcome email resent successfully.');
-      } else {
-        const errorData = await response.json();
-        console.error('Failed to resend welcome email:', errorData);
-        alert(`Failed to resend welcome email: ${errorData.error}`);
-      }
-    });
 
     checkUserTier();
   </script>

@@ -305,8 +305,7 @@ def create_app():
             hashed_password = generate_password_hash(temp_password, method='pbkdf2:sha256')
 
             # Create a new user
-            new_user = User(username=username or 'default_username', email=email, password_hash=hashed_password, client_id=client_id)
-            new_user.temp_password = temp_password  # Store temporary password
+            new_user = User(username=username or 'default_username', email=email, password_hash=hashed_password, client_id=client_id, temp_password=temp_password)
             db.session.add(new_user)
             db.session.commit()
 
@@ -335,6 +334,28 @@ def create_app():
             logger.exception("Exception during registration")
             return jsonify({'error': 'Registration failed.'}), 500
 
+    @app.route('/resend_welcome_email', methods=['POST'])
+    def resend_welcome_email():
+        try:
+            data = request.get_json()
+            email = data.get('email')
+            user = User.query.filter_by(email=email).first()
+
+            if not user:
+                return jsonify({'error': 'User not found'}), 404
+
+            # Use the existing temporary password
+            temp_password = user.temp_password
+
+            # Resend welcome email with the temporary password
+            send_welcome_email(email, user.username, temp_password)
+
+            return jsonify({'message': 'Welcome email resent successfully.'}), 200
+        except Exception as e:
+            logger.error(f"Error during resending welcome email: {str(e)}")
+            logger.exception("Exception during resending welcome email")
+            return jsonify({'error': 'Failed to resend welcome email.'}), 500
+
     def send_welcome_email(email, username, temp_password):
         msg = Message('Welcome to Raterware!', recipients=[email])
         msg.body = f"""
@@ -359,25 +380,6 @@ def create_app():
         Empowering Your Team with Data-Driven Insights
         """
         mail.send(msg)
-
-    @app.route('/resend_welcome_email', methods=['POST'])
-    def resend_welcome_email():
-        try:
-            data = request.get_json()
-            email = data.get('email')
-            user = User.query.filter_by(email=email).first()
-
-            if not user:
-                return jsonify({'error': 'User not found'}), 404
-
-            # Resend welcome email with the stored temporary password
-            send_welcome_email(email, user.username, user.temp_password)
-
-            return jsonify({'message': 'Welcome email resent successfully.'}), 200
-        except Exception as e:
-            logger.error(f"Error during resending welcome email: {str(e)}")
-            logger.exception("Exception during resending welcome email")
-            return jsonify({'error': 'Failed to resend welcome email.'}), 500
 
     @app.route('/stripe-webhook', methods=['POST'])
     def stripe_webhook():
