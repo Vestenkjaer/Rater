@@ -304,7 +304,6 @@
               teamList.appendChild(li);
             });
           }
-          handleTierRestrictions(tier, teams.length);
         } else {
           console.error('Failed to fetch teams');
         }
@@ -553,31 +552,22 @@
       }
     }
 
-    function showPopup(title, message) {
+    function showPopup(title, message, redirectUrl = null) {
       document.getElementById('popupTitle').innerText = title;
       document.getElementById('popupMessage').innerText = message;
       document.getElementById('popupOverlay').style.display = 'block';
       document.getElementById('popup').style.display = 'block';
+      document.getElementById('popupButton').onclick = () => {
+        closePopup();
+        if (redirectUrl) {
+          window.location.href = redirectUrl;
+        }
+      };
     }
 
     function closePopup() {
       document.getElementById('popupOverlay').style.display = 'none';
       document.getElementById('popup').style.display = 'none';
-    }
-
-    function handleTierRestrictions(tier, teamCount) {
-      const createTeamForm = document.getElementById('createTeamForm');
-      const addTeamButton = createTeamForm.querySelector('button[type="submit"]');
-      if ((tier === 1 && teamCount >= 1) || (tier === 2 && teamCount >= 5)) {
-        addTeamButton.disabled = true;
-        addTeamButton.onclick = (event) => {
-          event.preventDefault();
-          showPopup('Tier Limit Reached', 'To get the full experience of Raterware, please upgrade to the Professional version.');
-        };
-      } else {
-        addTeamButton.disabled = false;
-        addTeamButton.onclick = null;
-      }
     }
   </script>
 </body>
