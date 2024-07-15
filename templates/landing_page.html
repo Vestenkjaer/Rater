@@ -281,7 +281,7 @@
           <a class="nav-link btn-custom" id="teamManagementButton" href="/team_management">Team Management</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link btn-custom" href="/setup">Setup</a>
+          <a class="nav-link btn-custom" id="setupButton" href="#">Setup</a>
         </li>
         <li class="nav-item">
           <a class="nav-link btn-custom" href="/logout">Logout</a>
@@ -391,8 +391,8 @@
 
   <div id="popupOverlay" class="popup-overlay" style="display: none;"></div>
   <div id="popup" class="popup" style="display: none;">
-    <h3 id="popupTitle">New to Raterware? Fear not!</h3>
-    <p id="popupMessage">Start creating your team by clicking the Team Management button.</p>
+    <h3 id="popupTitle"></h3>
+    <p id="popupMessage"></p>
     <button onclick="closePopup()">Got it!</button>
   </div>
 
@@ -401,8 +401,10 @@
   <script>
     let topPerformersChart;
     let bottomPerformersChart;
+    let userTier = null;
 
     $(document).ready(function () {
+      fetchUserTier();
       fetchTeams().then(data => {
         const teams = data.teams;
         if (teams.length > 0) {
@@ -412,19 +414,39 @@
             $('#rateTeamButton').css('margin', '0 auto');
           }
           selectTeam(teams[0].id); // Automatically select the first team
-          fetchLatestSubmission(teams[0].id).then(hasSubmissions => {
-            if (!hasSubmissions) {
-              showPopup('Rate your team now!');
-              highlightRateTeamButton();
-            }
-          });
+          fetchLatestSubmission(teams[0].id);
         } else {
-          showPopup('Start creating your team by clicking the Team Management button.');
+          showPopup("New to Raterware? Fear not!", "Start creating your team by clicking the Team Management button.");
           highlightTeamManagementButton();
         }
       });
       fetchUserInfo(); // Fetch and display user info
+
+      // Add event listener for the "Setup" button
+      document.getElementById('setupButton').addEventListener('click', function (event) {
+        if (userTier < 2) {
+          event.preventDefault();
+          showPopup("To get the full experience of Raterware, please upgrade to Professional version", "");
+          setTimeout(() => {
+            window.location.href = '/pricing';
+          }, 3000); // Redirect after 3 seconds
+        }
+      });
     });
+
+    async function fetchUserTier() {
+      try {
+        const response = await fetch('/user_info');
+        if (response.ok) {
+          const userInfo = await response.json();
+          userTier = userInfo.tier;
+        } else {
+          console.error('Failed to fetch user tier');
+        }
+      } catch (error) {
+        console.error('Error fetching user tier:', error);
+      }
+    }
 
     async function fetchTeams() {
       try {
@@ -462,18 +484,16 @@
           const data = await response.json();
           if (data.date) {
             document.getElementById('latestSubmissionContainer').innerHTML = `Latest submission: <strong>${data.date}</strong>`;
-            return true; // There are submissions
           } else {
             document.getElementById('latestSubmissionContainer').innerHTML = 'No submissions found';
-            return false; // No submissions
+            showPopup("Rate your team now!", "Click the 'Rate Your Team' button to get started.");
+            highlightRateTeamButton();
           }
         } else {
           console.error('Failed to fetch latest submission');
-          return false; // No submissions
         }
       } catch (error) {
         console.error('Error fetching latest submission:', error);
-        return false; // No submissions
       }
     }
 
@@ -674,6 +694,7 @@
         const response = await fetch('/user_info');
         if (response.ok) {
           const userInfo = await response.json();
+          userTier = userInfo.tier;
           const userInfoDiv = document.getElementById('user-info');
           userInfoDiv.innerHTML = `Logged in as: ${userInfo.name} (${userInfo.email})`;
         } else {
@@ -684,9 +705,9 @@
       }
     }
 
-    function showPopup(message) {
-      document.getElementById('popupTitle').innerHTML = 'Attention!';
-      document.getElementById('popupMessage').innerHTML = message;
+    function showPopup(title, message) {
+      document.getElementById('popupTitle').innerText = title;
+      document.getElementById('popupMessage').innerText = message;
       document.getElementById('popupOverlay').style.display = 'block';
       document.getElementById('popup').style.display = 'block';
     }
