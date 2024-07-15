@@ -305,9 +305,12 @@ def create_app():
             hashed_password = generate_password_hash(temp_password, method='pbkdf2:sha256')
 
             # Create a new user
-            new_user = User(username=username or 'default_username', email=email, password_hash=hashed_password, client_id=client_id, temp_password=temp_password)
+            new_user = User(username=username or 'default_username', email=email, password_hash=hashed_password, client_id=client_id)
             db.session.add(new_user)
             db.session.commit()
+
+            # Store the temporary password in the session
+            session['temp_password'] = temp_password
 
             # Create user in Auth0
             auth0_domain = os.getenv('AUTH0_DOMAIN')
@@ -344,10 +347,11 @@ def create_app():
             if not user:
                 return jsonify({'error': 'User not found'}), 404
 
-            # Use the existing temporary password
-            temp_password = user.temp_password
+            # Resend welcome email with the original temporary password
+            temp_password = session.get('temp_password')
+            if not temp_password:
+                return jsonify({'error': 'No temporary password found in session'}), 404
 
-            # Resend welcome email with the temporary password
             send_welcome_email(email, user.username, temp_password)
 
             return jsonify({'message': 'Welcome email resent successfully.'}), 200
@@ -483,6 +487,7 @@ def create_app():
             return render_template('success_page.html', session_id=session_id, tier=desired_tier, show_home_button=True)
         else:
             return render_template('success_page.html', session_id=session_id, tier=desired_tier, show_home_button=False)
+
 
     return app
 
