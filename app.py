@@ -28,6 +28,7 @@ load_dotenv()
 
 # Set up Stripe API key
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
+
 # Print the value of STRIPE_WEBHOOK_SECRET for debugging
 print("STRIPE_WEBHOOK_SECRET:", os.getenv('STRIPE_WEBHOOK_SECRET'))
 
@@ -349,12 +350,57 @@ def create_app():
             """
             mail.send(msg)
 
-
             return jsonify({'message': 'Registration successful. A temporary password has been sent to your email.'}), 200
         except Exception as e:
             logger.error(f"Error during registration: {str(e)}")
             logger.exception("Exception during registration")
             return jsonify({'error': 'Registration failed.'}), 500
+
+    @app.route('/resend_welcome_email', methods=['POST'])
+    def resend_welcome_email():
+        try:
+            data = request.get_json()
+            email = data.get('email')
+            user = User.query.filter_by(email=email).first()
+
+            if not user:
+                return jsonify({'error': 'User not found'}), 404
+
+            # Resend welcome email with the temporary password
+            temp_password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(10))
+            hashed_password = generate_password_hash(temp_password, method='pbkdf2:sha256')
+            user.password_hash = hashed_password
+            db.session.commit()
+
+            msg = Message('Welcome to Raterware!', recipients=[email])
+            msg.body = f"""
+            Hi {user.username or 'User'},
+
+            Welcome to Raterware! We're thrilled to have you on board. 
+
+            Raterware is your ultimate tool for objectively rating and monitoring the progress of your team members.
+            Whether you’re managing a business team, a sports team, or any group of individuals that require regular evaluation,
+            Raterware adapts to your unique requirements.
+
+            Here is your temporary password to get started:
+            {temp_password}
+
+            Please log in using your email and this temporary password. In the log in dialog box, you can change your password to something more secure and personal.
+
+            We're here to help you unlock the true potential of your team. If you have any questions or need assistance, feel free to reach out to our support team.
+
+            Best regards,
+            The Raterware Team
+
+            Empowering Your Team with Data-Driven Insights
+            """
+            mail.send(msg)
+
+            return jsonify({'message': 'Welcome email resent successfully.'}), 200
+        except Exception as e:
+            logger.error(f"Error during resending welcome email: {str(e)}")
+            logger.exception("Exception during resending welcome email")
+            return jsonify({'error': 'Failed to resend welcome email.'}), 500
 
     @app.route('/stripe-webhook', methods=['POST'])
     def stripe_webhook():
@@ -447,17 +493,6 @@ def create_app():
 
         return get_auth0_token.auth0_token
 
-  #  @app.route('/payment/success')
-  #  def payment_success():
-  #    session_id = request.args.get('session_id')
-  #    desired_tier = request.args.get('tier')  # Get the desired tier from the query parameters
-  #    if not session_id:
-  #      return jsonify({'error': 'Session ID is missing'}), 400
-
-  #    if 'user' in session:
-  #      return render_template('success_page.html', session_id=session_id, tier=desired_tier, show_home_button=True)
-  #    else:
-  #      return render_template('success_page.html', session_id=session_id, tier=desired_tier, show_home_button=False)
     @app.route('/payment/success')
     def payment_success():
       session_id = request.args.get('session_id')
@@ -465,20 +500,11 @@ def create_app():
       if not session_id:
         return jsonify({'error': 'Session ID is missing'}), 400
 
-      session_data = stripe.checkout.Session.retrieve(session_id)
-      customer_email = session_data['customer_details']['email']
-      client = Client.query.filter_by(email=customer_email).first()
-    
-      if client:
-        # Existing client, upgrading tier
-        registration_needed = False
-        client.tier = desired_tier
-        db.session.commit()
+      if 'user' in session:
+        return render_template('success_page.html', session_id=session_id, tier=desired_tier, show_home_button=True)
       else:
-        # New client
-        registration_needed = True
+        return render_template('success_page.html', session_id=session_id, tier=desired_tier, show_home_button=False)
 
-        return render_template('success_page.html', session_id=session_id, registration_needed=registration_needed, show_home_button=not registration_needed)
 
     return app
 

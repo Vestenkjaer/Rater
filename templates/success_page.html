@@ -77,30 +77,28 @@
 <body>
   <div class="container">
     <div class="success-message">
-      {% if registration_needed %}
-        <h1>Welcome to Raterware</h1>
-        <p>Please enter your e-mail to register.</p>
-        <p>A temporary password will be sent to the provided e-mail address.</p>
-      {% else %}
-        <h1>Congratulations on Upgrading!</h1>
-        <p>Your subscription has been successfully upgraded.</p>
-        <p>You can now enjoy the benefits of your new plan.</p>
-      {% endif %}
+      <h1>Welcome to Raterware</h1>
+      <p>Please enter your e-mail to register.</p>
+      <p>A temporary password will soon be sent to the provided e-mail address</p>
     </div>
 
     {% if registration_needed %}
-      <div class="registration-form" id="registrationFormContainer">
-        <h1>Register</h1>
-        <form id="registrationForm">
-          <input type="email" id="email" name="email" placeholder="E-mail" required>
-          <input type="text" id="username" name="username" placeholder="Company Name" required>
-          <button type="submit">Register</button>
-        </form>
-      </div>
+    <div class="registration-form" id="registrationFormContainer">
+      <h1>Register</h1>
+      <form id="registrationForm">
+        <input type="email" id="email" name="email" placeholder="E-mail" required>
+        <input type="text" id="username" name="username" placeholder="Company Name" required>
+        <button type="submit">Register</button>
+      </form>
+    </div>
     {% endif %}
 
-    <div id="homeButtonContainer" style="{% if not show_home_button %}display: none;{% endif %}">
+    <div id="homeButtonContainer" style="display: none;">
       <a href="{{ url_for('dashboard') }}" class="btn btn-custom">Get Started</a>
+    </div>
+    
+    <div id="resendEmailContainer" style="display: none;">
+      <button id="resendEmailButton" class="btn btn-custom">Resend Welcome Email</button>
     </div>
   </div>
 
@@ -124,6 +122,7 @@
         isRegistrationComplete = true;
         document.getElementById('registrationFormContainer').style.display = 'none';
         document.getElementById('homeButtonContainer').style.display = 'block';
+        document.getElementById('resendEmailContainer').style.display = 'block';
         alert('Registration successful! A temporary password has been sent to your email.');
       } else {
         const errorData = await response.json();
@@ -131,6 +130,53 @@
         alert(`Registration failed: ${errorData.error}`);
       }
     });
+
+    async function checkUserTier() {
+      const response = await fetch('/user_info');
+      const userData = await response.json();
+
+      if (userData.email && userData.tier < {{ session['desired_tier'] }} ) {
+        const tierUpdateResponse = await fetch('/update_tier', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email: userData.email, tier: {{ session['desired_tier'] }} }),
+        });
+
+        if (tierUpdateResponse.ok) {
+          document.getElementById('registrationFormContainer').style.display = 'none';
+          document.getElementById('homeButtonContainer').style.display = 'block';
+          document.getElementById('resendEmailContainer').style.display = 'block';
+          alert('Congratulations! Your subscription has been updated.');
+        } else {
+          console.error('Tier update failed:', await tierUpdateResponse.json());
+          alert('Failed to update your subscription.');
+        }
+      }
+    }
+
+    document.getElementById('resendEmailButton').addEventListener('click', async function() {
+      const email = document.getElementById('email').value;
+
+      const response = await fetch('/resend_welcome_email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (response.ok) {
+        alert('Welcome email has been resent!');
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to resend welcome email:', errorData);
+        alert(`Failed to resend welcome email: ${errorData.error}`);
+      }
+    });
+
+    checkUserTier();
   </script>
 </body>
 </html>
