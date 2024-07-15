@@ -76,10 +76,15 @@
 </head>
 <body>
   <div class="container">
-    <div class="success-message" id="successMessage">
-      <h1>Welcome to Raterware</h1>
-      <p>Please enter your e-mail to register.</p>
-      <p>A temporary password will soon be sent to the provided e-mail address.</p>
+    <div class="success-message">
+      {% if registration_needed %}
+        <h1>Welcome to Raterware</h1>
+        <p>Congratulations on your registration! Please check your email for the temporary password to get started.</p>
+        <button id="resendEmailButton" class="btn btn-custom">Resend Welcome Email</button>
+      {% else %}
+        <h1>Congratulations on your Upgrade!</h1>
+        <p>Your subscription has been successfully upgraded. You can now enjoy the benefits of the new tier.</p>
+      {% endif %}
     </div>
 
     {% if registration_needed %}
@@ -93,10 +98,6 @@
     </div>
     {% endif %}
 
-    <div id="resendButtonContainer" style="display: none;">
-      <button class="btn-custom" id="resendButton">Resend Welcome Email</button>
-    </div>
-
     <div id="homeButtonContainer" style="display: none;">
       <a href="{{ url_for('dashboard') }}" class="btn btn-custom">Get Started</a>
     </div>
@@ -104,13 +105,11 @@
 
   <script>
     let isRegistrationComplete = false; // This will be set to true when registration is complete
-    let userEmail = ''; // Store the user email for resending email
 
     document.getElementById('registrationForm').addEventListener('submit', async function(event) {
       event.preventDefault();
       const email = document.getElementById('email').value;
       const username = document.getElementById('username').value;
-      userEmail = email; // Save the email for later use
 
       const response = await fetch('/register', {
         method: 'POST',
@@ -123,35 +122,12 @@
       if (response.ok) {
         isRegistrationComplete = true;
         document.getElementById('registrationFormContainer').style.display = 'none';
-        document.getElementById('successMessage').innerHTML = `
-          <h1>Congratulations on Your Registration!</h1>
-          <p>Your registration was successful.</p>
-          <p>Please check your email for the temporary password to get started with Raterware.</p>
-        `;
         document.getElementById('homeButtonContainer').style.display = 'block';
-        document.getElementById('resendButtonContainer').style.display = 'block';
+        alert('Registration successful! A temporary password has been sent to your email.');
       } else {
         const errorData = await response.json();
         console.error('Registration failed:', errorData);
         alert(`Registration failed: ${errorData.error}`);
-      }
-    });
-
-    document.getElementById('resendButton').addEventListener('click', async function() {
-      const response = await fetch('/resend_welcome_email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: userEmail }),
-      });
-
-      if (response.ok) {
-        alert('Welcome email resent successfully!');
-      } else {
-        const errorData = await response.json();
-        console.error('Failed to resend email:', errorData);
-        alert(`Failed to resend email: ${errorData.error}`);
       }
     });
 
@@ -170,17 +146,34 @@
 
         if (tierUpdateResponse.ok) {
           document.getElementById('registrationFormContainer').style.display = 'none';
-          document.getElementById('successMessage').innerHTML = `
-            <h1>Congratulations!</h1>
-            <p>Your subscription has been upgraded.</p>
-          `;
           document.getElementById('homeButtonContainer').style.display = 'block';
+          alert('Congratulations! Your subscription has been updated.');
         } else {
           console.error('Tier update failed:', await tierUpdateResponse.json());
           alert('Failed to update your subscription.');
         }
       }
     }
+
+    document.getElementById('resendEmailButton').addEventListener('click', async function() {
+      const email = document.getElementById('email').value;
+
+      const response = await fetch('/resend_welcome_email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (response.ok) {
+        alert('Welcome email resent successfully.');
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to resend welcome email:', errorData);
+        alert(`Failed to resend welcome email: ${errorData.error}`);
+      }
+    });
 
     checkUserTier();
   </script>
