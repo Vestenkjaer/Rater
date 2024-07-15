@@ -277,7 +277,7 @@
   <div id="popup" class="popup">
     <h3 id="popupTitle"></h3>
     <p id="popupMessage"></p>
-    <button id="popupButton" onclick="closePopup()">OK</button>
+    <button onclick="closePopup()">OK</button>
   </div>
 
   <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
@@ -354,7 +354,8 @@
         selectTeam(result.id);
       } else {
         const error = await response.json();
-        showPopup('Tier Limit Reached', error.error);
+        const title = (error.error.includes("Professional")) ? "To get the full experience of Raterware, please upgrade to the Enterprise version" : "Tier Limit Reached";
+        showPopup(title, error.error);
       }
     }
 
@@ -426,7 +427,8 @@
         document.getElementById('newEmployerId').value = '';
       } else {
         const error = await response.json();
-        showPopup('Tier Limit Reached', error.error);
+        const title = (error.error.includes("Professional")) ? "To get the full experience of Raterware, please upgrade to the Enterprise version" : "Tier Limit Reached";
+        showPopup(title, error.error);
       }
     }
 
@@ -552,17 +554,11 @@
       }
     }
 
-    function showPopup(title, message, redirectUrl = null) {
+    function showPopup(title, message) {
       document.getElementById('popupTitle').innerText = title;
       document.getElementById('popupMessage').innerText = message;
       document.getElementById('popupOverlay').style.display = 'block';
       document.getElementById('popup').style.display = 'block';
-      document.getElementById('popupButton').onclick = () => {
-        closePopup();
-        if (redirectUrl) {
-          window.location.href = redirectUrl;
-        }
-      };
     }
 
     function closePopup() {

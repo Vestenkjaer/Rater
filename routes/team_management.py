@@ -31,9 +31,10 @@ def add_team():
         if not client_id:
             return jsonify({"error": "Client not found in session"}), 401
         
-        existing_teams = Team.query.filter_by(client_id=client_id).count()
-        if (tier == 1 and existing_teams >= 1) or (tier == 2 and existing_teams >= 5):
-            return jsonify({"error": "To get the full experience of Raterware, please upgrade to the Professional version"}), 403
+        # Tier restrictions
+        team_count = Team.query.filter_by(client_id=client_id).count()
+        if (tier == 1 and team_count >= 1) or (tier == 2 and team_count >= 5):
+            return jsonify({"error": "To get the full experience of Raterware, please upgrade to the next version"}), 403
 
         new_team = Team(name=data['team_name'], user_id=1, client_id=client_id)  # Assuming user_id is 1 for now
         db.session.add(new_team)
@@ -64,16 +65,19 @@ def add_team_member(team_id):
     try:
         data = request.get_json()
         logger.debug(f"Received data for new team member: {data}")
-        client_id = session.get('client_id')
-        tier = session.get('tier')
+        client_id = session.get('client_id')  # Get client_id from session
+        tier = session.get('tier')  # Get user tier from session
+        if not client_id:
+            return jsonify({"error": "Client not found in session"}), 401
 
         team = Team.query.get(team_id)
         if not team:
             return jsonify({"error": "Team not found"}), 404
-
-        existing_members = TeamMember.query.filter_by(team_id=team_id).count()
-        if (tier == 1 and existing_members >= 10) or (tier == 2 and existing_members >= 25):
-            return jsonify({"error": "To get the full experience of Raterware, please upgrade to the Professional version"}), 403
+        
+        # Tier restrictions for members
+        member_count = TeamMember.query.filter_by(team_id=team_id).count()
+        if (tier == 1 and member_count >= 10) or (tier == 2 and member_count >= 25):
+            return jsonify({"error": "To get the full experience of Raterware, please upgrade to the next version"}), 403
 
         new_member = TeamMember(
             team_id=team_id, 
