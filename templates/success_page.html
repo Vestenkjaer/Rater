@@ -76,10 +76,10 @@
 </head>
 <body>
   <div class="container">
-    <div class="success-message">
+    <div class="success-message" id="successMessage">
       <h1>Welcome to Raterware</h1>
       <p>Please enter your e-mail to register.</p>
-      <p>A temporary password will soon be sent to the provided e-mail address</p>
+      <p>A temporary password will soon be sent to the provided e-mail address.</p>
     </div>
 
     {% if registration_needed %}
@@ -95,10 +95,6 @@
 
     <div id="homeButtonContainer" style="display: none;">
       <a href="{{ url_for('dashboard') }}" class="btn btn-custom">Get Started</a>
-    </div>
-    
-    <div id="resendEmailContainer" style="display: none;">
-      <button id="resendEmailButton" class="btn btn-custom">Resend Welcome Email</button>
     </div>
   </div>
 
@@ -121,9 +117,12 @@
       if (response.ok) {
         isRegistrationComplete = true;
         document.getElementById('registrationFormContainer').style.display = 'none';
+        document.getElementById('successMessage').innerHTML = `
+          <h1>Congratulations on Your Registration!</h1>
+          <p>Your registration was successful.</p>
+          <p>Please check your email for the temporary password to get started with Raterware.</p>
+        `;
         document.getElementById('homeButtonContainer').style.display = 'block';
-        document.getElementById('resendEmailContainer').style.display = 'block';
-        alert('Registration successful! A temporary password has been sent to your email.');
       } else {
         const errorData = await response.json();
         console.error('Registration failed:', errorData);
@@ -146,35 +145,17 @@
 
         if (tierUpdateResponse.ok) {
           document.getElementById('registrationFormContainer').style.display = 'none';
+          document.getElementById('successMessage').innerHTML = `
+            <h1>Congratulations!</h1>
+            <p>Your subscription has been upgraded.</p>
+          `;
           document.getElementById('homeButtonContainer').style.display = 'block';
-          document.getElementById('resendEmailContainer').style.display = 'block';
-          alert('Congratulations! Your subscription has been updated.');
         } else {
           console.error('Tier update failed:', await tierUpdateResponse.json());
           alert('Failed to update your subscription.');
         }
       }
     }
-
-    document.getElementById('resendEmailButton').addEventListener('click', async function() {
-      const email = document.getElementById('email').value;
-
-      const response = await fetch('/resend_welcome_email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      if (response.ok) {
-        alert('Welcome email has been resent!');
-      } else {
-        const errorData = await response.json();
-        console.error('Failed to resend welcome email:', errorData);
-        alert(`Failed to resend welcome email: ${errorData.error}`);
-      }
-    });
 
     checkUserTier();
   </script>
