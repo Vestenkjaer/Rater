@@ -189,6 +189,46 @@
       background-color: #005BB5;
       transform: translateY(-2px);
     }
+    .popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+    }
+
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      text-align: center;
+    }
+
+    .popup h3 {
+      margin-bottom: 20px;
+    }
+
+    .popup button {
+      background-color: #007AFF;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      text-align: center;
+      cursor: pointer;
+      border-radius: 12px;
+    }
+
+    .popup button:hover {
+      background-color: #005BB5;
+    }
   </style>
 </head>
 <body>
@@ -300,6 +340,7 @@
     let selectedTeamId = null;
     let selectedMemberId = null;
     let selectedMemberName = '';
+    let userTier = {{ session['tier'] }};
 
     function fetchTeamMembers(teamId) {
       selectedTeamId = teamId;
@@ -455,23 +496,15 @@
     }
 
     function checkTierAndGenerateAIRecommendation() {
-      fetch('/user_info')
-        .then(response => response.json())
-        .then(data => {
-          const tier = data.tier;
-          if (tier < 2) {
-            showPopup(
-              "To get the full experience of Raterware, please upgrade to the Professional version",
-              "",
-              "/pricing"
-            );
-          } else {
-            aiRecommendation();
-          }
-        })
-        .catch(error => {
-          console.error('Error fetching user tier:', error);
-        });
+      if (userTier < 2) {
+        showPopup(
+          "To get the full experience of Raterware, please upgrade to the Professional version",
+          "",
+          "/pricing"
+        );
+      } else {
+        aiRecommendation();
+      }
     }
 
     function aiRecommendation() {
