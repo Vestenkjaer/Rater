@@ -306,6 +306,7 @@ def create_app():
 
             # Create a new user
             new_user = User(username=username or 'default_username', email=email, password_hash=hashed_password, client_id=client_id)
+            new_user.temp_password = temp_password  # Store temporary password
             db.session.add(new_user)
             db.session.commit()
 
@@ -326,35 +327,38 @@ def create_app():
                 raise Exception('Auth0 user creation failed')
 
             # Send an email with the temporary password and welcome message
-            msg = Message('Welcome to Raterware!', recipients=[email])
-            msg.body = f"""
-            Hi {username or 'User'},
-
-            Welcome to Raterware! We're thrilled to have you on board. 
-
-            Raterware is your ultimate tool for objectively rating and monitoring the progress of your team members.
-            Whether you’re managing a business team, a sports team, or any group of individuals that require regular evaluation,
-            Raterware adapts to your unique requirements.
-
-            Here is your temporary password to get started:
-            {temp_password}
-
-            Please log in using your email and this temporary password. In the log in dialog box, you can change your password to something more secure and personal.
-
-            We're here to help you unlock the true potential of your team. If you have any questions or need assistance, feel free to reach out to our support team.
-
-            Best regards,
-            The Raterware Team
-
-            Empowering Your Team with Data-Driven Insights
-            """
-            mail.send(msg)
+            send_welcome_email(email, username, temp_password)
 
             return jsonify({'message': 'Registration successful. A temporary password has been sent to your email.'}), 200
         except Exception as e:
             logger.error(f"Error during registration: {str(e)}")
             logger.exception("Exception during registration")
             return jsonify({'error': 'Registration failed.'}), 500
+
+    def send_welcome_email(email, username, temp_password):
+        msg = Message('Welcome to Raterware!', recipients=[email])
+        msg.body = f"""
+        Hi {username or 'User'},
+
+        Welcome to Raterware! We're thrilled to have you on board. 
+
+        Raterware is your ultimate tool for objectively rating and monitoring the progress of your team members.
+        Whether you’re managing a business team, a sports team, or any group of individuals that require regular evaluation,
+        Raterware adapts to your unique requirements.
+
+        Here is your temporary password to get started:
+        {temp_password}
+
+        Please log in using your email and this temporary password. In the log in dialog box, you can change your password to something more secure and personal.
+
+        We're here to help you unlock the true potential of your team. If you have any questions or need assistance, feel free to reach out to our support team.
+
+        Best regards,
+        The Raterware Team
+
+        Empowering Your Team with Data-Driven Insights
+        """
+        mail.send(msg)
 
     @app.route('/resend_welcome_email', methods=['POST'])
     def resend_welcome_email():
@@ -366,35 +370,8 @@ def create_app():
             if not user:
                 return jsonify({'error': 'User not found'}), 404
 
-            # Resend welcome email with the temporary password
-            temp_password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(10))
-            hashed_password = generate_password_hash(temp_password, method='pbkdf2:sha256')
-            user.password_hash = hashed_password
-            db.session.commit()
-
-            msg = Message('Welcome to Raterware!', recipients=[email])
-            msg.body = f"""
-            Hi {user.username or 'User'},
-
-            Welcome to Raterware! We're thrilled to have you on board. 
-
-            Raterware is your ultimate tool for objectively rating and monitoring the progress of your team members.
-            Whether you’re managing a business team, a sports team, or any group of individuals that require regular evaluation,
-            Raterware adapts to your unique requirements.
-
-            Here is your temporary password to get started:
-            {temp_password}
-
-            Please log in using your email and this temporary password. In the log in dialog box, you can change your password to something more secure and personal.
-
-            We're here to help you unlock the true potential of your team. If you have any questions or need assistance, feel free to reach out to our support team.
-
-            Best regards,
-            The Raterware Team
-
-            Empowering Your Team with Data-Driven Insights
-            """
-            mail.send(msg)
+            # Resend welcome email with the stored temporary password
+            send_welcome_email(email, user.username, user.temp_password)
 
             return jsonify({'message': 'Welcome email resent successfully.'}), 200
         except Exception as e:

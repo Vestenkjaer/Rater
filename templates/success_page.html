@@ -84,6 +84,9 @@
       {% else %}
         <h1>Congratulations on your Upgrade!</h1>
         <p>Your subscription has been successfully upgraded. You can now enjoy the benefits of the new tier.</p>
+        <div id="homeButtonContainer">
+          <a href="{{ url_for('dashboard') }}" class="btn btn-custom">Get Started</a>
+        </div>
       {% endif %}
     </div>
 
@@ -97,10 +100,6 @@
       </form>
     </div>
     {% endif %}
-
-    <div id="homeButtonContainer" style="display: none;">
-      <a href="{{ url_for('dashboard') }}" class="btn btn-custom">Get Started</a>
-    </div>
   </div>
 
   <script>
