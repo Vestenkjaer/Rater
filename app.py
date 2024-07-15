@@ -331,12 +331,14 @@ def create_app():
 
             Welcome to Raterware! We're thrilled to have you on board. 
 
-            Raterware is your ultimate tool for objectively rating and monitoring the progress of your team members. Whether you’re managing a business team, a sports team, or any group of individuals that require regular evaluation, Raterware adapts to your unique requirements.
+            Raterware is your ultimate tool for objectively rating and monitoring the progress of your team members.
+            Whether you’re managing a business team, a sports team, or any group of individuals that require regular evaluation,
+            Raterware adapts to your unique requirements.
 
             Here is your temporary password to get started:
             {temp_password}
 
-            Please log in using your email and this temporary password. Once logged in, you can change your password to something more secure and personal.
+            Please log in using your email and this temporary password. In the log in dialog box, you can change your password to something more secure and personal.
 
             We're here to help you unlock the true potential of your team. If you have any questions or need assistance, feel free to reach out to our support team.
 
@@ -445,6 +447,17 @@ def create_app():
 
         return get_auth0_token.auth0_token
 
+  #  @app.route('/payment/success')
+  #  def payment_success():
+  #    session_id = request.args.get('session_id')
+  #    desired_tier = request.args.get('tier')  # Get the desired tier from the query parameters
+  #    if not session_id:
+  #      return jsonify({'error': 'Session ID is missing'}), 400
+
+  #    if 'user' in session:
+  #      return render_template('success_page.html', session_id=session_id, tier=desired_tier, show_home_button=True)
+  #    else:
+  #      return render_template('success_page.html', session_id=session_id, tier=desired_tier, show_home_button=False)
     @app.route('/payment/success')
     def payment_success():
       session_id = request.args.get('session_id')
@@ -452,11 +465,20 @@ def create_app():
       if not session_id:
         return jsonify({'error': 'Session ID is missing'}), 400
 
-      if 'user' in session:
-        return render_template('success_page.html', session_id=session_id, tier=desired_tier, show_home_button=True)
+      session_data = stripe.checkout.Session.retrieve(session_id)
+      customer_email = session_data['customer_details']['email']
+      client = Client.query.filter_by(email=customer_email).first()
+    
+      if client:
+        # Existing client, upgrading tier
+        registration_needed = False
+        client.tier = desired_tier
+        db.session.commit()
       else:
-        return render_template('success_page.html', session_id=session_id, tier=desired_tier, show_home_button=False)
+        # New client
+        registration_needed = True
 
+        return render_template('success_page.html', session_id=session_id, registration_needed=registration_needed, show_home_button=not registration_needed)
 
     return app
 

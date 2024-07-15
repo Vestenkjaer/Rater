@@ -77,24 +77,29 @@
 <body>
   <div class="container">
     <div class="success-message">
-      <h1>Welcome to Raterware</h1>
-      <p>Please enter your e-mail to registre.</p>
-      <p>A temporary password will soon be sent to the provided e-mail adress</p>
-      
+      {% if registration_needed %}
+        <h1>Welcome to Raterware</h1>
+        <p>Please enter your e-mail to register.</p>
+        <p>A temporary password will be sent to the provided e-mail address.</p>
+      {% else %}
+        <h1>Congratulations on Upgrading!</h1>
+        <p>Your subscription has been successfully upgraded.</p>
+        <p>You can now enjoy the benefits of your new plan.</p>
+      {% endif %}
     </div>
 
     {% if registration_needed %}
-    <div class="registration-form" id="registrationFormContainer">
-      <h1>Register</h1>
-      <form id="registrationForm">
-        <input type="email" id="email" name="email" placeholder="E-mail" required>
-        <input type="text" id="username" name="username" placeholder="Company Name" required>
-        <button type="submit">Register</button>
-      </form>
-    </div>
+      <div class="registration-form" id="registrationFormContainer">
+        <h1>Register</h1>
+        <form id="registrationForm">
+          <input type="email" id="email" name="email" placeholder="E-mail" required>
+          <input type="text" id="username" name="username" placeholder="Company Name" required>
+          <button type="submit">Register</button>
+        </form>
+      </div>
     {% endif %}
 
-    <div id="homeButtonContainer" style="display: none;">
+    <div id="homeButtonContainer" style="{% if not show_home_button %}display: none;{% endif %}">
       <a href="{{ url_for('dashboard') }}" class="btn btn-custom">Get Started</a>
     </div>
   </div>
@@ -126,32 +131,6 @@
         alert(`Registration failed: ${errorData.error}`);
       }
     });
-
-    async function checkUserTier() {
-      const response = await fetch('/user_info');
-      const userData = await response.json();
-
-      if (userData.email && userData.tier < {{ session['desired_tier'] }} ) {
-        const tierUpdateResponse = await fetch('/update_tier', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email: userData.email, tier: {{ session['desired_tier'] }} }),
-        });
-
-        if (tierUpdateResponse.ok) {
-          document.getElementById('registrationFormContainer').style.display = 'none';
-          document.getElementById('homeButtonContainer').style.display = 'block';
-          alert('Congratulations! Your subscription has been updated.');
-        } else {
-          console.error('Tier update failed:', await tierUpdateResponse.json());
-          alert('Failed to update your subscription.');
-        }
-      }
-    }
-
-    checkUserTier();
   </script>
 </body>
 </html>
