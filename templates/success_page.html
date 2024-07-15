@@ -99,14 +99,12 @@
       </div>
     {% endif %}
 
-    <div id="homeButtonContainer" style="{% if not show_home_button %}display: none;{% endif %}">
+    <div id="homeButtonContainer">
       <a href="{{ url_for('dashboard') }}" class="btn btn-custom">Get Started</a>
     </div>
   </div>
 
   <script>
-    let isRegistrationComplete = false; // This will be set to true when registration is complete
-
     document.getElementById('registrationForm').addEventListener('submit', async function(event) {
       event.preventDefault();
       const email = document.getElementById('email').value;
@@ -121,9 +119,7 @@
       });
 
       if (response.ok) {
-        isRegistrationComplete = true;
         document.getElementById('registrationFormContainer').style.display = 'none';
-        document.getElementById('homeButtonContainer').style.display = 'block';
         alert('Registration successful! A temporary password has been sent to your email.');
       } else {
         const errorData = await response.json();
