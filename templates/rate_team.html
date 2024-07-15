@@ -300,6 +300,7 @@
     let settings = {};
     let tier = {{ tier }};
     let tooltipTimer;
+    let isFirstSubmission = true; // Track if it's the first submission
 
     async function fetchSettings() {
       try {
@@ -472,8 +473,12 @@
       });
 
       Promise.all(promises)
-        .then(results => {
+        .then(async results => {
           console.log(results);
+          if (isFirstSubmission) {
+            await createInitialSubmissions(ratings);
+            isFirstSubmission = false;
+          }
           alert('Ratings submitted successfully!');
           if (selectedTeamId) {
             fetchTeamMembers(selectedTeamId);
@@ -484,6 +489,24 @@
           console.error('Error:', error);
           alert('An error occurred while submitting the rating.');
         });
+    }
+
+    async function createInitialSubmissions(ratings) {
+      const initialPromises = [];
+      for (let i = 0; i < 12; i++) {
+        const promises = Object.keys(ratings).map(memberId => {
+          return fetch(`/rate_team/rate_member/${memberId}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(ratings[memberId]),
+          });
+        });
+        initialPromises.push(Promise.all(promises));
+      }
+
+      await Promise.all(initialPromises);
     }
 
     async function fetchAllHistoricalData() {
