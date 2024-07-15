@@ -276,90 +276,6 @@ def create_app():
             'email': user_info.get('email', 'unknown@example.com')
         })
 
-    @app.route('/register', methods=['POST'])
-    def register():
-        try:
-            data = request.get_json()
-            email = data.get('email')
-            username = data.get('username')  # Get the username from the request if provided
-
-            if not email:
-                return jsonify({'error': 'Email is required'}), 400
-
-            client_id = session.get('client_id')
-            if not client_id:
-                client = Client.query.filter_by(email=email).first()
-                if not client:
-                    client = Client(name='default_client_name', email=email, tier=0)
-                    db.session.add(client)
-                    db.session.commit()
-                client_id = client.id
-
-            # Check if user already exists
-            existing_user = User.query.filter_by(email=email).first()
-            if existing_user:
-                return jsonify({'error': 'User already exists'}), 400
-
-            # Generate a temporary password
-            temp_password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(10))
-            hashed_password = generate_password_hash(temp_password, method='pbkdf2:sha256')
-
-            # Create a new user
-            new_user = User(username=username or 'default_username', email=email, password_hash=hashed_password, client_id=client_id)
-            db.session.add(new_user)
-            db.session.commit()
-
-            # Store the temporary password in the session
-            session['temp_password'] = temp_password
-
-            # Create user in Auth0
-            auth0_domain = os.getenv('AUTH0_DOMAIN')
-            auth0_token = get_auth0_token()
-            auth0_headers = {
-                'Authorization': f'Bearer {auth0_token}',
-                'Content-Type': 'application/json'
-            }
-            auth0_data = {
-                'email': email,
-                'password': temp_password,
-                'connection': 'Username-Password-Authentication'
-            }
-            auth0_response = requests.post(f'https://{auth0_domain}/api/v2/users', headers=auth0_headers, json=auth0_data)
-            if auth0_response.status_code != 201:
-                raise Exception('Auth0 user creation failed')
-
-            # Send an email with the temporary password and welcome message
-            send_welcome_email(email, username, temp_password)
-
-            return jsonify({'message': 'Registration successful. A temporary password has been sent to your email.'}), 200
-        except Exception as e:
-            logger.error(f"Error during registration: {str(e)}")
-            logger.exception("Exception during registration")
-            return jsonify({'error': 'Registration failed.'}), 500
-
-    @app.route('/resend_welcome_email', methods=['POST'])
-    def resend_welcome_email():
-        try:
-            data = request.get_json()
-            email = data.get('email')
-            user = User.query.filter_by(email=email).first()
-
-            if not user:
-                return jsonify({'error': 'User not found'}), 404
-
-            # Resend welcome email with the original temporary password
-            temp_password = session.get('temp_password')
-            if not temp_password:
-                return jsonify({'error': 'No temporary password found in session'}), 404
-
-            send_welcome_email(email, user.username, temp_password)
-
-            return jsonify({'message': 'Welcome email resent successfully.'}), 200
-        except Exception as e:
-            logger.error(f"Error during resending welcome email: {str(e)}")
-            logger.exception("Exception during resending welcome email")
-            return jsonify({'error': 'Failed to resend welcome email.'}), 500
-
     def send_welcome_email(email, username, temp_password):
         msg = Message('Welcome to Raterware!', recipients=[email])
         msg.body = f"""
@@ -384,6 +300,91 @@ def create_app():
         Empowering Your Team with Data-Driven Insights
         """
         mail.send(msg)
+
+    @app.route('/register', methods=['POST'])
+    def register():
+        try:
+            data = request.get_json()
+            email = data.get('email')
+            username = data.get('username')  # Get the username from the request if provided
+
+            if not email:
+                return jsonify({'error': 'Email is required'}), 400
+
+            client_id = session.get('client_id')
+            if not client_id:
+                client = Client.query.filter_by(email=email).first()
+                if not client:
+                    client = Client(name=username or 'default_client_name', email=email, tier=0)
+                    db.session.add(client)
+                    db.session.commit()
+                client_id = client.id
+
+            # Check if user already exists
+            existing_user = User.query.filter_by(email=email).first()
+            if existing_user:
+                return jsonify({'error': 'User already exists'}), 400
+
+            # Generate a temporary password
+            temp_password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(10))
+            hashed_password = generate_password_hash(temp_password, method='pbkdf2:sha256')
+
+            # Create a new user
+            new_user = User(username=username or 'default_username', email=email, password_hash=hashed_password, client_id=client_id)
+            db.session.add(new_user)
+            db.session.commit()
+
+            # Store temporary password in session for resending
+            session['temp_password'] = temp_password
+
+            # Create user in Auth0
+            auth0_domain = os.getenv('AUTH0_DOMAIN')
+            auth0_token = get_auth0_token()
+            auth0_headers = {
+                'Authorization': f'Bearer {auth0_token}',
+                'Content-Type': 'application/json'
+            }
+            auth0_data = {
+                'email': email,
+                'password': temp_password,
+                'connection': 'Username-Password-Authentication'
+            }
+            auth0_response = requests.post(f'https://{auth0_domain}/api/v2/users', headers=auth0_headers, json=auth0_data)
+            if auth0_response.status_code != 201:
+                raise Exception('Auth0 user creation failed')
+
+            # Send welcome email
+            send_welcome_email(email, username, temp_password)
+
+            return jsonify({'message': 'Registration successful. A temporary password has been sent to your email.'}), 200
+        except Exception as e:
+            logger.error(f"Error during registration: {str(e)}")
+            logger.exception("Exception during registration")
+            return jsonify({'error': 'Registration failed.'}), 500
+
+    @app.route('/resend_welcome_email', methods=['POST'])
+    def resend_welcome_email():
+        try:
+            data = request.get_json()
+            email = data.get('email')
+            user = User.query.filter_by(email=email).first()
+
+            if not user:
+                return jsonify({'error': 'User not found'}), 404
+
+            # Retrieve the temporary password from the session
+            temp_password = session.get('temp_password')
+            if not temp_password:
+                return jsonify({'error': 'Temporary password not found'}), 404
+
+            # Resend welcome email with the temporary password
+            send_welcome_email(email, user.username, temp_password)
+
+            return jsonify({'message': 'Welcome email resent successfully.'}), 200
+        except Exception as e:
+            logger.error(f"Error during resending welcome email: {str(e)}")
+            logger.exception("Exception during resending welcome email")
+            return jsonify({'error': 'Failed to resend welcome email.'}), 500
 
     @app.route('/stripe-webhook', methods=['POST'])
     def stripe_webhook():
@@ -487,7 +488,6 @@ def create_app():
             return render_template('success_page.html', session_id=session_id, tier=desired_tier, show_home_button=True)
         else:
             return render_template('success_page.html', session_id=session_id, tier=desired_tier, show_home_button=False)
-
 
     return app
 
