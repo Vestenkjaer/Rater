@@ -402,11 +402,12 @@
     let topPerformersChart;
     let bottomPerformersChart;
     let isAdmin = false; // Initialize isAdmin as false
+    let tier = 0; // Initialize tier as 0
 
     $(document).ready(function () {
       fetchTeams().then(data => {
         const teams = data.teams;
-        const tier = data.tier;
+        tier = data.tier; // Set tier based on the fetched data
         isAdmin = data.is_admin; // Set isAdmin based on the fetched data
         setupButtonHandler(tier, isAdmin); // Pass the tier and isAdmin to the handler
 
@@ -675,6 +676,8 @@
           const userInfoDiv = document.getElementById('user-info');
           userInfoDiv.innerHTML = `Logged in as: ${userInfo.name} (${userInfo.email})`;
           isAdmin = userInfo.is_admin; // Store the is_admin value
+          tier = userInfo.tier; // Store the tier value
+          setupButtonHandler(tier, isAdmin); // Update the setup button handler based on user info
         } else {
           console.error('Failed to fetch user info');
         }
