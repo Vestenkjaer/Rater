@@ -281,6 +281,7 @@
 
   {% if session.client_id %}
     <p class="intro-text">Current Client Tier: {{ session.tier }}</p>
+    <p class="intro-text">Is Admin: {{ session.is_admin }}</p>
   {% endif %}
 
   <div class="button-container">
