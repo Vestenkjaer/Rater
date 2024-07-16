@@ -284,9 +284,28 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.min.js"></script>
 
   <script>
+    let isAdmin = false;
+    let tier = 0;
+
     document.addEventListener('DOMContentLoaded', () => {
+      fetchUserInfo();
       fetchTeams();
     });
+
+    async function fetchUserInfo() {
+      try {
+        const response = await fetch('/user_info');
+        if (response.ok) {
+          const userInfo = await response.json();
+          isAdmin = userInfo.is_admin;
+          tier = userInfo.tier;
+        } else {
+          console.error('Failed to fetch user info');
+        }
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+      }
+    }
 
     async function fetchTeams() {
       try {
@@ -339,6 +358,13 @@
 
       const teamName = document.getElementById('teamName').value;
 
+      if (tier < 2 || !isAdmin) {
+        const title = (tier < 2) ? "Upgrade Required" : "Access Denied";
+        const message = (tier < 2) ? "To create more than one team, please upgrade to the Professional version." : "You do not have administrative privileges to create a team.";
+        showPopup(title, message);
+        return;
+      }
+
       const response = await fetch('/team_management/add_team', {
         method: 'POST',
         headers: {
@@ -354,8 +380,7 @@
         selectTeam(result.id);
       } else {
         const error = await response.json();
-        const title = (error.error.includes("Professional")) ? "To get the full experience of Raterware, please upgrade to the Enterprise version" : "Tier Limit Reached";
-        showPopup(title, error.error);
+        showPopup("Error", error.error);
       }
     }
 
@@ -427,8 +452,7 @@
         document.getElementById('newEmployerId').value = '';
       } else {
         const error = await response.json();
-        const title = (error.error.includes("Professional")) ? "To get the full experience of Raterware, please upgrade to the Enterprise version" : "Tier Limit Reached";
-        showPopup(title, error.error);
+        showPopup("Error", error.error);
       }
     }
 

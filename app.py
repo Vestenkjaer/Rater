@@ -22,6 +22,7 @@ from flask_mail import Message
 from webhook import webhook_bp
 from routes.payment import payment_bp
 import traceback
+from functools import wraps
 
 # Load environment variables from .env file
 load_dotenv()
@@ -363,7 +364,6 @@ def create_app():
             """
 
             mail.send(msg)
-
 
             return jsonify({'message': 'Registration successful. A password has been sent to your email.'}), 200
         except Exception as e:
