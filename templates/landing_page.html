@@ -456,6 +456,218 @@
         }
     }
 
+    async function fetchLatestSubmission(teamId) {
+        try {
+            const response = await fetch(`/rate_team/get_last_submission/${teamId}`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.date) {
+                    document.getElementById('latestSubmissionContainer').innerHTML = `Latest submission: <strong>${data.date}</strong>`;
+                } else {
+                    document.getElementById('latestSubmissionContainer').innerHTML = 'No submissions found';
+                    showPopup("Rate Your Team Now", "No ratings found. Click on 'Rate Your Team' to start the evaluation.");
+                    highlightRateTeamButton();
+                }
+            } else {
+                console.error('Failed to fetch latest submission');
+            }
+        } catch (error) {
+            console.error('Error fetching latest submission:', error);
+        }
+    }
+
+    async function selectTeam(teamId) {
+        console.log(`Selected team ID: ${teamId}`);
+        try {
+            const response = await fetch(`/rate_team/get_team_members/${teamId}`);
+            if (response.ok) {
+                const result = await response.json();
+                console.log('Team members:', result.members);
+                const members = result.members;
+                const sortedMembers = members.sort((a, b) => b.total_score - a.total_score);
+
+                const topPerformers = sortedMembers.slice(0, 3);
+                const bottomPerformers = sortedMembers.slice(-3).reverse();
+
+                console.log('Top Performers:', topPerformers);
+                console.log('Bottom Performers:', bottomPerformers);
+
+                updatePerformanceList('topPerformersList', topPerformers);
+                updatePerformanceList('bottomPerformersList', bottomPerformers);
+
+                updateTeamAverageRadialBar(members);
+                updateAverageTeamTotalScoreRadialBar(members);
+                updateHighestIndividualRatingRadialBar(members);
+                updateLowestIndividualRatingRadialBar(members);
+
+                await updateLineChart('topPerformersChart', 'Top Performers', topPerformers, ['#009B7C', '#007AFF', '#9C007E']);
+                await updateLineChart('bottomPerformersChart', 'Bottom Performers', bottomPerformers, ['#F8D164', '#FF6B5C', '#004295']);
+            } else {
+                console.error('Failed to fetch team members');
+            }
+        } catch (error) {
+            console.error('Error fetching team members:', error);
+        }
+    }
+
+    function updatePerformanceList(listId, members) {
+        const list = document.getElementById(listId);
+        list.innerHTML = '';
+        members.forEach(member => {
+            const li = document.createElement('li');
+            li.innerHTML = `<span>${member.first_name} ${member.surname}</span>: Total Score: ${member.total_score}, Average Score: ${member.avg_score.toFixed(2)}`;
+            list.appendChild(li);
+        });
+    }
+
+    function updateTeamAverageRadialBar(members) {
+        const totalAvgScoreSum = members.reduce((sum, member) => sum + member.avg_score, 0);
+        const teamAverage = (totalAvgScoreSum / members.length).toFixed(2);
+
+        updateCircularProgressBar('teamAverageFill', teamAverage / 10); // Normalize to 0-1 range
+        document.getElementById('teamAverageLabel').innerHTML = `${teamAverage} / 10`;
+    }
+
+    function updateAverageTeamTotalScoreRadialBar(members) {
+        const totalScoreSum = members.reduce((sum, member) => sum + member.total_score, 0);
+        const averageTeamTotalScore = (totalScoreSum / members.length).toFixed(1);
+
+        updateCircularProgressBar('averageTeamTotalScoreFill', averageTeamTotalScore / 80); // Normalize to 0-1 range
+        document.getElementById('averageTeamTotalScoreLabel').innerHTML = `${averageTeamTotalScore} / 80`;
+
+        // Check if averageTeamTotalScore is 70.1 or higher and display congratulatory message
+        if (averageTeamTotalScore >= 71.0) {
+            const congratulationMessage = document.getElementById('congratulationContainer');
+            congratulationMessage.innerHTML = `
+              <p>Congratulations! You have a High Performance Team!</p>
+              <div class="congratulation-images">
+                <img src="{{ url_for('static', filename='images/star.png') }}" alt="Medal 1">
+                <img src="{{ url_for('static', filename='images/star.png') }}" alt="Medal 2">
+                <img src="{{ url_for('static', filename='images/star.png') }}" alt="Medal 3">
+              </div>
+            `;
+        } else {
+            document.getElementById('congratulationContainer').innerHTML = '';
+        }
+    }
+
+    function updateHighestIndividualRatingRadialBar(members) {
+        const highestScore = Math.max(...members.map(member => member.total_score));
+
+        updateCircularProgressBar('highestIndividualRatingFill', highestScore / 80); // Normalize to 0-1 range
+        document.getElementById('highestIndividualRatingLabel').innerHTML = `${highestScore} / 80`;
+    }
+
+    function updateLowestIndividualRatingRadialBar(members) {
+        const lowestScore = Math.min(...members.map(member => member.total_score));
+
+        updateCircularProgressBar('lowestIndividualRatingFill', lowestScore / 80); // Normalize to 0-1 range
+        document.getElementById('lowestIndividualRatingLabel').innerHTML = `${lowestScore} / 80`;
+    }
+
+    function updateCircularProgressBar(elementId, value) {
+        const progressElement = document.getElementById(elementId);
+        const percentage = value * 100; // Convert value to percentage out of 100
+        progressElement.style.strokeDasharray = `${percentage}, 100`;
+    }
+
+    async function updateLineChart(chartId, label, members, colors) {
+        const ctx = document.getElementById(chartId).getContext('2d');
+
+        const datasets = await Promise.all(members.map(async (member, index) => {
+            const historicalData = await fetchMemberHistoricalData(member.id);
+            member.historical_data = historicalData;
+
+            if (historicalData.length === 0) {
+                console.warn(`No historical data for member ${member.first_name} ${member.surname}`);
+                return null;
+            }
+
+            const last12Data = historicalData.slice(-12).reverse(); // Reverse the order for recent data first
+            const scores = last12Data.map(entry => entry.score);
+
+            return {
+                label: `${member.first_name} ${member.surname}`,
+                data: scores,
+                fill: false,
+                borderColor: colors[index],
+                tension: 0.4,
+                pointRadius: 0 // Remove the circles at the data points
+            };
+        })).then(results => results.filter(dataset => dataset !== null));
+
+        console.log(`Updating chart ${chartId} with datasets:`, datasets);
+
+        const chartData = {
+            labels: Array.from({ length: 12 }, (_, i) => `Session ${12 - i}`), // Inverted session labels
+            datasets: datasets
+        };
+
+        const options = {
+            scales: {
+                x: {
+                    type: 'category',
+                    title: {
+                        display: true,
+                        text: 'Rating Session'
+                    },
+                    ticks: {
+                        autoSkip: false,
+                        maxTicksLimit: 12,
+                        reverse: true // Invert the x-axis
+                    },
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    beginAtZero: false,
+                    min: 30,
+                    suggestedMax: 85,
+                    ticks: {
+                        stepSize: 5
+                    },
+                    title: {
+                        display: true,
+                        text: 'Score'
+                    }
+                }
+            }
+        };
+
+        if (chartId === 'topPerformersChart') {
+            if (topPerformersChart) {
+                topPerformersChart.destroy();
+            }
+            topPerformersChart = new Chart(ctx, {
+                type: 'line',
+                data: chartData,
+                options: options
+            });
+        } else if (chartId === 'bottomPerformersChart') {
+            if (bottomPerformersChart) {
+                bottomPerformersChart.destroy();
+            }
+            bottomPerformersChart = new Chart(ctx, {
+                type: 'line',
+                data: chartData,
+                options: options
+            });
+        }
+    }
+
+    async function fetchMemberHistoricalData(memberId) {
+        console.log(`Fetching historical data for member ID: ${memberId}`);
+        const response = await fetch(`/rate_team/get_historical_data/${memberId}`);
+        if (!response.ok) {
+            console.error(`Failed to fetch historical data for member ID: ${memberId}`);
+            return [];
+        }
+        const data = await response.json();
+        console.log(`Historical data for member ID ${memberId}:`, data);
+        return data;
+    }
+
     async function fetchUserInfo() {
         try {
             const response = await fetch('/user_info');
@@ -523,6 +735,6 @@
         const rateTeamButton = document.getElementById('rateTeamButton');
         rateTeamButton.classList.add('highlighted');
     }
-</script>
+  </script>
 </body>
 </html>
