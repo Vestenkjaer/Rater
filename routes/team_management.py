@@ -1,6 +1,6 @@
 import logging
 from flask import Blueprint, render_template, request, jsonify, session
-from models import db, Team, TeamMember, Client
+from models import db, Team, TeamMember
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -18,6 +18,8 @@ def get_teams():
     tier = session.get('tier')  # Get user tier from session
     is_admin = session.get('is_admin')  # Get user admin status from session
 
+    logger.debug(f"Client ID: {client_id}, Tier: {tier}, Is Admin: {is_admin}")
+
     if not client_id:
         return jsonify({"error": "Client not found in session"}), 401
 
@@ -34,11 +36,14 @@ def add_team():
         tier = session.get('tier')  # Get user tier from session
         is_admin = session.get('is_admin')  # Get user admin status from session
 
+        logger.debug(f"Client ID: {client_id}, Tier: {tier}, Is Admin: {is_admin}")
+
         if not client_id:
             return jsonify({"error": "Client not found in session"}), 401
 
         # Tier restrictions
         team_count = Team.query.filter_by(client_id=client_id).count()
+        logger.debug(f"Current team count for client {client_id}: {team_count}")
         if (tier == 1 and team_count >= 1) or (tier == 2 and team_count >= 5):
             return jsonify({"error": "To create more teams, please upgrade to the next version."}), 403
 
