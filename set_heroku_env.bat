@@ -33,54 +33,39 @@ echo STRIPE_WEBHOOK_SECRET=%STRIPE_WEBHOOK_SECRET%
 echo BASIC_PLAN_PRICE_ID=%BASIC_PLAN_PRICE_ID%
 echo PROFESSIONAL_PLAN_PRICE_ID=%PROFESSIONAL_PLAN_PRICE_ID%
 echo ENTERPRISE_PLAN_PRICE_ID=%ENTERPRISE_PLAN_PRICE_ID%
+echo DB_USERNAME=%DB_USERNAME%
+echo DB_PASSWORD=%DB_PASSWORD%
+echo DB_HOSTNAME=%DB_HOSTNAME%
+echo DB_PORT=%DB_PORT%
+echo DB_NAME=%DB_NAME%
 
 :: Set environment variables on Heroku one by one
-echo Setting MAIL_SERVER on Heroku
-call heroku config:set MAIL_SERVER=%MAIL_SERVER% -a raterware
-
-echo Setting MAIL_PORT on Heroku
-call heroku config:set MAIL_PORT=%MAIL_PORT% -a raterware
-
-echo Setting MAIL_USERNAME on Heroku
-call heroku config:set MAIL_USERNAME=%MAIL_USERNAME% -a raterware
-
-echo Setting MAIL_PASSWORD on Heroku
-call heroku config:set MAIL_PASSWORD=%MAIL_PASSWORD% -a raterware
-
-echo Setting MAIL_DEFAULT_SENDER on Heroku
-call heroku config:set MAIL_DEFAULT_SENDER=%MAIL_DEFAULT_SENDER% -a raterware
-
-echo Setting AUTH0_CLIENT_ID on Heroku
-call heroku config:set AUTH0_CLIENT_ID=%AUTH0_CLIENT_ID% -a raterware
-
-echo Setting AUTH0_CLIENT_SECRET on Heroku
-call heroku config:set AUTH0_CLIENT_SECRET=%AUTH0_CLIENT_SECRET% -a raterware
-
-echo Setting AUTH0_DOMAIN on Heroku
-call heroku config:set AUTH0_DOMAIN=%AUTH0_DOMAIN% -a raterware
-
-echo Setting AUTH0_CALLBACK_URL_HEROKU on Heroku
-call heroku config:set AUTH0_CALLBACK_URL_HEROKU=%AUTH0_CALLBACK_URL_HEROKU% -a raterware
-
-echo Setting AUTH0_CALLBACK_URL_CUSTOM on Heroku
-call heroku config:set AUTH0_CALLBACK_URL_CUSTOM=%AUTH0_CALLBACK_URL_CUSTOM% -a raterware
-
-echo Setting STRIPE_SECRET_KEY on Heroku
-call heroku config:set STRIPE_SECRET_KEY=%STRIPE_SECRET_KEY% -a raterware
-
-echo Setting STRIPE_PUBLISHABLE_KEY on Heroku
-call heroku config:set STRIPE_PUBLISHABLE_KEY=%STRIPE_PUBLISHABLE_KEY% -a raterware
-
-echo Setting STRIPE_WEBHOOK_SECRET on Heroku
-call heroku config:set STRIPE_WEBHOOK_SECRET=%STRIPE_WEBHOOK_SECRET% -a raterware
-
-echo Setting BASIC_PLAN_PRICE_ID on Heroku
-call heroku config:set BASIC_PLAN_PRICE_ID=%BASIC_PLAN_PRICE_ID% -a raterware
-
-echo Setting PROFESSIONAL_PLAN_PRICE_ID on Heroku
-call heroku config:set PROFESSIONAL_PLAN_PRICE_ID=%PROFESSIONAL_PLAN_PRICE_ID% -a raterware
-
-echo Setting ENTERPRISE_PLAN_PRICE_ID on Heroku
-call heroku config:set ENTERPRISE_PLAN_PRICE_ID=%ENTERPRISE_PLAN_PRICE_ID% -a raterware
+call :setHerokuConfig MAIL_SERVER %MAIL_SERVER%
+call :setHerokuConfig MAIL_PORT %MAIL_PORT%
+call :setHerokuConfig MAIL_USERNAME %MAIL_USERNAME%
+call :setHerokuConfig MAIL_PASSWORD %MAIL_PASSWORD%
+call :setHerokuConfig MAIL_DEFAULT_SENDER %MAIL_DEFAULT_SENDER%
+call :setHerokuConfig AUTH0_CLIENT_ID %AUTH0_CLIENT_ID%
+call :setHerokuConfig AUTH0_CLIENT_SECRET %AUTH0_CLIENT_SECRET%
+call :setHerokuConfig AUTH0_DOMAIN %AUTH0_DOMAIN%
+call :setHerokuConfig AUTH0_CALLBACK_URL_HEROKU %AUTH0_CALLBACK_URL_HEROKU%
+call :setHerokuConfig AUTH0_CALLBACK_URL_CUSTOM %AUTH0_CALLBACK_URL_CUSTOM%
+call :setHerokuConfig STRIPE_SECRET_KEY %STRIPE_SECRET_KEY%
+call :setHerokuConfig STRIPE_PUBLISHABLE_KEY %STRIPE_PUBLISHABLE_KEY%
+call :setHerokuConfig STRIPE_WEBHOOK_SECRET %STRIPE_WEBHOOK_SECRET%
+call :setHerokuConfig BASIC_PLAN_PRICE_ID %BASIC_PLAN_PRICE_ID%
+call :setHerokuConfig PROFESSIONAL_PLAN_PRICE_ID %PROFESSIONAL_PLAN_PRICE_ID%
+call :setHerokuConfig ENTERPRISE_PLAN_PRICE_ID %ENTERPRISE_PLAN_PRICE_ID%
+call :setHerokuConfig DB_USERNAME %DB_USERNAME%
+call :setHerokuConfig DB_PASSWORD %DB_PASSWORD%
+call :setHerokuConfig DB_HOSTNAME %DB_HOSTNAME%
+call :setHerokuConfig DB_PORT %DB_PORT%
+call :setHerokuConfig DB_NAME %DB_NAME%
 
 echo Environment variables set successfully on Heroku.
+exit /b 0
+
+:setHerokuConfig
+echo Setting %1 on Heroku
+call heroku config:set %1=%2 -a raterware
+exit /b 0

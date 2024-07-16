@@ -4,7 +4,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Config:
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'sqlite:///site.db')
+    DB_USERNAME = os.getenv('DB_USERNAME')
+    DB_PASSWORD = os.getenv('DB_PASSWORD')
+    DB_HOSTNAME = os.getenv('DB_HOSTNAME')
+    DB_PORT = os.getenv('DB_PORT')
+    DB_NAME = os.getenv('DB_NAME')
+    SQLALCHEMY_DATABASE_URI = f'postgresql+psycopg2://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOSTNAME}:{DB_PORT}/{DB_NAME}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     AUTH0_CLIENT_ID = os.getenv('AUTH0_CLIENT_ID')
     AUTH0_CLIENT_SECRET = os.getenv('AUTH0_CLIENT_SECRET')
