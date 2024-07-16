@@ -312,7 +312,7 @@
         const response = await fetch('/team_management/get_teams');
         if (response.ok) {
           const data = await response.json();
-          const { teams, tier } = data;
+          const { teams } = data;
           const teamList = document.getElementById('teamList');
           teamList.innerHTML = '';
           if (teams.length === 0) {
@@ -358,29 +358,46 @@
 
       const teamName = document.getElementById('teamName').value;
 
-      if (tier < 2 || !isAdmin) {
-        const title = (tier < 2) ? "Upgrade Required" : "Access Denied";
-        const message = (tier < 2) ? "To create more than one team, please upgrade to the Professional version." : "You do not have administrative privileges to create a team.";
-        showPopup(title, message);
-        return;
-      }
-
-      const response = await fetch('/team_management/add_team', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ team_name: teamName })
-      });
-
+      // Check if user can create a team based on their tier and admin status
+      const response = await fetch('/team_management/get_teams');
       if (response.ok) {
-        const result = await response.json();
-        fetchTeams();
-        document.getElementById('teamName').value = '';
-        selectTeam(result.id);
+        const data = await response.json();
+        const { teams } = data;
+
+        if (tier === 1 && teams.length >= 1) {
+          showPopup("Upgrade Required", "To create more than one team, please upgrade to the Professional version.");
+          return;
+        }
+
+        if (tier === 2 && teams.length >= 5) {
+          showPopup("Upgrade Required", "To create more than five teams, please upgrade to the Enterprise version.");
+          return;
+        }
+
+        if (!isAdmin) {
+          showPopup("Access Denied", "You do not have administrative privileges to create a team.");
+          return;
+        }
+
+        const createResponse = await fetch('/team_management/add_team', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ team_name: teamName })
+        });
+
+        if (createResponse.ok) {
+          const result = await createResponse.json();
+          fetchTeams();
+          document.getElementById('teamName').value = '';
+          selectTeam(result.id);
+        } else {
+          const error = await createResponse.json();
+          showPopup("Error", error.error);
+        }
       } else {
-        const error = await response.json();
-        showPopup("Error", error.error);
+        console.error('Failed to fetch teams for validation');
       }
     }
 
