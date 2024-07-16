@@ -10,9 +10,11 @@ class Client(db.Model):
     name = db.Column(db.String(80), nullable=False)
     tier = db.Column(db.Integer, default=0)  # 0: Free, 1: Basic, 2: Professional, 3: Enterprise
     email = db.Column(db.String(120), unique=True, nullable=False)  # Added email to link with Stripe
+    is_admin = db.Column(db.Boolean, default=False)  # Add this line
     users = db.relationship('User', backref='client', lazy=True)
     teams = db.relationship('Team', backref='client', lazy=True)
     settings = db.relationship('Settings', backref='client', uselist=False, lazy=True)  # One-to-One relationship
+
 
 class User(db.Model):
     __tablename__ = 'user'
