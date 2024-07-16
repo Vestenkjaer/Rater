@@ -22,7 +22,6 @@ from flask_mail import Message
 from webhook import webhook_bp
 from routes.payment import payment_bp
 import traceback
-from functools import wraps  # Add this import
 
 # Load environment variables from .env file
 load_dotenv()
@@ -271,102 +270,106 @@ def create_app():
     @app.route('/user_info')
     def user_info():
         user_info = session.get('user', {})
+        client_id = session.get('client_id')
+        client = Client.query.get(client_id) if client_id else None
         return jsonify({
             'name': user_info.get('name', 'Unknown User'),
-            'email': user_info.get('email', 'unknown@example.com')
+            'email': user_info.get('email', 'unknown@example.com'),
+            'tier': client.tier if client else 0,
+            'is_admin': client.is_admin if client else False
         })
 
     @app.route('/register', methods=['POST'])
-def register():
-    try:
-        data = request.get_json()
-        email = data.get('email')
-        username = data.get('username')  # Get the username from the request if provided
-        client_name = data.get('client_name', 'Default Client Name')  # Ensure a default client name is provided
+    def register():
+        try:
+            data = request.get_json()
+            email = data.get('email')
+            username = data.get('username')  # Get the username from the request if provided
 
-        if not email:
-            return jsonify({'error': 'Email is required'}), 400
+            if not email:
+                return jsonify({'error': 'Email is required'}), 400
 
-        client_id = session.get('client_id')
-        if not client_id:
-            client = Client.query.filter_by(email=email).first()
-            if not client:
-                client = Client(name=client_name, email=email, tier=0)  # Ensure the name field is provided
-                db.session.add(client)
-                db.session.commit()
-            client_id = client.id
+            client_id = session.get('client_id')
+            if not client_id:
+                client = Client.query.filter_by(email=email).first()
+                if not client:
+                    client = Client(name='default_client_name', email=email, tier=0)
+                    db.session.add(client)
+                    db.session.commit()
+                client_id = client.id
 
-        # Check if user already exists
-        existing_user = User.query.filter_by(email=email).first()
-        if existing_user:
-            return jsonify({'error': 'User already exists'}), 400
+            # Check if user already exists
+            existing_user = User.query.filter_by(email=email).first()
+            if existing_user:
+                return jsonify({'error': 'User already exists'}), 400
 
-        # Ensure unique username
-        if not username:
-            username = 'default_username'
-        if User.query.filter_by(username=username).first():
-            suffix = 1
-            new_username = f"{username}{suffix}"
-            while User.query.filter_by(username=new_username).first():
-                suffix += 1
+            # Ensure unique username
+            if not username:
+                username = 'default_username'
+            if User.query.filter_by(username=username).first():
+                suffix = 1
                 new_username = f"{username}{suffix}"
-            username = new_username
+                while User.query.filter_by(username=new_username).first():
+                    suffix += 1
+                    new_username = f"{username}{suffix}"
+                username = new_username
 
-        # Generate a password
-        password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(10))
-        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+            # Generate a password
+            password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(10))
+            hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
 
-        # Create a new user
-        new_user = User(username=username, email=email, password_hash=hashed_password, client_id=client_id)
-        db.session.add(new_user)
-        db.session.commit()
+            # Create a new user
+            new_user = User(username=username, email=email, password_hash=hashed_password, client_id=client_id)
+            db.session.add(new_user)
+            db.session.commit()
 
-        # Create user in Auth0
-        auth0_domain = os.getenv('AUTH0_DOMAIN')
-        auth0_token = get_auth0_token()
-        auth0_headers = {
-            'Authorization': f'Bearer {auth0_token}',
-            'Content-Type': 'application/json'
-        }
-        auth0_data = {
-            'email': email,
-            'password': password,
-            'connection': 'Username-Password-Authentication'
-        }
-        auth0_response = requests.post(f'https://{auth0_domain}/api/v2/users', headers=auth0_headers, json=auth0_data)
-        if auth0_response.status_code != 201:
-            raise Exception('Auth0 user creation failed')
+            # Create user in Auth0
+            auth0_domain = os.getenv('AUTH0_DOMAIN')
+            auth0_token = get_auth0_token()
+            auth0_headers = {
+                'Authorization': f'Bearer {auth0_token}',
+                'Content-Type': 'application/json'
+            }
+            auth0_data = {
+                'email': email,
+                'password': password,
+                'connection': 'Username-Password-Authentication'
+            }
+            auth0_response = requests.post(f'https://{auth0_domain}/api/v2/users', headers=auth0_headers, json=auth0_data)
+            if auth0_response.status_code != 201:
+                raise Exception('Auth0 user creation failed')
 
-        # Inside the register route where the email is constructed and sent
-        msg = Message('Welcome to Raterware!', recipients=[email])
-        msg.html = f"""
-          <p>Hi {username},</p>
+            # Inside the register route where the email is constructed and sent
+            msg = Message('Welcome to Raterware!', recipients=[email])
+            msg.html = f"""
+              <p>Hi {username},</p>
 
-         <p>Welcome to Raterware! We're thrilled to have you on board.</p>
+             <p>Welcome to Raterware! We're thrilled to have you on board.</p>
 
-         <p>Raterware is your ultimate tool for objectively rating and monitoring the progress of your team members.
-         Whether you’re managing a business team, a sports team, or any group of individuals that require regular evaluation,
-         Raterware adapts to your unique requirements.</p>
+             <p>Raterware is your ultimate tool for objectively rating and monitoring the progress of your team members.
+             Whether you’re managing a business team, a sports team, or any group of individuals that require regular evaluation,
+             Raterware adapts to your unique requirements.</p>
 
-         <p>Here is your password to get started:</p>
-         <p><strong style="font-size: 18px; color: blue;">{password}</strong></p>
+             <p>Here is your password to get started:</p>
+             <p><strong style="font-size: 18px; color: blue;">{password}</strong></p>
 
-         <p>Please log in using your email and this password. In the log in dialog box, you can change your password to something more secure and personal.</p>
+             <p>Please log in using your email and this password. In the log in dialog box, you can change your password to something more secure and personal.</p>
 
-         <p>We're here to help you unlock the true potential of your team. If you have any questions or need assistance, feel free to reach out to our support team.</p>
+             <p>We're here to help you unlock the true potential of your team. If you have any questions or need assistance, feel free to reach out to our support team.</p>
 
-         <p>Best regards,</p>
-         <p>The Raterware Team</p>
-         <p>Empowering Your Team with Data-Driven Insights</p>
-        """
+             <p>Best regards,</p>
+             <p>The Raterware Team</p>
+             <p>Empowering Your Team with Data-Driven Insights</p>
+            """
 
-        mail.send(msg)
+            mail.send(msg)
 
-        return jsonify({'message': 'Registration successful. A password has been sent to your email.'}), 200
-    except Exception as e:
-        logger.error(f"Error during registration: {str(e)}")
-        logger.exception("Exception during registration")
-        return jsonify({'error': 'Registration failed.'}), 500
+
+            return jsonify({'message': 'Registration successful. A password has been sent to your email.'}), 200
+        except Exception as e:
+            logger.error(f"Error during registration: {str(e)}")
+            logger.exception("Exception during registration")
+            return jsonify({'error': 'Registration failed.'}), 500
 
     @app.route('/stripe-webhook', methods=['POST'])
     def stripe_webhook():
@@ -481,25 +484,6 @@ def register():
 
         return render_template('success_page.html', session_id=session_id, registration_needed=registration_needed, show_home_button=not registration_needed)
 
-    # Decorator to check if the user is an admin and has tier 2
-    def admin_required(f):
-       @wraps(f)
-       def decorated_function(*args, **kwargs):
-          client_id = session.get('client_id')
-          if not client_id:
-             return redirect(url_for('login'))
-
-          client = Client.query.get(client_id)
-          if not client or not client.is_admin or client.tier < 2:
-            return redirect(url_for('dashboard'))
-
-          return f(*args, **kwargs)
-       return decorated_function
-
-    @app.route('/setup')
-    @admin_required
-    def setup():
-       return render_template('setup.html')
 
     return app
 
