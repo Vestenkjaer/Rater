@@ -401,12 +401,14 @@
   <script>
     let topPerformersChart;
     let bottomPerformersChart;
+    let isAdmin = false; // Initialize isAdmin as false
 
     $(document).ready(function () {
       fetchTeams().then(data => {
         const teams = data.teams;
         const tier = data.tier;
-        setupButtonHandler(tier); // Pass the tier to the handler
+        isAdmin = data.is_admin; // Set isAdmin based on the fetched data
+        setupButtonHandler(tier, isAdmin); // Pass the tier and isAdmin to the handler
 
         if (teams.length > 0) {
           if (teams.length === 1) {
@@ -445,11 +447,11 @@
           return data;
         } else {
           console.error('Failed to fetch teams');
-          return { teams: [], tier: 0 };
+          return { teams: [], tier: 0, is_admin: false };
         }
       } catch (error) {
         console.error('Error fetching teams:', error);
-        return { teams: [], tier: 0 };
+        return { teams: [], tier: 0, is_admin: false };
       }
     }
 
@@ -672,6 +674,7 @@
           const userInfo = await response.json();
           const userInfoDiv = document.getElementById('user-info');
           userInfoDiv.innerHTML = `Logged in as: ${userInfo.name} (${userInfo.email})`;
+          isAdmin = userInfo.is_admin; // Store the is_admin value
         } else {
           console.error('Failed to fetch user info');
         }
@@ -680,10 +683,16 @@
       }
     }
 
-    function setupButtonHandler(tier) {
+    function setupButtonHandler(tier, isAdmin) {
       const setupButton = document.getElementById('setupButton');
       setupButton.addEventListener('click', (event) => {
-        if (tier < 2) {
+        if (!isAdmin) {
+          event.preventDefault();
+          showPopup(
+            "Access Denied",
+            "You do not have administrative privileges to access the setup page."
+          );
+        } else if (tier < 2) {
           event.preventDefault();
           showPopup(
             "To get the full experience of Raterware, please upgrade to the Professional version",
