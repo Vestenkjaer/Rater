@@ -22,6 +22,7 @@ from flask_mail import Message
 from webhook import webhook_bp
 from routes.payment import payment_bp
 import traceback
+from functools import wraps
 
 # Load environment variables from .env file
 load_dotenv()
@@ -480,6 +481,25 @@ def create_app():
 
         return render_template('success_page.html', session_id=session_id, registration_needed=registration_needed, show_home_button=not registration_needed)
 
+    # Decorator to check admin status
+    def admin_required(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            client_id = session.get('client_id')
+            if not client_id:
+                return redirect(url_for('login'))
+            
+            client = Client.query.get(client_id)
+            if not client or not client.is_admin:
+                return redirect(url_for('dashboard'))
+            
+            return f(*args, **kwargs)
+        return decorated_function
+
+    @app.route('/setup')
+    @admin_required
+    def setup():
+        return render_template('setup.html')
 
     return app
 
