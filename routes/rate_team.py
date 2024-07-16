@@ -314,7 +314,7 @@ def get_ai_recommendation(member_id):
         # Call the OpenAI API
         try:
             response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
+                model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You are an expert HR advisor."},
                     {"role": "user", "content": prompt}
