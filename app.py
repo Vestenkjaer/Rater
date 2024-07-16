@@ -483,23 +483,23 @@ def create_app():
 
     # Decorator to check if the user is an admin and has tier 2
     def admin_required(f):
-        @wraps(f)
-        def decorated_function(*args, **kwargs):
-            client_id = session.get('client_id')
-            if not client_id:
-                return redirect(url_for('login'))
-            
-            client = Client.query.get(client_id)
-            if not client or not client.is_admin or client.tier < 2:
-                return redirect(url_for('dashboard'))
-            
-            return f(*args, **kwargs)
-        return decorated_function
+       @wraps(f)
+       def decorated_function(*args, **kwargs):
+          client_id = session.get('client_id')
+          if not client_id:
+             return redirect(url_for('login'))
+
+          client = Client.query.get(client_id)
+          if not client or not client.is_admin or client.tier < 2:
+            return redirect(url_for('dashboard'))
+
+          return f(*args, **kwargs)
+       return decorated_function
 
     @app.route('/setup')
     @admin_required
     def setup():
-        return render_template('setup.html')
+       return render_template('setup.html')
 
     return app
 
