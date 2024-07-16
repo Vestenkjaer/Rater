@@ -72,13 +72,14 @@ def success():
             client.tier = max(client.tier, desired_tier)
         else:
             # Create a new client if not existing
-            client = Client(email=customer_email, name=customer_email, tier=desired_tier)
+            client = Client(email=customer_email, name=customer_email, tier=desired_tier, is_admin=True)  # Set is_admin to True
             db.session.add(client)
         
         db.session.commit()
         
-        # Update the session with the client's tier
+        # Update the session with the client's tier and is_admin status
         session['tier'] = client.tier
+        session['is_admin'] = client.is_admin  # Add this line
         session['client_id'] = client.id
 
         registration_needed = 'user' not in session
