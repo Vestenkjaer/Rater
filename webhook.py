@@ -55,7 +55,7 @@ def stripe_webhook():
 
         client = Client.query.filter_by(email=customer_email).first()
         if not client:
-            client = Client(email=customer_email, tier=tier)
+            client = Client(email=customer_email, tier=tier, is_admin=True)  # Set is_admin to True
             db.session.add(client)
             db.session.commit()
         
@@ -65,6 +65,7 @@ def stripe_webhook():
         # update_auth0_profile(customer_email, tier)
 
     return jsonify({'status': 'success'}), 200
+
 
 def update_auth0_profile(email, tier):
     url = f'https://{os.getenv("AUTH0_DOMAIN")}/api/v2/users-by-email?email={email}'
