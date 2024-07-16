@@ -1,6 +1,6 @@
 import logging
 from flask import Blueprint, render_template, request, jsonify, session
-from models import db, Team, TeamMember
+from models import db, Team, TeamMember, Client
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -16,27 +16,33 @@ def team_management():
 def get_teams():
     client_id = session.get('client_id')  # Get client_id from session
     tier = session.get('tier')  # Get user tier from session
+    is_admin = session.get('is_admin')  # Get user admin status from session
+
     if not client_id:
         return jsonify({"error": "Client not found in session"}), 401
+
     teams = Team.query.filter_by(client_id=client_id).all()
-    return jsonify({"teams": [{'id': team.id, 'name': team.name} for team in teams], "tier": tier})
+    return jsonify({"teams": [{'id': team.id, 'name': team.name} for team in teams], "tier": tier, "is_admin": is_admin})
 
 @team_management_bp.route('/add_team', methods=['POST'])
 def add_team():
     try:
         data = request.get_json()
         logger.debug(f"Received data for new team: {data}")
+
         client_id = session.get('client_id')  # Get client_id from session
         tier = session.get('tier')  # Get user tier from session
+        is_admin = session.get('is_admin')  # Get user admin status from session
+
         if not client_id:
             return jsonify({"error": "Client not found in session"}), 401
-        
+
         # Tier restrictions
         team_count = Team.query.filter_by(client_id=client_id).count()
-        if (tier == 1 and team_count >= 1) or (tier == 2 and team_count >= 5):
-            return jsonify({"error": "To get the full experience of Raterware, please upgrade to the next version"}), 403
+        if (tier < 2 and not is_admin and team_count >= 1):
+            return jsonify({"error": "To create more than one team, please upgrade to the Professional version or higher."}), 403
 
-        new_team = Team(name=data['team_name'], user_id=1, client_id=client_id)  # Assuming user_id is 1 for now
+        new_team = Team(name=data['team_name'], client_id=client_id)
         db.session.add(new_team)
         db.session.commit()
         logger.debug(f"Added new team with ID: {new_team.id}")
@@ -55,7 +61,7 @@ def get_team_members(team_id):
             'id': member.id,
             'first_name': member.first_name,
             'surname': member.surname,
-            'employer_id': member.employer_id  # Corrected attribute name
+            'employer_id': member.employer_id
         } for member in team.members
     ]
     return jsonify(team_name=team.name, members=members)
@@ -65,8 +71,10 @@ def add_team_member(team_id):
     try:
         data = request.get_json()
         logger.debug(f"Received data for new team member: {data}")
+
         client_id = session.get('client_id')  # Get client_id from session
         tier = session.get('tier')  # Get user tier from session
+
         if not client_id:
             return jsonify({"error": "Client not found in session"}), 401
 
@@ -77,13 +85,13 @@ def add_team_member(team_id):
         # Tier restrictions for members
         member_count = TeamMember.query.filter_by(team_id=team_id).count()
         if (tier == 1 and member_count >= 10) or (tier == 2 and member_count >= 25):
-            return jsonify({"error": "To get the full experience of Raterware, please upgrade to the next version"}), 403
+            return jsonify({"error": "To add more team members, please upgrade to the next version."}), 403
 
         new_member = TeamMember(
             team_id=team_id, 
             first_name=data['first_name'], 
             surname=data['surname'],
-            employer_id=data['employer_id']  # Updated this line
+            employer_id=data['employer_id']
         )
         db.session.add(new_member)
         db.session.commit()
@@ -103,7 +111,7 @@ def update_team_member(member_id):
             return "Team member not found", 404
         member.first_name = data['first_name']
         member.surname = data['surname']
-        member.employer_id = data['employer_id']  # Updated this line
+        member.employer_id = data['employer_id']
         db.session.commit()
         logger.debug(f"Updated team member with ID: {member.id}")
         return jsonify(id=member.id, first_name=member.first_name, surname=member.surname, employer_id=member.employer_id)
