@@ -39,8 +39,8 @@ def add_team():
 
         # Tier restrictions
         team_count = Team.query.filter_by(client_id=client_id).count()
-        if (tier < 2 and not is_admin and team_count >= 1):
-            return jsonify({"error": "To create more than one team, please upgrade to the Professional version or higher."}), 403
+        if (tier == 1 and team_count >= 1) or (tier == 2 and team_count >= 5):
+            return jsonify({"error": "To create more teams, please upgrade to the next version."}), 403
 
         new_team = Team(name=data['team_name'], client_id=client_id)
         db.session.add(new_team)
