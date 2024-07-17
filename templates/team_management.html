@@ -286,6 +286,7 @@
   <script>
     let isAdmin = false;
     let tier = 0;
+    let teams = [];
 
     document.addEventListener('DOMContentLoaded', () => {
       fetchUserInfo();
@@ -295,14 +296,9 @@
     async function fetchUserInfo() {
       try {
         const response = await fetch('/user_info');
-        if (response.ok) {
-          const userInfo = await response.json();
-          isAdmin = userInfo.is_admin;
-          tier = userInfo.tier;
-          console.log(`User info fetched: isAdmin=${isAdmin}, tier=${tier}`);
-        } else {
-          console.error('Failed to fetch user info');
-        }
+        const data = await response.json();
+        isAdmin = data.is_admin;
+        tier = data.tier;
       } catch (error) {
         console.error('Error fetching user info:', error);
       }
@@ -312,11 +308,12 @@
       try {
         const response = await fetch('/team_management/get_teams');
         const data = await response.json();
+        teams = data.teams;
         const teamList = document.getElementById('teamList');
-        teamList.innerHTML = '';  // Clear existing teams
-        data.teams.forEach(team => {
-          const teamItem = createTeamListItem(team);
-          teamList.appendChild(teamItem);
+        teamList.innerHTML = '';
+        teams.forEach(team => {
+          const li = createTeamListItem(team);
+          teamList.appendChild(li);
         });
       } catch (error) {
         console.error('Error fetching teams:', error);
@@ -347,33 +344,40 @@
 
     async function createTeam(event) {
       event.preventDefault();
+
       const teamName = document.getElementById('teamName').value;
 
-      if (!isAdmin && tier < 2) {
-        showPopup("Access Denied", "You do not have administrative privileges to create a team.");
+      // Check if user can create a team based on their tier and admin status
+      if ((tier === 1 && teams.length >= 1) || (tier === 2 && teams.length >= 5 && !isAdmin)) {
+        showPopup("Upgrade Required", "To create more teams, please upgrade your plan.");
         return;
       }
 
-      if ((tier === 1 && teams.length >= 1) || (tier === 2 && teams.length >= 5)) {
-        showPopup("Upgrade Required", `To create more than ${tier === 1 ? 1 : 5} teams, please upgrade to the next version.`);
+      if (!isAdmin && tier > 1) {
+        showPopup("Access Denied", "You do not have administrative privileges to create a team.");
         return;
       }
 
       try {
         const response = await fetch('/team_management/add_team', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json'
+          },
           body: JSON.stringify({ team_name: teamName })
         });
         if (response.ok) {
+          const result = await response.json();
           fetchTeams();
           document.getElementById('teamName').value = '';
+          selectTeam(result.id);
         } else {
           const error = await response.json();
           showPopup("Error", error.error);
         }
       } catch (error) {
         console.error('Error creating team:', error);
+        showPopup("Error", "An error occurred while creating the team.");
       }
     }
 
@@ -417,11 +421,12 @@
             </table>
           `;
         } else {
-          const error = await response.text();
-          alert(error);
+          const error = await response.json();
+          showPopup("Error", error.error);
         }
       } catch (error) {
         console.error('Error fetching team members:', error);
+        showPopup("Error", "An error occurred while fetching team members.");
       }
     }
 
@@ -433,7 +438,9 @@
       try {
         const response = await fetch(`/team_management/add_team_member/${teamId}`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json'
+          },
           body: JSON.stringify({ first_name: firstName, surname: surname, employer_id: employerId })
         });
         if (response.ok) {
@@ -447,6 +454,7 @@
         }
       } catch (error) {
         console.error('Error adding member:', error);
+        showPopup("Error", "An error occurred while adding the member.");
       }
     }
 
@@ -489,7 +497,9 @@
       try {
         const response = await fetch(`/team_management/update_team_member/${memberId}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json'
+          },
           body: JSON.stringify({ first_name: firstName, surname: surname, employer_id: employerId })
         });
         if (response.ok) {
@@ -501,10 +511,11 @@
           }
         } else {
           const error = await response.json();
-          alert(error.error);
+          showPopup("Error", error.error);
         }
       } catch (error) {
         console.error('Error saving member:', error);
+        showPopup("Error", "An error occurred while saving the member.");
       }
     }
 
@@ -524,17 +535,20 @@
       try {
         const response = await fetch(`/team_management/update_team/${teamId}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json'
+          },
           body: JSON.stringify({ team_name: newName })
         });
         if (response.ok) {
           fetchTeams();
         } else {
           const error = await response.json();
-          alert(error.error);
+          showPopup("Error", error.error);
         }
       } catch (error) {
         console.error('Error saving team:', error);
+        showPopup("Error", "An error occurred while saving the team.");
       }
     }
 
@@ -553,10 +567,11 @@
           fetchTeams();
         } else {
           const error = await response.json();
-          alert(error.error);
+          showPopup("Error", error.error);
         }
       } catch (error) {
         console.error('Error deleting team:', error);
+        showPopup("Error", "An error occurred while deleting the team.");
       }
     }
 
@@ -573,10 +588,11 @@
           }
         } else {
           const error = await response.json();
-          alert(error.error);
+          showPopup("Error", error.error);
         }
       } catch (error) {
         console.error('Error deleting member:', error);
+        showPopup("Error", "An error occurred while deleting the member.");
       }
     }
 
