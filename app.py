@@ -217,34 +217,34 @@ def create_app():
         app.logger.debug(f"Session in callback: {dict(session)}")
 
         if state != session_state:
-          app.logger.warning("CSRF check failed")
-          return jsonify({"error": "CSRF Warning! State not equal in request and response."}), 400
+            app.logger.warning("CSRF check failed")
+            return jsonify({"error": "CSRF Warning! State not equal in request and response."}), 400
 
         try:
-         token_response = auth0.authorize_access_token()
-         response = auth0.get('userinfo')
-         user_info = response.json()
-         session['user'] = user_info
+            token_response = auth0.authorize_access_token()
+            response = auth0.get('userinfo')
+            user_info = response.json()
+            session['user'] = user_info
 
-         email = user_info['email']
-         user = User.query.filter_by(email=email).first()
+            email = user_info['email']
+            user = User.query.filter_by(email=email).first()
 
-        if user:
-            session['client_id'] = user.client_id
-            session['user_id'] = user.id
-            session['tier'] = user.client.tier
-            session['is_admin'] = user.is_admin  # Set is_admin in session
+            if user:
+                session['client_id'] = user.client_id
+                session['user_id'] = user.id
+                session['tier'] = user.client.tier
+                session['is_admin'] = user.is_admin  # Set is_admin in session
 
-            # Ensure to log the session data for debugging
-            app.logger.debug(f"Session after setting user data: {dict(session)}")
+                # Ensure to log the session data for debugging
+                app.logger.debug(f"Session after setting user data: {dict(session)}")
 
-        session.pop('auth0_state', None)
-      except Exception as e:
-         app.logger.error(f"Error during Auth0 callback: {str(e)}")
-         app.logger.exception("Exception during Auth0 callback")
-         return jsonify({"error": str(e)}), 500
+            session.pop('auth0_state', None)
+        except Exception as e:
+            app.logger.error(f"Error during Auth0 callback: {str(e)}")
+            app.logger.exception("Exception during Auth0 callback")
+            return jsonify({"error": str(e)}), 500
 
-    return redirect('/dashboard')
+        return redirect('/dashboard')
 
     @app.route('/dashboard')
     def dashboard():
@@ -441,6 +441,13 @@ def create_app():
             return jsonify({'status': 'success'})
         except Exception as e:
             return jsonify({'status': 'error', 'error': str(e)})
+
+    # Ensure the `products` dictionary is defined or imported before using it.
+    products = {
+        "basic_plan": {"price_id": "price_basic", "tier": 1},
+        "pro_plan": {"price_id": "price_pro", "tier": 2},
+        "enterprise_plan": {"price_id": "price_enterprise", "tier": 3},
+    }
 
     def determine_tier(plan_id):
         for plan, data in products.items():
