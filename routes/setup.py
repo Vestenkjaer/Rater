@@ -206,26 +206,24 @@ def create_auth0_user(email):
 def send_password_email(email, password):
     msg = Message('Your New Account Password',
                   recipients=[email])
-    msg.body = f'''
-    Welcome to Raterware!
+    msg.html = f'''
+    <p>Welcome to Raterware!</p>
 
-     We're thrilled to have you on board.</p>
+    <p>We're thrilled to have you on board.</p>
 
-    Raterware is your ultimate tool for objectively rating and monitoring the progress of your team members.
+    <p>Raterware is your ultimate tool for objectively rating and monitoring the progress of your team members.
     Whether you’re managing a business team, a sports team, or any group of individuals that require regular evaluation,
     Raterware adapts to your unique requirements.</p>
 
-    Here is your password to get started:</p>
-    strong style="font-size: 18px; color: blue;">{password}</strong></p>
-    Please log in using your email and this password. In the log in dialog box, you can change your password to something more secure and personal.</p>
+    <p>Here is your password to get started:</p>
+    <p><strong style="font-size: 18px; color: blue;">{password}</strong></p>
+    <p>Please log in using your email and this password. In the log in dialog box, you can change your password to something more secure and personal.</p>
 
-    
-    Please visit the following link to log in with your new password:
-    http://raterware.com/login
+    <p>Please visit the following link to log in with your new password:</p>
+    <p><a href="http://raterware.com/login">http://raterware.com/login</a></p>
 
-    
-    Best regards,
-    The Raterware Team
+    <p>Best regards,<br>
+    The Raterware Team</p>
     '''
     try:
         mail.send(msg)
