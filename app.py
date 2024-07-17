@@ -292,7 +292,6 @@ def create_app():
             data = request.get_json()
             email = data.get('email')
             username = data.get('username')  # Get the username from the request if provided
-            is_admin = data.get('is_admin', False)  # Default to False if not provided
 
             if not email:
                 return jsonify({'error': 'Email is required'}), 400
@@ -301,7 +300,7 @@ def create_app():
             if not client_id:
                 client = Client.query.filter_by(email=email).first()
                 if not client:
-                    client = Client(name='default_client_name', email=email, tier=0)
+                    client = Client(name='default_client_name', email=email, tier=0, is_admin=True)  # Set is_admin to True for new clients
                     db.session.add(client)
                     db.session.commit()
                 client_id = client.id
@@ -327,7 +326,7 @@ def create_app():
             hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
 
             # Create a new user
-            new_user = User(username=username, email=email, password_hash=hashed_password, client_id=client_id, is_admin=is_admin)
+            new_user = User(username=username, email=email, password_hash=hashed_password, client_id=client_id)
             db.session.add(new_user)
             db.session.commit()
 
@@ -414,10 +413,11 @@ def create_app():
             if client:
                 logger.debug(f"Updating tier for client: {client.email} to tier {tier}")
                 client.tier = tier
+                client.is_admin = True  # Ensure is_admin is set to True for upgraded clients
                 db.session.commit()
             else:
                 logger.debug(f"Creating new client for email: {customer_email}")
-                new_client = Client(name='default_client_name', email=customer_email, tier=tier)
+                new_client = Client(name='default_client_name', email=customer_email, tier=tier, is_admin=True)  # Set is_admin to True for new clients
                 db.session.add(new_client)
                 db.session.commit()
 
@@ -505,31 +505,13 @@ def create_app():
             # Existing client, upgrading tier
             registration_needed = False
             client.tier = desired_tier
+            client.is_admin = True  # Ensure is_admin is set to True for upgraded clients
             db.session.commit()
         else:
             # New client
             registration_needed = True
 
         return render_template('success_page.html', session_id=session_id, registration_needed=registration_needed, show_home_button=not registration_needed)
-
-    # Route to create a new team, only accessible to admin users
-    @app.route('/team_management/create_team', methods=['POST'])
-    def create_team():
-        if not session.get('is_admin', False):
-            return jsonify({'error': 'Administrative privileges required.'}), 403
-
-        data = request.get_json()
-        team_name = data.get('team_name')
-        client_id = session.get('client_id')
-
-        if not team_name or not client_id:
-            return jsonify({'error': 'Team name and client ID are required.'}), 400
-
-        new_team = Team(name=team_name, client_id=client_id)
-        db.session.add(new_team)
-        db.session.commit()
-
-        return jsonify({'message': 'Team created successfully.'}), 201
 
     return app
 
