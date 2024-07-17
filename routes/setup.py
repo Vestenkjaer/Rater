@@ -209,8 +209,17 @@ def send_password_email(email, password):
     msg.body = f'''
     Welcome to Raterware!
 
-    Your temporary password is: {password}
+     We're thrilled to have you on board.</p>
 
+    Raterware is your ultimate tool for objectively rating and monitoring the progress of your team members.
+    Whether you’re managing a business team, a sports team, or any group of individuals that require regular evaluation,
+    Raterware adapts to your unique requirements.</p>
+
+    Here is your password to get started:</p>
+    strong style="font-size: 18px; color: blue;">{password}</strong></p>
+    Please log in using your email and this password. In the log in dialog box, you can change your password to something more secure and personal.</p>
+
+    
     Please visit the following link to log in with your new password:
     http://raterware.com/login
 
