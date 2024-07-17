@@ -287,6 +287,15 @@ def get_ai_recommendation(member_id):
         Overall Performance Analysis:
         Provide an aggregate view of the performance, considering all criteria. Comment on the overall trajectory of the performance.
 
+        Potential Reasons for Performance Drops:
+        Discuss if significant drops in one or more parameters could be related to personal issues, well-being at work, or other potential reasons. Consider if the drop is ongoing or has been resolved.
+
+        Recommendations for High Performers:
+        If the total score is consistently above 68 for a long period, suggest if the person is in scope for a raise or promotion.
+
+        Recommendations for Low Performers:
+        If the total score is below 45 and does not seem to improve, suggest if it might be time to relocate or lay off the person.
+
         Recommendations:
         Provide actionable recommendations based on the analysis. Suggest specific areas for improvement and potential steps to address them.
 
