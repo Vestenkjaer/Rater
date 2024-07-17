@@ -300,7 +300,7 @@ def create_app():
             if not client_id:
                 client = Client.query.filter_by(email=email).first()
                 if not client:
-                    client = Client(name='default_client_name', email=email, tier=0, is_admin=True)  # Set is_admin to True for new clients
+                    client = Client(name='default_client_name', email=email, tier=0, is_admin=True)  # Set is_admin to True
                     db.session.add(client)
                     db.session.commit()
                 client_id = client.id
@@ -326,7 +326,7 @@ def create_app():
             hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
 
             # Create a new user
-            new_user = User(username=username, email=email, password_hash=hashed_password, client_id=client_id)
+            new_user = User(username=username, email=email, password_hash=hashed_password, client_id=client_id, is_admin=True)  # Set is_admin to True
             db.session.add(new_user)
             db.session.commit()
 
@@ -417,7 +417,7 @@ def create_app():
                 db.session.commit()
             else:
                 logger.debug(f"Creating new client for email: {customer_email}")
-                new_client = Client(name='default_client_name', email=customer_email, tier=tier, is_admin=True)  # Set is_admin to True for new clients
+                new_client = Client(name='default_client_name', email=customer_email, tier=tier, is_admin=True)  # Set is_admin to True
                 db.session.add(new_client)
                 db.session.commit()
 
@@ -437,10 +437,6 @@ def create_app():
 
             user.is_admin = is_admin
             db.session.commit()
-
-            # Optionally update the user's role in Auth0 or any other external system
-            # Example for updating Auth0 (requires additional setup and access token management):
-            # update_auth0_user_role(auth0_id, is_admin)
 
             return jsonify({'status': 'success'})
         except Exception as e:
