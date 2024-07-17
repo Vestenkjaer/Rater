@@ -18,6 +18,7 @@ def get_teams():
     tier = session.get('tier')  # Get user tier from session
     is_admin = session.get('is_admin')  # Get user admin status from session
 
+    logger.debug(f"Session: {session}")  # Log entire session for debugging
     logger.debug(f"User ID: {user_id}, Tier: {tier}, Is Admin: {is_admin}")
 
     if not user_id:
@@ -45,6 +46,7 @@ def add_team():
         tier = session.get('tier')  # Get user tier from session
         is_admin = session.get('is_admin')  # Get user admin status from session
 
+        logger.debug(f"Session: {session}")  # Log entire session for debugging
         logger.debug(f"User ID: {user_id}, Tier: {tier}, Is Admin: {is_admin}")
 
         if not user_id:

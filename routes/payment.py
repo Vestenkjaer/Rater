@@ -87,6 +87,7 @@ def success():
         session['tier'] = client.tier
         session['is_admin'] = client.is_admin
         session['client_id'] = client.id
+        session['user_id'] = client.id  # For now set user_id to client.id
 
         registration_needed = 'user' not in session
 
