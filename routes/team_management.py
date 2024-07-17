@@ -14,11 +14,11 @@ def team_management():
 
 @team_management_bp.route('/get_teams')
 def get_teams():
+    logger.debug(f"Session: {session}")  # Log entire session for debugging
     user_id = session.get('user_id')  # Get user_id from session
     tier = session.get('tier')  # Get user tier from session
     is_admin = session.get('is_admin')  # Get user admin status from session
 
-    logger.debug(f"Session: {session}")  # Log entire session for debugging
     logger.debug(f"User ID: {user_id}, Tier: {tier}, Is Admin: {is_admin}")
 
     if not user_id:
@@ -42,11 +42,11 @@ def add_team():
         data = request.get_json()
         logger.debug(f"Received data for new team: {data}")
 
+        logger.debug(f"Session: {session}")  # Log entire session for debugging
         user_id = session.get('user_id')  # Get user_id from session
         tier = session.get('tier')  # Get user tier from session
         is_admin = session.get('is_admin')  # Get user admin status from session
 
-        logger.debug(f"Session: {session}")  # Log entire session for debugging
         logger.debug(f"User ID: {user_id}, Tier: {tier}, Is Admin: {is_admin}")
 
         if not user_id:

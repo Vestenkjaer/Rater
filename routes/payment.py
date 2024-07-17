@@ -83,11 +83,11 @@ def success():
         
         db.session.commit()
         
-        # Update the session with the client's tier and is_admin status
+        # Update the session with the client's tier, is_admin status, and user_id
         session['tier'] = client.tier
         session['is_admin'] = client.is_admin
         session['client_id'] = client.id
-        session['user_id'] = client.id  # For now set user_id to client.id
+        session['user_id'] = client.id  # Ensure user_id is set in the session
 
         registration_needed = 'user' not in session
 
