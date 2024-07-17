@@ -24,7 +24,7 @@ def get_teams():
 
     teams = [{"id": team.id, "name": team.name} for team in user_teams]
 
-    return jsonify(teams)
+    return jsonify({"teams": teams})
 
 @team_management_bp.route('/add_team', methods=['POST'])
 def add_team():
