@@ -18,9 +18,11 @@ def get_teams():
     if not user_id:
         return jsonify({"error": "User not logged in"}), 401
 
-    # Fetch the teams where the user is a member
     user = User.query.get(user_id)
-    user_teams = user.teams
+    if user.is_admin:
+        user_teams = Team.query.filter_by(client_id=user.client_id).all()
+    else:
+        user_teams = user.teams
 
     teams = [{"id": team.id, "name": team.name} for team in user_teams]
 
@@ -51,10 +53,8 @@ def add_team():
         logger.debug(f"Current team count for client {user.client_id}: {team_count}")
         if tier == 1 and team_count >= 1:
             return jsonify({"error": "To create more than one team, please upgrade to the next version."}), 403
-        if tier == 2 and team_count >= 5:
-            return jsonify({"error": "To create more than five teams, please upgrade to the next version."}), 403
-        if tier == 2 and not is_admin:
-            return jsonify({"error": "You do not have administrative privileges to create a team."}), 403
+        if tier == 2 and team_count >= 5 and not is_admin:
+            return jsonify({"error": "To create more than five teams, please upgrade to the next version or ensure you have administrative privileges."}), 403
 
         new_team = Team(name=data['team_name'], client_id=user.client_id)
         db.session.add(new_team)
@@ -65,7 +65,7 @@ def add_team():
         logger.error(f"Error adding team: {e}")
         return jsonify(error=str(e)), 500
 
-@team_management_bp.route('/get_team_members/<int:team_id>')
+@team_management_bp.route('/get_team_members/<int:team_id>', methods=['GET'])
 def get_team_members(team_id):
     team = Team.query.get(team_id)
     if team is None:
