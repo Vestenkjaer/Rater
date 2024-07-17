@@ -1,3 +1,5 @@
+# models.py
+
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -8,24 +10,23 @@ class Client(db.Model):
     __tablename__ = 'client'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)
-    tier = db.Column(db.Integer, default=0)  # 0: Free, 1: Basic, 2: Professional, 3: Enterprise
-    email = db.Column(db.String(120), unique=True, nullable=False)  # Added email to link with Stripe
-    is_admin = db.Column(db.Boolean, default=False)  # Add this line
+    tier = db.Column(db.Integer, default=0)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
     users = db.relationship('User', backref='client', lazy=True)
     teams = db.relationship('Team', backref='client', lazy=True)
-    settings = db.relationship('Settings', backref='client', uselist=False, lazy=True)  # One-to-One relationship
-
+    settings = db.relationship('Settings', backref='client', uselist=False, lazy=True)
 
 class User(db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=True)  # Make nullable
+    password_hash = db.Column(db.String(128), nullable=True)
     is_admin = db.Column(db.Boolean, default=False)
     client_id = db.Column(db.Integer, db.ForeignKey('client.id'), nullable=False)
-    teams = db.relationship('Team', backref='user', lazy=True)
-    auth0_id = db.Column(db.String(120), unique=True, nullable=True)  # Add this line
+    auth0_id = db.Column(db.String(120), unique=True, nullable=True)
+    teams = db.relationship('Team', secondary='user_teams', back_populates='users')
 
     @property
     def password(self):
@@ -39,11 +40,11 @@ class User(db.Model):
         return check_password_hash(self.password_hash, password)
 
 class Team(db.Model):
-    id = db.Column(db.Integer, primary_key=True)  # Corrected syntax here
+    id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     client_id = db.Column(db.Integer, db.ForeignKey('client.id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # user_id can be nullable
     members = db.relationship('TeamMember', backref='team', lazy=True)
+    users = db.relationship('User', secondary='user_teams', back_populates='teams')
 
 class TeamMember(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -80,11 +81,11 @@ class Settings(db.Model):
     green_min = db.Column(db.Integer, default=71)
     green_max = db.Column(db.Integer, default=80)
     notify_1_week = db.Column(db.Boolean, default=False)
-    notify_3_days = db.Column(db.Boolean, default=True)  # Default value as true
+    notify_3_days = db.Column(db.Boolean, default=True)
     notify_1_day = db.Column(db.Boolean, default=False)
     frequency_weekly = db.Column(db.Boolean, default=False)
     frequency_bi_weekly = db.Column(db.Boolean, default=False)
-    frequency_monthly = db.Column(db.Boolean, default=True)  # Default value as true
+    frequency_monthly = db.Column(db.Boolean, default=True)
     frequency_quarterly = db.Column(db.Boolean, default=False)
 
     def to_dict(self):
@@ -107,3 +108,9 @@ class Settings(db.Model):
                 'quarterly': self.frequency_quarterly
             }
         }
+
+# Association table
+user_teams = db.Table('user_teams',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('team_id', db.Integer, db.ForeignKey('team.id'), primary_key=True)
+)
