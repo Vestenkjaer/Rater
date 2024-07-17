@@ -295,9 +295,14 @@
     async function fetchUserInfo() {
       try {
         const response = await fetch('/user_info');
-        const data = await response.json();
-        isAdmin = data.is_admin;
-        tier = data.tier;
+        if (response.ok) {
+          const userInfo = await response.json();
+          isAdmin = userInfo.is_admin;
+          tier = userInfo.tier;
+          console.log(`User info fetched: isAdmin=${isAdmin}, tier=${tier}`);
+        } else {
+          console.error('Failed to fetch user info');
+        }
       } catch (error) {
         console.error('Error fetching user info:', error);
       }
@@ -307,16 +312,12 @@
       try {
         const response = await fetch('/team_management/get_teams');
         const data = await response.json();
-        
-        if (data.teams && Array.isArray(data.teams)) {
-            const teamList = document.getElementById('teamList');
-            teamList.innerHTML = '';
-            data.teams.forEach(team => {
-                teamList.appendChild(createTeamListItem(team));
-            });
-        } else {
-            console.error('Teams data is not an array or is undefined:', data);
-        }
+        const teamList = document.getElementById('teamList');
+        teamList.innerHTML = '';  // Clear existing teams
+        data.teams.forEach(team => {
+          const teamItem = createTeamListItem(team);
+          teamList.appendChild(teamItem);
+        });
       } catch (error) {
         console.error('Error fetching teams:', error);
       }
@@ -346,49 +347,33 @@
 
     async function createTeam(event) {
       event.preventDefault();
-
       const teamName = document.getElementById('teamName').value;
 
-      // Check if user can create a team based on their tier and admin status
-      const response = await fetch('/team_management/get_teams');
-      if (response.ok) {
-        const data = await response.json();
-        const { teams } = data;
+      if (!isAdmin && tier < 2) {
+        showPopup("Access Denied", "You do not have administrative privileges to create a team.");
+        return;
+      }
 
-        if (tier === 1 && teams.length >= 1) {
-          showPopup("Upgrade Required", "To create more than one team, please upgrade to the Professional version.");
-          return;
-        }
+      if ((tier === 1 && teams.length >= 1) || (tier === 2 && teams.length >= 5)) {
+        showPopup("Upgrade Required", `To create more than ${tier === 1 ? 1 : 5} teams, please upgrade to the next version.`);
+        return;
+      }
 
-        if (tier === 2 && !isAdmin) {
-          showPopup("Access Denied", "You do not have administrative privileges to create a team.");
-          return;
-        }
-
-        if (tier === 2 && teams.length >= 5) {
-          showPopup("Upgrade Required", "To create more than five teams, please upgrade to the Enterprise version.");
-          return;
-        }
-
-        const createResponse = await fetch('/team_management/add_team', {
+      try {
+        const response = await fetch('/team_management/add_team', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ team_name: teamName })
         });
-
-        if (createResponse.ok) {
-          const result = await createResponse.json();
+        if (response.ok) {
           fetchTeams();
           document.getElementById('teamName').value = '';
-          selectTeam(result.id);
         } else {
-          const error = await createResponse.json();
+          const error = await response.json();
           showPopup("Error", error.error);
         }
-      } else {
-        console.error('Failed to fetch teams for validation');
+      } catch (error) {
+        console.error('Error creating team:', error);
       }
     }
 
@@ -445,22 +430,23 @@
       const surname = document.getElementById('newSurname').value;
       const employerId = document.getElementById('newEmployerId').value;
 
-      const response = await fetch(`/team_management/add_team_member/${teamId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ first_name: firstName, surname: surname, employer_id: employerId })
-      });
-
-      if (response.ok) {
-        selectTeam(teamId);
-        document.getElementById('newFirstName').value = '';
-        document.getElementById('newSurname').value = '';
-        document.getElementById('newEmployerId').value = '';
-      } else {
-        const error = await response.json();
-        showPopup("Error", error.error);
+      try {
+        const response = await fetch(`/team_management/add_team_member/${teamId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ first_name: firstName, surname: surname, employer_id: employerId })
+        });
+        if (response.ok) {
+          selectTeam(teamId);
+          document.getElementById('newFirstName').value = '';
+          document.getElementById('newSurname').value = '';
+          document.getElementById('newEmployerId').value = '';
+        } else {
+          const error = await response.json();
+          showPopup("Error", error.error);
+        }
+      } catch (error) {
+        console.error('Error adding member:', error);
       }
     }
 
@@ -500,24 +486,25 @@
       const surname = row.querySelectorAll('input')[1].value;
       const employerId = row.querySelectorAll('input')[2].value;
 
-      const response = await fetch(`/team_management/update_team_member/${memberId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ first_name: firstName, surname: surname, employer_id: employerId })
-      });
-
-      if (response.ok) {
-        const teamId = document.querySelector('.teams-list li.selected')?.dataset.id;
-        if (teamId) {
-          selectTeam(teamId);
+      try {
+        const response = await fetch(`/team_management/update_team_member/${memberId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ first_name: firstName, surname: surname, employer_id: employerId })
+        });
+        if (response.ok) {
+          const teamId = document.querySelector('.teams-list li.selected')?.dataset.id;
+          if (teamId) {
+            selectTeam(teamId);
+          } else {
+            console.error('No team selected.');
+          }
         } else {
-          console.error('No team selected.');
+          const error = await response.json();
+          alert(error.error);
         }
-      } else {
-        const error = await response.text();
-        alert(error);
+      } catch (error) {
+        console.error('Error saving member:', error);
       }
     }
 
@@ -534,19 +521,20 @@
       const li = document.querySelector(`li[data-id='${teamId}']`);
       const newName = li.querySelector('input').value;
 
-      const response = await fetch(`/team_management/update_team/${teamId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ team_name: newName })
-      });
-
-      if (response.ok) {
-        fetchTeams();
-      } else {
-        const error = await response.text();
-        alert(error);
+      try {
+        const response = await fetch(`/team_management/update_team/${teamId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ team_name: newName })
+        });
+        if (response.ok) {
+          fetchTeams();
+        } else {
+          const error = await response.json();
+          alert(error.error);
+        }
+      } catch (error) {
+        console.error('Error saving team:', error);
       }
     }
 
@@ -556,33 +544,39 @@
     }
 
     async function deleteTeam(teamId) {
-      const response = await fetch(`/team_management/delete_team/${teamId}`, {
-        method: 'DELETE'
-      });
-
-      if (response.ok) {
-        $('#deleteModal').modal('hide');
-        fetchTeams();
-      } else {
-        const error = await response.text();
-        alert(error);
+      try {
+        const response = await fetch(`/team_management/delete_team/${teamId}`, {
+          method: 'DELETE'
+        });
+        if (response.ok) {
+          $('#deleteModal').modal('hide');
+          fetchTeams();
+        } else {
+          const error = await response.json();
+          alert(error.error);
+        }
+      } catch (error) {
+        console.error('Error deleting team:', error);
       }
     }
 
     async function deleteMember(memberId, teamId) {
-      const response = await fetch(`/team_management/delete_team_member/${memberId}`, {
-        method: 'DELETE'
-      });
-
-      if (response.ok) {
-        if (teamId) {
-          selectTeam(teamId);
+      try {
+        const response = await fetch(`/team_management/delete_team_member/${memberId}`, {
+          method: 'DELETE'
+        });
+        if (response.ok) {
+          if (teamId) {
+            selectTeam(teamId);
+          } else {
+            console.error('No team selected.');
+          }
         } else {
-          console.error('No team selected.');
+          const error = await response.json();
+          alert(error.error);
         }
-      } else {
-        const error = await response.text();
-        alert(error);
+      } catch (error) {
+        console.error('Error deleting member:', error);
       }
     }
 
