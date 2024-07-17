@@ -67,7 +67,7 @@ def success():
         # Retrieve the client by email
         client = Client.query.filter_by(email=customer_email).first()
         desired_tier = session.get('desired_tier', 1)
-        
+
         if client:
             # Update the client's tier if it's lower than the desired tier
             client.tier = max(client.tier, desired_tier)
@@ -80,9 +80,9 @@ def success():
                 is_admin=True
             )
             db.session.add(client)
-        
+
         db.session.commit()
-        
+
         # Update the session with the client's tier, is_admin status, and user_id
         session['tier'] = client.tier
         session['is_admin'] = client.is_admin
