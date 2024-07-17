@@ -1,6 +1,6 @@
 import logging
 from flask import Blueprint, render_template, request, jsonify, session
-from models import db, Team, TeamMember
+from models import db, Team, TeamMember, User
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -14,20 +14,24 @@ def team_management():
 
 @team_management_bp.route('/get_teams')
 def get_teams():
-    client_id = session.get('client_id')  # Get client_id from session
     user_id = session.get('user_id')  # Get user_id from session
     tier = session.get('tier')  # Get user tier from session
     is_admin = session.get('is_admin')  # Get user admin status from session
 
-    logger.debug(f"Client ID: {client_id}, User ID: {user_id}, Tier: {tier}, Is Admin: {is_admin}")
+    logger.debug(f"User ID: {user_id}, Tier: {tier}, Is Admin: {is_admin}")
 
-    if not client_id:
-        return jsonify({"error": "Client not found in session"}), 401
+    if not user_id:
+        return jsonify({"error": "User not found in session"}), 401
 
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found in database"}), 404
+
+    # Get teams based on user role and assignments
     if is_admin:
-        teams = Team.query.filter_by(client_id=client_id).all()
+        teams = Team.query.filter_by(client_id=user.client_id).all()
     else:
-        teams = Team.query.filter(Team.client_id == client_id, Team.user_id == user_id).all()
+        teams = Team.query.filter(Team.client_id == user.client_id, Team.user_id == user_id).all()
 
     return jsonify({"teams": [{'id': team.id, 'name': team.name} for team in teams], "tier": tier, "is_admin": is_admin})
 
@@ -37,24 +41,28 @@ def add_team():
         data = request.get_json()
         logger.debug(f"Received data for new team: {data}")
 
-        client_id = session.get('client_id')  # Get client_id from session
+        user_id = session.get('user_id')  # Get user_id from session
         tier = session.get('tier')  # Get user tier from session
         is_admin = session.get('is_admin')  # Get user admin status from session
 
-        logger.debug(f"Client ID: {client_id}, Tier: {tier}, Is Admin: {is_admin}")
+        logger.debug(f"User ID: {user_id}, Tier: {tier}, Is Admin: {is_admin}")
 
-        if not client_id:
-            return jsonify({"error": "Client not found in session"}), 401
+        if not user_id:
+            return jsonify({"error": "User not found in session"}), 401
+
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({"error": "User not found in database"}), 404
 
         # Tier restrictions
-        team_count = Team.query.filter_by(client_id=client_id).count()
-        logger.debug(f"Current team count for client {client_id}: {team_count}")
+        team_count = Team.query.filter_by(client_id=user.client_id).count()
+        logger.debug(f"Current team count for client {user.client_id}: {team_count}")
         if tier == 1 and team_count >= 1:
             return jsonify({"error": "To create more than one team, please upgrade to the next version."}), 403
         if tier == 2 and team_count >= 5:
             return jsonify({"error": "To create more than five teams, please upgrade to the next version."}), 403
 
-        new_team = Team(name=data['team_name'], client_id=client_id)
+        new_team = Team(name=data['team_name'], client_id=user.client_id, user_id=user_id)
         db.session.add(new_team)
         db.session.commit()
         logger.debug(f"Added new team with ID: {new_team.id}")
@@ -65,16 +73,9 @@ def add_team():
 
 @team_management_bp.route('/get_team_members/<int:team_id>')
 def get_team_members(team_id):
-    user_id = session.get('user_id')  # Get user_id from session
-    is_admin = session.get('is_admin')  # Get user admin status from session
-
     team = Team.query.get(team_id)
     if team is None:
         return jsonify({"error": "Team not found"}), 404
-
-    if not is_admin and user_id != team.user_id:
-        return jsonify({"error": "Unauthorized access to this team"}), 403
-
     members = [
         {
             'id': member.id,
@@ -91,21 +92,16 @@ def add_team_member(team_id):
         data = request.get_json()
         logger.debug(f"Received data for new team member: {data}")
 
-        client_id = session.get('client_id')  # Get client_id from session
         user_id = session.get('user_id')  # Get user_id from session
         tier = session.get('tier')  # Get user tier from session
-        is_admin = session.get('is_admin')  # Get user admin status from session
 
-        if not client_id:
-            return jsonify({"error": "Client not found in session"}), 401
+        if not user_id:
+            return jsonify({"error": "User not found in session"}), 401
 
         team = Team.query.get(team_id)
         if not team:
             return jsonify({"error": "Team not found"}), 404
 
-        if not is_admin and user_id != team.user_id:
-            return jsonify({"error": "Unauthorized access to this team"}), 403
-        
         # Tier restrictions for members
         member_count = TeamMember.query.filter_by(team_id=team_id).count()
         if (tier == 1 and member_count >= 10) or (tier == 2 and member_count >= 25):
@@ -130,18 +126,9 @@ def update_team_member(member_id):
     try:
         data = request.get_json()
         logger.debug(f"Received data to update team member ID {member_id}: {data}")
-
-        user_id = session.get('user_id')  # Get user_id from session
-        is_admin = session.get('is_admin')  # Get user admin status from session
-
         member = TeamMember.query.get(member_id)
         if member is None:
             return "Team member not found", 404
-
-        team = Team.query.get(member.team_id)
-        if not is_admin and user_id != team.user_id:
-            return jsonify({"error": "Unauthorized access to this team member"}), 403
-
         member.first_name = data['first_name']
         member.surname = data['surname']
         member.employer_id = data['employer_id']
@@ -155,17 +142,9 @@ def update_team_member(member_id):
 @team_management_bp.route('/delete_team_member/<int:member_id>', methods=['DELETE'])
 def delete_team_member(member_id):
     try:
-        user_id = session.get('user_id')  # Get user_id from session
-        is_admin = session.get('is_admin')  # Get user admin status from session
-
         member = TeamMember.query.get(member_id)
         if member is None:
             return "Team member not found", 404
-
-        team = Team.query.get(member.team_id)
-        if not is_admin and user_id != team.user_id:
-            return jsonify({"error": "Unauthorized access to this team member"}), 403
-
         db.session.delete(member)
         db.session.commit()
         logger.debug(f"Deleted team member with ID: {member.id}")
@@ -179,17 +158,9 @@ def update_team(team_id):
     try:
         data = request.get_json()
         logger.debug(f"Received data to update team ID {team_id}: {data}")
-
-        user_id = session.get('user_id')  # Get user_id from session
-        is_admin = session.get('is_admin')  # Get user admin status from session
-
         team = Team.query.get(team_id)
         if team is None:
             return "Team not found", 404
-
-        if not is_admin and user_id != team.user_id:
-            return jsonify({"error": "Unauthorized access to this team"}), 403
-
         team.name = data['team_name']
         db.session.commit()
         logger.debug(f"Updated team with ID: {team.id}")
@@ -201,16 +172,9 @@ def update_team(team_id):
 @team_management_bp.route('/delete_team/<int:team_id>', methods=['DELETE'])
 def delete_team(team_id):
     try:
-        user_id = session.get('user_id')  # Get user_id from session
-        is_admin = session.get('is_admin')  # Get user admin status from session
-
         team = Team.query.get(team_id)
         if team is None:
             return "Team not found", 404
-
-        if not is_admin and user_id != team.user_id:
-            return jsonify({"error": "Unauthorized access to this team"}), 403
-
         db.session.delete(team)
         db.session.commit()
         logger.debug(f"Deleted team with ID: {team.id}")

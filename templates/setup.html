@@ -79,14 +79,12 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             fetchUsersAndTeams();
-            fetchSettings(); // Fetch existing settings
+            fetchSettings();
 
-            // Save settings on change
             document.querySelectorAll('input, select').forEach(element => {
                 element.addEventListener('change', saveSettings);
             });
 
-            // Add event listeners for score range inputs
             document.getElementById('redRangeMax').addEventListener('input', updateScoreRanges);
             document.getElementById('orangeRangeMin').addEventListener('input', updateScoreRanges);
             document.getElementById('orangeRangeMax').addEventListener('input', updateScoreRanges);
@@ -94,7 +92,6 @@
             document.getElementById('whiteRangeMax').addEventListener('input', updateScoreRanges);
             document.getElementById('greenRangeMin').addEventListener('input', updateScoreRanges);
 
-            // Add event listener for rating frequency checkboxes
             document.querySelectorAll('input[name="ratingFrequency"]').forEach(element => {
                 element.addEventListener('change', function () {
                     document.querySelectorAll('input[name="ratingFrequency"]').forEach(checkbox => {
@@ -118,7 +115,6 @@
             const greenMin = whiteMax + 1;
             document.getElementById('greenRangeMin').value = greenMin;
 
-            // Disable manual input for min fields except for the first one
             document.getElementById('orangeRangeMin').disabled = true;
             document.getElementById('whiteRangeMin').disabled = true;
             document.getElementById('greenRangeMin').disabled = true;
@@ -132,8 +128,8 @@
                 const userList = document.getElementById('userList');
                 userList.innerHTML = '';
                 users.forEach(user => {
-                    const listItem = document.createElement('tr');
-                    listItem.innerHTML = `
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
                         <td>${user.username}</td>
                         <td>${user.email}</td>
                         <td>
@@ -145,7 +141,7 @@
                             <button class="btn btn-sm btn-danger" onclick="deleteUser('${user.auth0_id}', ${user.id})">Delete</button>
                         </td>
                     `;
-                    userList.appendChild(listItem);
+                    userList.appendChild(row);
                 });
             });
 
@@ -218,7 +214,6 @@
             listItem.addEventListener('click', () => unassignTeam(teamId, teamName));
             assignedTeamsList.appendChild(listItem);
 
-            // Remove from available teams list
             const availableItem = availableTeamsList.querySelector(`li[data-team-id='${teamId}']`);
             if (availableItem) {
                 availableItem.remove();
@@ -234,7 +229,6 @@
             listItem.addEventListener('click', () => assignTeam(teamId, teamName));
             availableTeamsList.appendChild(listItem);
 
-            // Remove from assigned teams list
             const assignedItem = assignedTeamsList.querySelector(`li[data-team-id='${teamId}']`);
             if (assignedItem) {
                 assignedItem.remove();
@@ -288,7 +282,6 @@
                         assignedTeamsList.appendChild(listItem);
                     });
 
-                    // Change the create button to save button
                     const createButton = document.getElementById('createUserButton');
                     createButton.textContent = 'Save Changes';
                     createButton.onclick = function() {
@@ -323,8 +316,7 @@
                     document.getElementById('email').value = '';
                     assignedTeamsList.innerHTML = '';
                     fetchUsersAndTeams();
-                    
-                    // Reset the button to create user
+
                     const createButton = document.getElementById('createUserButton');
                     createButton.textContent = 'Create User';
                     createButton.onclick = createUser;
@@ -340,7 +332,7 @@
             }).then(response => response.json()).then(result => {
                 if (result.status === 'success') {
                     alert('User deleted successfully');
-                    window.location.reload(); // Refresh the page
+                    window.location.reload();
                 } else {
                     alert('Error deleting user: ' + result.error);
                 }
