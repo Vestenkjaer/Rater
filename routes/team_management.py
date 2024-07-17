@@ -12,29 +12,19 @@ team_management_bp = Blueprint('team_management', __name__)
 def team_management():
     return render_template('team_management.html')
 
-@team_management_bp.route('/get_teams')
+@team_management_bp.route('/get_teams', methods=['GET'])
 def get_teams():
-    logger.debug(f"Session: {session}")  # Log entire session for debugging
-    user_id = session.get('user_id')  # Get user_id from session
-    tier = session.get('tier')  # Get user tier from session
-    is_admin = session.get('is_admin')  # Get user admin status from session
-
-    logger.debug(f"User ID: {user_id}, Tier: {tier}, Is Admin: {is_admin}")
-
+    user_id = session.get('user_id')
     if not user_id:
-        return jsonify({"error": "User not found in session"}), 401
+        return jsonify({"error": "User not logged in"}), 401
 
+    # Fetch the teams where the user is a member
     user = User.query.get(user_id)
-    if not user:
-        return jsonify({"error": "User not found in database"}), 404
+    user_teams = user.teams
 
-    # Get teams based on user role and assignments
-    if is_admin:
-        teams = Team.query.filter_by(client_id=user.client_id).all()
-    else:
-        teams = Team.query.filter(Team.client_id == user.client_id).all()
+    teams = [{"id": team.id, "name": team.name} for team in user_teams]
 
-    return jsonify({"teams": [{'id': team.id, 'name': team.name} for team in teams], "tier": tier, "is_admin": is_admin})
+    return jsonify(teams)
 
 @team_management_bp.route('/add_team', methods=['POST'])
 def add_team():
