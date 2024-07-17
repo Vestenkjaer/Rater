@@ -292,44 +292,35 @@
       fetchTeams();
     });
 
+    async function fetchUserInfo() {
+      try {
+        const response = await fetch('/user_info');
+        const data = await response.json();
+        isAdmin = data.is_admin;
+        tier = data.tier;
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+      }
+    }
+
     async function fetchTeams() {
-    try {
+      try {
         const response = await fetch('/team_management/get_teams');
         const data = await response.json();
         
         if (data.teams && Array.isArray(data.teams)) {
-            console.log(`Fetched ${data.teams.length} teams`);
-            // Your logic to handle the teams data
+            const teamList = document.getElementById('teamList');
+            teamList.innerHTML = '';
+            data.teams.forEach(team => {
+                teamList.appendChild(createTeamListItem(team));
+            });
         } else {
             console.error('Teams data is not an array or is undefined:', data);
         }
-    } catch (error) {
+      } catch (error) {
         console.error('Error fetching teams:', error);
+      }
     }
-}
-
-fetchTeams();
-
-async function createTeam() {
-    try {
-        const response = await fetch('/team_management/create_team', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ name: 'New Team' }),
-        });
-        const data = await response.json();
-        if (data.success) {
-            console.log('Team created successfully');
-            fetchTeams();  // Refresh teams list
-        } else {
-            console.error('Error creating team:', data.error);
-        }
-    } catch (error) {
-        console.error('Error creating team:', error);
-    }
-}
 
     function createTeamListItem(team) {
       const li = document.createElement('li');
@@ -369,13 +360,13 @@ async function createTeam() {
           return;
         }
 
-        if (tier === 2 && teams.length >= 5) {
-          showPopup("Upgrade Required", "To create more than five teams, please upgrade to the Enterprise version.");
+        if (tier === 2 && !isAdmin) {
+          showPopup("Access Denied", "You do not have administrative privileges to create a team.");
           return;
         }
 
-        if (!isAdmin) {
-          showPopup("Access Denied", "You do not have administrative privileges to create a team.");
+        if (tier === 2 && teams.length >= 5) {
+          showPopup("Upgrade Required", "To create more than five teams, please upgrade to the Enterprise version.");
           return;
         }
 

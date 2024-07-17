@@ -53,6 +53,8 @@ def add_team():
             return jsonify({"error": "To create more than one team, please upgrade to the next version."}), 403
         if tier == 2 and team_count >= 5:
             return jsonify({"error": "To create more than five teams, please upgrade to the next version."}), 403
+        if tier == 2 and not is_admin:
+            return jsonify({"error": "You do not have administrative privileges to create a team."}), 403
 
         new_team = Team(name=data['team_name'], client_id=user.client_id)
         db.session.add(new_team)
