@@ -75,7 +75,7 @@ def success():
             # Create a new client if not existing
             client = Client(
                 email=customer_email,
-                name=customer_name,  # Use the customer_name here
+                name=customer_name if customer_name else customer_email,  # Ensure the name is not None
                 tier=desired_tier,
                 is_admin=True
             )
