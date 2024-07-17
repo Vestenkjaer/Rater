@@ -14,25 +14,29 @@ setup_bp = Blueprint('setup', __name__)
 def setup():
     return render_template('setup.html')
 
-@setup_bp.route('/get_users', methods=['GET'])
+@setup_bp.route('/get_users')
 def get_users():
-    client_id = session.get('client_id')
-    if not client_id:
-        return jsonify({'error': 'Client ID not found in session'}), 401
+    try:
+        client_id = session.get('client_id')
+        if not client_id:
+            return jsonify({"error": "Client not found in session"}), 401
 
-    users = User.query.filter_by(client_id=client_id).all()
-    users_data = []
-    for user in users:
-        teams = Team.query.filter_by(client_id=client_id, user_id=user.id).all()
-        users_data.append({
-            'id': user.id,
-            'username': user.username,
-            'email': user.email,
-            'teams': [{'id': team.id, 'name': team.name} for team in teams],
-            'auth0_id': user.auth0_id  # Use auth0_id from User model
-        })
+        users = User.query.filter_by(client_id=client_id).all()
+        user_list = []
+        for user in users:
+            teams = Team.query.filter(Team.users.any(id=user.id)).all()
+            user_list.append({
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'is_admin': user.is_admin,
+                'is_client': user.is_admin,  # Assuming is_client means is_admin in this context
+                'teams': [{'id': team.id, 'name': team.name} for team in teams]
+            })
 
-    return jsonify({'users': users_data})
+        return jsonify({"users": user_list})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @setup_bp.route('/get_teams', methods=['GET'])
 def get_teams():
@@ -120,7 +124,7 @@ def create_user():
     for team_id in team_ids:
         team = Team.query.get(team_id)
         if team and team.client_id == client_id:
-            team.user_id = user.id
+            team.users.append(user)
             db.session.commit()
 
     send_password_email(email, temp_password)  # Send email with temporary password
@@ -258,14 +262,14 @@ def edit_user(auth0_id, user_id):
 
     # Update team assignments
     team_ids = data.get('teams', [])
-    for team in Team.query.filter_by(user_id=user.id, client_id=client_id).all():
-        team.user_id = None
+    for team in Team.query.filter(Team.users.any(id=user.id)).all():
+        team.users.remove(user)
     db.session.commit()
 
     for team_id in team_ids:
         team = Team.query.get(team_id)
         if team and team.client_id == client_id:
-            team.user_id = user.id
+            team.users.append(user)
             db.session.commit()
 
     return jsonify({'status': 'success'})

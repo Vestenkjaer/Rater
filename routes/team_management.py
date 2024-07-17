@@ -31,7 +31,7 @@ def get_teams():
     if is_admin:
         teams = Team.query.filter_by(client_id=user.client_id).all()
     else:
-        teams = Team.query.filter(Team.client_id == user.client_id, Team.user_id == user_id).all()
+        teams = Team.query.filter(Team.client_id == user.client_id).all()
 
     return jsonify({"teams": [{'id': team.id, 'name': team.name} for team in teams], "tier": tier, "is_admin": is_admin})
 
@@ -62,7 +62,7 @@ def add_team():
         if tier == 2 and team_count >= 5:
             return jsonify({"error": "To create more than five teams, please upgrade to the next version."}), 403
 
-        new_team = Team(name=data['team_name'], client_id=user.client_id, user_id=user_id)
+        new_team = Team(name=data['team_name'], client_id=user.client_id)
         db.session.add(new_team)
         db.session.commit()
         logger.debug(f"Added new team with ID: {new_team.id}")
