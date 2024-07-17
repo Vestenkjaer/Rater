@@ -62,6 +62,7 @@ def success():
     try:
         session_data = stripe.checkout.Session.retrieve(session_id)
         customer_email = session_data['customer_details']['email']
+        customer_name = session_data['customer_details'].get('name', customer_email)  # Use email as name if not provided
 
         # Retrieve the client by email
         client = Client.query.filter_by(email=customer_email).first()
@@ -74,7 +75,7 @@ def success():
             # Create a new client if not existing
             client = Client(
                 email=customer_email,
-                name=customer_email,  # Use the email as the name if no other name is provided
+                name=customer_name,  # Use the customer_name here
                 tier=desired_tier,
                 is_admin=True
             )
