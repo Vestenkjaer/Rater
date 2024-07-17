@@ -212,12 +212,12 @@ def create_app():
         state = request.args.get('state')
         session_state = session.get('auth0_state')
 
-        logger.debug(f"State in callback: {state}")
-        logger.debug(f"State in session: {session_state}")
-        logger.debug(f"Session in callback: {dict(session)}")
+        app.logger.debug(f"State in callback: {state}")
+        app.logger.debug(f"State in session: {session_state}")
+        app.logger.debug(f"Session in callback: {dict(session)}")
 
         if state != session_state:
-            logger.warning("CSRF check failed")
+            app.logger.warning("CSRF check failed")
             return jsonify({"error": "CSRF Warning! State not equal in request and response."}), 400
 
         try:
@@ -228,15 +228,22 @@ def create_app():
 
             email = user_info['email']
             user = User.query.filter_by(email=email).first()
+
             if user:
                 session['client_id'] = user.client_id
+                session['user_id'] = user.id
                 session['tier'] = user.client.tier
+                session['is_admin'] = user.is_admin
+
+                # Ensure to log the session data for debugging
+                app.logger.debug(f"Session after setting user data: {dict(session)}")
 
             session.pop('auth0_state', None)
         except Exception as e:
-            logger.error(f"Error during Auth0 callback: {str(e)}")
-            logger.exception("Exception during Auth0 callback")
+            app.logger.error(f"Error during Auth0 callback: {str(e)}")
+            app.logger.exception("Exception during Auth0 callback")
             return jsonify({"error": str(e)}), 500
+
         return redirect('/dashboard')
 
     @app.route('/dashboard')
