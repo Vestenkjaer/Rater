@@ -364,7 +364,6 @@ def create_app():
 
             mail.send(msg)
 
-
             return jsonify({'message': 'Registration successful. A password has been sent to your email.'}), 200
         except Exception as e:
             logger.error(f"Error during registration: {str(e)}")
@@ -417,6 +416,27 @@ def create_app():
             update_auth0_profile(customer_email, tier)
 
         return jsonify({'status': 'success'}), 200
+
+    @app.route('/toggle_admin/<string:auth0_id>/<int:user_id>', methods=['POST'])
+    def toggle_admin(auth0_id, user_id):
+        data = request.get_json()
+        is_admin = data.get('is_admin')
+
+        try:
+            user = User.query.get(user_id)
+            if not user:
+                return jsonify({'status': 'error', 'error': 'User not found'})
+
+            user.is_admin = is_admin
+            db.session.commit()
+
+            # Optionally update the user's role in Auth0 or any other external system
+            # Example for updating Auth0 (requires additional setup and access token management):
+            # update_auth0_user_role(auth0_id, is_admin)
+
+            return jsonify({'status': 'success'})
+        except Exception as e:
+            return jsonify({'status': 'error', 'error': str(e)})
 
     def determine_tier(plan_id):
         for plan, data in products.items():
