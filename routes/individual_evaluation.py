@@ -18,6 +18,7 @@ def get_current_user():
 def individual_evaluation():
     user = get_current_user()
     if not user:
+        print("User not authenticated")
         return jsonify({'error': 'User not authenticated'}), 403
 
     try:
@@ -35,6 +36,7 @@ def individual_evaluation():
 def get_team_members(team_id):
     user = get_current_user()
     if not user:
+        print("User not authenticated")
         return jsonify({'error': 'User not authenticated'}), 403
 
     team = Team.query.get(team_id)
@@ -76,6 +78,7 @@ def get_team_members(team_id):
 def get_historical_data(member_id):
     user = get_current_user()
     if not user:
+        print("User not authenticated")
         return jsonify({'error': 'User not authenticated'}), 403
 
     member = TeamMember.query.get(member_id)
