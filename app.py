@@ -363,12 +363,13 @@ def create_app():
              <p>Please log in using your email and this password. In the log in dialog box, you can change your password to something more secure and personal.</p>
 
              <p>We're here to help you unlock the true potential of your team. If you have any questions or need assistance, feel free to reach out to our support team.</p>
-             
+             <p> </p>
+              <p> </p>
 
              <p>Best regards,
              <p>The Raterware Team</p>
-             <p><strong style="font-size: 12px; color: darkred;">support@raterware.com</p>  
-             <p></p>
+             <p><strong style="font-size: 14px; color: darkred;">support@raterware.com</p>  
+            
              <p>Empowering Your Team with Data-Driven Insights</p>
             """
 
