@@ -241,11 +241,7 @@
   <h2>Rate Team</h2>
   <div class="container">
     <div class="teams-list">
-      <ul id="teamList">
-        {% for team in teams %}
-        <li onclick="fetchTeamMembers({{ team.id }})" data-team-id="{{ team.id }}">{{ team.name }}</li>
-        {% endfor %}
-      </ul>
+      <ul id="teamList"></ul>
     </div>
     <div class="team-members-list">
       <div id="team-name-container" class="team-name"></div>
@@ -298,28 +294,27 @@
   </div>
   <script>
     let settings = {};
-    let tier = {{ tier }};
     let tooltipTimer;
     let hasExistingRatings = false; // Track if there are existing ratings
 
     async function fetchSettings() {
       try {
-          const response = await fetch('/setup/get_settings');
-          if (!response.ok) {
-              throw new Error('Network response was not ok');
+        const response = await fetch('/setup/get_settings');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        settings = data.settings || {
+          score_ranges: {
+            red: { min: 0, max: 40 },
+            orange: { min: 41, max: 47 },
+            white: { min: 48, max: 70 },
+            green: { min: 71, max: 80 }
           }
-          const data = await response.json();
-          settings = data.settings || {
-              score_ranges: {
-                  red: { min: 0, max: 40 },
-                  orange: { min: 41, max: 47 },
-                  white: { min: 48, max: 70 },
-                  green: { min: 71, max: 80 }
-              }
-          };
-          console.log('Settings loaded:', settings);
+        };
+        console.log('Settings loaded:', settings);
       } catch (error) {
-          console.error('Error fetching settings:', error);
+        console.error('Error fetching settings:', error);
       }
     }
 
@@ -346,13 +341,13 @@
     }
 
     const criteria = [
-      "ability_to_impart_knowledge", 
-      "approachable", 
-      "necessary_skills", 
-      "trained", 
-      "absence", 
-      "self_motivation", 
-      "capacity_for_learning", 
+      "ability_to_impart_knowledge",
+      "approachable",
+      "necessary_skills",
+      "trained",
+      "absence",
+      "self_motivation",
+      "capacity_for_learning",
       "adaptability"
     ];
 
@@ -590,27 +585,50 @@
 
     async function fetchLastSubmission() {
       try {
-          const response = await fetch(`/rate_team/get_last_submission/${selectedTeamId}`);
-          const data = await response.json();
-          console.log('Last submission data:', data);
+        const response = await fetch(`/rate_team/get_last_submission/${selectedTeamId}`);
+        const data = await response.json();
+        console.log('Last submission data:', data);
 
-          const lastSubmissionContent = document.getElementById('last-submission-content');
-          lastSubmissionContent.innerHTML = '';
+        const lastSubmissionContent = document.getElementById('last-submission-content');
+        lastSubmissionContent.innerHTML = '';
 
-          if (data.date) {
-              lastSubmissionContent.innerHTML = `<strong>Last Submission:</strong> ${data.date}`;
-          } else if (data.message) {
-              lastSubmissionContent.innerHTML = '<p>No submissions found</p>';
-          } else {
-              console.error('Unexpected response format:', data);
-          }
+        if (data.date) {
+          lastSubmissionContent.innerHTML = `<strong>Last Submission:</strong> ${data.date}`;
+        } else if (data.message) {
+          lastSubmissionContent.innerHTML = '<p>No submissions found</p>';
+        } else {
+          console.error('Unexpected response format:', data);
+        }
       } catch (error) {
-          console.error('Error fetching last submission:', error);
+        console.error('Error fetching last submission:', error);
+      }
+    }
+
+    async function fetchAssignedTeams() {
+      try {
+        const response = await fetch('/rate_team/get_assigned_teams');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        const teamList = document.getElementById('teamList');
+        teamList.innerHTML = '';
+        data.teams.forEach(team => {
+          const li = document.createElement('li');
+          li.onclick = () => fetchTeamMembers(team.id);
+          li.dataset.teamId = team.id;
+          li.innerText = team.name;
+          teamList.appendChild(li);
+        });
+      } catch (error) {
+        console.error('Error fetching assigned teams:', error);
       }
     }
 
     window.addEventListener('load', async () => {
       await fetchSettings();
+      await fetchAssignedTeams();
+
       const firstTeam = document.querySelector('#teamList li');
       if (firstTeam) {
         const teamId = firstTeam.getAttribute('data-team-id');

@@ -6,7 +6,7 @@ load_dotenv()  # This will load the variables from the .env file
 import logging
 import openai
 from flask import Blueprint, render_template, jsonify, request, session
-from models import Team, TeamMember, Rating, Settings, db
+from models import Team, TeamMember, Rating, Settings, db, User
 from sqlalchemy import func
 
 logging.basicConfig(level=logging.DEBUG)
@@ -17,6 +17,9 @@ openai.api_key = os.getenv('OPENAI_API_KEY')  # Use the key from environment var
 
 def get_client_id():
     return session.get('client_id')
+
+def get_user_id():
+    return session.get('user_id')
 
 def get_client_tier():
     return session.get('tier')
@@ -38,26 +41,54 @@ def individual_evaluation():
 @rate_team_bp.route('/')
 def rate_team():
     client_id = get_client_id()
-    if not client_id:
-        return jsonify({'error': 'Client not authenticated'}), 403
+    user_id = get_user_id()
+    if not client_id or not user_id:
+        return jsonify({'error': 'Client or user not authenticated'}), 403
 
     try:
-        teams = Team.query.filter_by(client_id=client_id).all()
-        return render_template('rate_team.html', teams=teams, tier=session.get('tier', 0))
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        assigned_teams = user.assigned_teams
+        return render_template('rate_team.html', teams=assigned_teams, tier=session.get('tier', 0))
     except Exception as e:
         logging.error(f"Error in rate_team: {e}")
+        return jsonify({'error': 'An internal error occurred'}), 500
+
+@rate_team_bp.route('/get_assigned_teams')
+def get_assigned_teams():
+    user_id = get_user_id()
+    if not user_id:
+        return jsonify({'error': 'User not authenticated'}), 403
+
+    try:
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        assigned_teams = user.assigned_teams
+        teams_data = [{'id': team.id, 'name': team.name} for team in assigned_teams]
+        return jsonify({'teams': teams_data})
+    except Exception as e:
+        logging.error(f"Error in get_assigned_teams: {e}")
         return jsonify({'error': 'An internal error occurred'}), 500
 
 @rate_team_bp.route('/get_team_members/<int:team_id>')
 def get_team_members(team_id):
     client_id = get_client_id()
-    if not client_id:
-        return jsonify({'error': 'Client not authenticated'}), 403
+    user_id = get_user_id()
+    if not client_id or not user_id:
+        return jsonify({'error': 'Client or user not authenticated'}), 403
 
     try:
         team = Team.query.filter_by(id=team_id, client_id=client_id).first()
         if not team:
             return jsonify({'error': 'Team not found'}), 404
+
+        user = User.query.get(user_id)
+        if not user or team not in user.assigned_teams:
+            return jsonify({'error': 'Team not assigned to user'}), 403
 
         members = team.members
         members_data = []
@@ -94,8 +125,9 @@ def get_team_members(team_id):
 @rate_team_bp.route('/rate_member/<int:member_id>', methods=['POST'])
 def rate_member(member_id):
     client_id = get_client_id()
-    if not client_id:
-        return jsonify({'error': 'Client not authenticated'}), 403
+    user_id = get_user_id()
+    if not client_id or not user_id:
+        return jsonify({'error': 'Client or user not authenticated'}), 403
 
     try:
         data = request.get_json()
@@ -103,6 +135,10 @@ def rate_member(member_id):
         member = TeamMember.query.get(member_id)
         if not member or member.team.client_id != client_id:
             return jsonify({'error': 'Member not found'}), 404
+
+        user = User.query.get(user_id)
+        if not user or member.team not in user.assigned_teams:
+            return jsonify({'error': 'Team not assigned to user'}), 403
 
         # Extract and convert criteria values to integers
         ability_to_impart_knowledge = int(data.get('ability_to_impart_knowledge', 0))
@@ -162,13 +198,18 @@ def rate_member(member_id):
 @rate_team_bp.route('/get_historical_data/<int:member_id>')
 def get_historical_data(member_id):
     client_id = get_client_id()
-    if not client_id:
-        return jsonify({'error': 'Client not authenticated'}), 403
+    user_id = get_user_id()
+    if not client_id or not user_id:
+        return jsonify({'error': 'Client or user not authenticated'}), 403
 
     try:
         member = TeamMember.query.get(member_id)
         if not member or member.team.client_id != client_id:
             return jsonify({'error': 'Member not found'}), 404
+
+        user = User.query.get(user_id)
+        if not user or member.team not in user.assigned_teams:
+            return jsonify({'error': 'Team not assigned to user'}), 403
 
         ratings = Rating.query.filter(Rating.team_member_id == member_id).order_by(Rating.timestamp.desc()).limit(12).all()
         logging.debug(f"Retrieved historical data for member {member_id}: {ratings}")
@@ -199,10 +240,19 @@ def get_teams():
 @rate_team_bp.route('/get_last_submission/<int:team_id>', methods=['GET'])
 def get_last_submission(team_id):
     client_id = get_client_id()
-    if not client_id:
-        return jsonify({'error': 'Client not authenticated'}), 403
+    user_id = get_user_id()
+    if not client_id or not user_id:
+        return jsonify({'error': 'Client or user not authenticated'}), 403
 
     try:
+        team = Team.query.filter_by(id=team_id, client_id=client_id).first()
+        if not team:
+            return jsonify({'error': 'Team not found'}), 404
+
+        user = User.query.get(user_id)
+        if not user or team not in user.assigned_teams:
+            return jsonify({'error': 'Team not assigned to user'}), 403
+
         # Fetch the latest rating timestamp for the members of the given team
         latest_submission = db.session.query(
             Rating.team_member_id,
@@ -236,13 +286,18 @@ def get_last_submission(team_id):
 @rate_team_bp.route('/get_ai_recommendation/<int:member_id>')
 def get_ai_recommendation(member_id):
     client_id = get_client_id()
-    if not client_id:
-        return jsonify({'error': 'Client not authenticated'}), 403
+    user_id = get_user_id()
+    if not client_id or not user_id:
+        return jsonify({'error': 'Client or user not authenticated'}), 403
 
     try:
         member = TeamMember.query.get(member_id)
         if not member or member.team.client_id != client_id:
             return jsonify({'error': 'Member not found'}), 404
+
+        user = User.query.get(user_id)
+        if not user or member.team not in user.assigned_teams:
+            return jsonify({'error': 'Team not assigned to user'}), 403
 
         # Get the last 24 ratings for the member
         ratings = Rating.query.filter_by(team_member_id=member_id).order_by(Rating.timestamp.desc()).limit(24).all()
