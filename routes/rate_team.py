@@ -3,16 +3,14 @@ import os
 import logging
 import openai
 from flask import Blueprint, render_template, jsonify, request, session
-from models import Team, TeamMember, Rating, Settings, db, User
+from models import Team, TeamMember, Rating, db, User
 from sqlalchemy import func
 
-load_dotenv()  # This will load the variables from the .env file
+load_dotenv()  # Load variables from .env file
 
 logging.basicConfig(level=logging.DEBUG)
 
 rate_team_bp = Blueprint('rate_team', __name__)
-
-openai.api_key = os.getenv('OPENAI_API_KEY')  # Use the key from environment variable
 
 def get_current_user():
     user_id = session.get('user_id')
@@ -27,7 +25,7 @@ def rate_team():
         return jsonify({'error': 'User not authenticated'}), 403
 
     try:
-        assigned_teams = user.teams  # Correct attribute
+        assigned_teams = user.teams
         return render_template('rate_team.html', teams=assigned_teams, tier=session.get('tier', 0))
     except Exception as e:
         logging.error(f"Error in rate_team: {e}")
@@ -40,7 +38,7 @@ def get_assigned_teams():
         return jsonify({'error': 'User not authenticated'}), 403
 
     try:
-        assigned_teams = user.teams  # Correct attribute
+        assigned_teams = user.teams
         teams_data = [{'id': team.id, 'name': team.name} for team in assigned_teams]
         return jsonify({'teams': teams_data})
     except Exception as e:
@@ -55,7 +53,7 @@ def get_team_members(team_id):
 
     try:
         team = Team.query.filter_by(id=team_id).first()
-        if not team or team not in user.teams:  # Correct attribute
+        if not team or team not in user.teams:
             return jsonify({'error': 'Team not assigned to user'}), 403
 
         members = team.members
@@ -98,59 +96,35 @@ def rate_member(member_id):
 
     try:
         data = request.get_json()
-        logging.debug(f"Received data for member {member_id}: {data}")
         member = TeamMember.query.get(member_id)
         if not member or member.team not in user.teams:
-            return jsonify({'error': 'Member not found'}), 404
+            return jsonify({'error': 'Member not found or team not assigned to user'}), 404
 
         # Extract and convert criteria values to integers
-        ability_to_impart_knowledge = int(data.get('ability_to_impart_knowledge', 0))
-        approachable = int(data.get('approachable', 0))
-        necessary_skills = int(data.get('necessary_skills', 0))
-        trained = int(data.get('trained', 0))
-        absence = int(data.get('absence', 0))
-        self_motivation = int(data.get('self_motivation', 0))
-        capacity_for_learning = int(data.get('capacity_for_learning', 0))
-        adaptability = int(data.get('adaptability', 0))
+        criteria_fields = [
+            'ability_to_impart_knowledge', 'approachable', 'necessary_skills', 'trained',
+            'absence', 'self_motivation', 'capacity_for_learning', 'adaptability'
+        ]
+        criteria_values = {field: int(data.get(field, 0)) for field in criteria_fields}
 
-        logging.debug(f"ability_to_impart_knowledge: {ability_to_impart_knowledge}")
-        logging.debug(f"approachable: {approachable}")
-        logging.debug(f"necessary_skills: {necessary_skills}")
-        logging.debug(f"trained: {trained}")
-        logging.debug(f"absence: {absence}")
-        logging.debug(f"self_motivation: {self_motivation}")
-        logging.debug(f"capacity_for_learning: {capacity_for_learning}")
-        logging.debug(f"adaptability: {adaptability}")
-
-        total_score = ability_to_impart_knowledge + approachable + necessary_skills + trained + absence + self_motivation + capacity_for_learning + adaptability
-        avg_score = total_score / 8
+        total_score = sum(criteria_values.values())
+        avg_score = total_score / len(criteria_fields)
 
         rating = Rating(
             team_member_id=member_id,
-            ability_to_impart_knowledge=ability_to_impart_knowledge,
-            approachable=approachable,
-            necessary_skills=necessary_skills,
-            trained=trained,
-            absence=absence,
-            self_motivation=self_motivation,
-            capacity_for_learning=capacity_for_learning,
-            adaptability=adaptability,
             total_score=total_score,
-            avg_score=avg_score
+            avg_score=avg_score,
+            **criteria_values
         )
 
         db.session.add(rating)
         db.session.commit()
 
-        logging.debug(f"Calculated total score for member {member_id}: {total_score}")
-        logging.debug(f"Calculated average score for member {member_id}: {avg_score}")
-        logging.debug(f"Saved rating for member {member_id}: {rating}")
-
         # Keep only the last 24 ratings (FIFO)
         ratings = Rating.query.filter_by(team_member_id=member_id).order_by(Rating.timestamp).all()
         if len(ratings) > 24:
-            for rating in ratings[:-24]:
-                db.session.delete(rating)
+            for old_rating in ratings[:-24]:
+                db.session.delete(old_rating)
             db.session.commit()
 
         return jsonify({'message': 'Ratings submitted successfully'})
@@ -167,14 +141,32 @@ def get_historical_data(member_id):
     try:
         member = TeamMember.query.get(member_id)
         if not member or member.team not in user.teams:
-            return jsonify({'error': 'Member not found'}), 404
+            return jsonify({'error': 'Member not found or team not assigned to user'}), 404
 
-        ratings = Rating.query.filter(Rating.team_member_id == member_id).order_by(Rating.timestamp.desc()).limit(12).all()
-        logging.debug(f"Retrieved historical data for member {member_id}: {ratings}")
+        ratings = Rating.query.filter_by(team_member_id=member_id).order_by(Rating.timestamp.desc()).limit(12).all()
         historical_data = [{'timestamp': rating.timestamp.isoformat(), 'score': rating.total_score} for rating in ratings]
         return jsonify(historical_data)
     except Exception as e:
         logging.error(f"Error in get_historical_data: {e}")
+        return jsonify({'error': 'An internal error occurred'}), 500
+
+@rate_team_bp.route('/historical_data')
+def historical_data():
+    return render_template('historical_data.html')
+
+@rate_team_bp.route('/get_teams')
+def get_teams():
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'User not authenticated'}), 403
+
+    try:
+        client_id = session.get('client_id')
+        teams = Team.query.filter_by(client_id=client_id).all()
+        team_list = [{'id': team.id, 'name': team.name} for team in teams]
+        return jsonify({'teams': team_list})
+    except Exception as e:
+        logging.error(f"Error in get_teams: {e}")
         return jsonify({'error': 'An internal error occurred'}), 500
 
 @rate_team_bp.route('/get_last_submission/<int:team_id>', methods=['GET'])
@@ -186,9 +178,8 @@ def get_last_submission(team_id):
     try:
         team = Team.query.filter_by(id=team_id).first()
         if not team or team not in user.teams:
-            return jsonify({'error': 'Team not assigned to user'}), 403
+            return jsonify({'error': 'Team not found or team not assigned to user'}), 404
 
-        # Fetch the latest rating timestamp for the members of the given team
         latest_submission = db.session.query(
             Rating.team_member_id,
             func.max(Rating.timestamp).label('latest_submission')
@@ -198,12 +189,7 @@ def get_last_submission(team_id):
 
         if latest_submission:
             member_id, latest_submission_time = latest_submission
-
-            latest_rating = Rating.query.filter_by(
-                team_member_id=member_id,
-                timestamp=latest_submission_time
-            ).first()
-
+            latest_rating = Rating.query.filter_by(team_member_id=member_id, timestamp=latest_submission_time).first()
             if latest_rating:
                 member = TeamMember.query.get(member_id)
                 if member:
@@ -213,25 +199,9 @@ def get_last_submission(team_id):
                     }
                     return jsonify(submission_data), 200
 
-        logging.debug("No submissions found.")
         return jsonify({'message': 'No submissions found'}), 200
     except Exception as e:
         logging.error(f"Error fetching last submission: {e}")
-        return jsonify({'error': 'An internal error occurred'}), 500
-
-@rate_team_bp.route('/get_teams')
-def get_teams():
-    user = get_current_user()
-    if not user:
-        return jsonify({'error': 'User not authenticated'}), 403
-
-    try:
-        teams = Team.query.filter_by(client_id=user.client_id).all()
-        team_list = [{'id': team.id, 'name': team.name} for team in teams]
-        logging.debug(f"Teams fetched for client {user.client_id}: {team_list}")
-        return jsonify({'teams': team_list})
-    except Exception as e:
-        logging.error(f"Error in get_teams: {e}")
         return jsonify({'error': 'An internal error occurred'}), 500
 
 @rate_team_bp.route('/get_ai_recommendation/<int:member_id>')
@@ -243,15 +213,12 @@ def get_ai_recommendation(member_id):
     try:
         member = TeamMember.query.get(member_id)
         if not member or member.team not in user.teams:
-            return jsonify({'error': 'Member not found'}), 404
+            return jsonify({'error': 'Member not found or team not assigned to user'}), 404
 
-        # Get the last 24 ratings for the member
         ratings = Rating.query.filter_by(team_member_id=member_id).order_by(Rating.timestamp.desc()).limit(24).all()
-
         if not ratings:
             return jsonify({'error': 'No ratings found for the member'}), 404
 
-        # Prepare the input for the AI model
         rating_data = []
         for rating in ratings:
             if rating.total_score > 0:
@@ -272,7 +239,6 @@ def get_ai_recommendation(member_id):
         if not rating_data:
             return jsonify({'error': 'No valid ratings found for the member'}), 404
 
-        # Generate the prompt with structured request
         prompt = f"""
         As an expert HR advisor, evaluate the following performance data for the member {member.first_name} {member.surname} and provide a structured recommendation. The evaluation should help the team manager make better decisions based on your analysis.
 
@@ -324,14 +290,13 @@ def get_ai_recommendation(member_id):
         # Call the OpenAI API
         try:
             response = openai.ChatCompletion.create(
-                model="gpt-4",
+                model="gpt-4o",
                 messages=[
                     {"role": "system", "content": "You are an expert HR advisor."},
                     {"role": "user", "content": prompt}
                 ]
             )
             recommendation = response.choices[0].message['content'].strip()
-            # Split the response into recommendation and future prediction
             recommendation_parts = recommendation.split("Future Prediction:")
             recommendation_text = recommendation_parts[0].strip()
             future_prediction = recommendation_parts[1].strip() if len(recommendation_parts) > 1 else "No prediction available."
@@ -342,4 +307,16 @@ def get_ai_recommendation(member_id):
         return jsonify({'recommendation': recommendation_text, 'future_prediction': future_prediction})
     except Exception as e:
         logging.error(f"Error in get_ai_recommendation: {e}")
+        return jsonify({'error': 'An internal error occurred'}), 500
+
+@rate_team_bp.route('/individual_evaluation')
+def individual_evaluation():
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'User not authenticated'}), 403
+
+    try:
+        return render_template('individual_evaluation.html')
+    except Exception as e:
+        logging.error(f"Error in individual_evaluation: {e}")
         return jsonify({'error': 'An internal error occurred'}), 500
