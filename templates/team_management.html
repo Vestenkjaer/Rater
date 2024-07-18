@@ -274,12 +274,21 @@
 
   <script>
     let isAdmin = false;
-    let tier = 0;
 
     document.addEventListener('DOMContentLoaded', () => {
       fetchUserInfo();
       fetchTeams();
     });
+
+    async function fetchUserInfo() {
+      try {
+        const response = await fetch('/user_info');
+        const data = await response.json();
+        isAdmin = data.is_admin;
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+      }
+    }
 
     async function fetchTeams() {
       try {
@@ -311,20 +320,6 @@
     async function createTeam(event) {
       event.preventDefault();
       const teamName = document.getElementById('teamName').value;
-
-      const response = await fetch('/team_management/get_teams');
-      const data = await response.json();
-      const teams = data.teams || [];
-
-      if (tier === 1 && teams.length >= 1) {
-        showPopup("Upgrade Required", "To create more than one team, please upgrade to the Professional version.");
-        return;
-      }
-
-      if (tier === 2 && teams.length >= 5) {
-        showPopup("Upgrade Required", "To create more than five teams, please upgrade to the Enterprise version.");
-        return;
-      }
 
       if (!isAdmin) {
         showPopup("Access Denied", "You do not have administrative privileges to create a team.");
@@ -421,14 +416,24 @@
       }
     }
 
-    async function fetchUserInfo() {
-      try {
-        const response = await fetch('/user_info');
-        const data = await response.json();
-        isAdmin = data.is_admin;
-        tier = data.tier;
-      } catch (error) {
-        console.error('Error fetching user info:', error);
+    async function addMember(teamId) {
+      const firstName = document.getElementById('newFirstName').value;
+      const surname = document.getElementById('newSurname').value;
+      const employerId = document.getElementById('newEmployerId').value;
+
+      const addResponse = await fetch(`/team_management/add_team_member/${teamId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ first_name: firstName, surname: surname, employer_id: employerId })
+      });
+
+      if (addResponse.ok) {
+        selectTeam(teamId);
+      } else {
+        const error = await addResponse.json();
+        showPopup("Error", error.error);
       }
     }
 

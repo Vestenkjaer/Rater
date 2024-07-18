@@ -19,32 +19,25 @@ def get_teams():
         return jsonify({"error": "User not logged in"}), 401
 
     user = User.query.get(user_id)
-    logger.debug(f"Fetched user: {user}")
-
     if not user:
-        logger.error('User not found in database')
         return jsonify({"error": "User not found in database"}), 404
 
-    user_teams = user.teams
-    logger.debug(f"User teams: {user_teams}")
+    if session.get('is_admin'):
+        # Admin sees all teams within their client tenant
+        teams = Team.query.filter_by(client_id=user.client_id).all()
+    else:
+        # Regular users see only the teams assigned to them
+        teams = user.teams
 
-    teams = [{"id": team.id, "name": team.name} for team in user_teams]
-    logger.debug(f"Teams to be returned: {teams}")
+    teams_list = [{"id": team.id, "name": team.name} for team in teams]
 
-    return jsonify({"teams": teams})
+    return jsonify({"teams": teams_list})
 
 @team_management_bp.route('/add_team', methods=['POST'])
 def add_team():
     try:
         data = request.get_json()
-        logger.debug(f"Received data for new team: {data}")
-
-        logger.debug(f"Session: {session}")
         user_id = session.get('user_id')
-        tier = session.get('tier')
-        is_admin = session.get('is_admin')
-
-        logger.debug(f"User ID: {user_id}, Tier: {tier}, Is Admin: {is_admin}")
 
         if not user_id:
             return jsonify({"error": "User not found in session"}), 401
@@ -53,20 +46,13 @@ def add_team():
         if not user:
             return jsonify({"error": "User not found in database"}), 404
 
-        team_count = Team.query.filter_by(client_id=user.client_id).count()
-        logger.debug(f"Current team count for client {user.client_id}: {team_count}")
-        if tier == 1 and team_count >= 1:
-            return jsonify({"error": "To create more than one team, please upgrade to the next version."}), 403
-        if tier == 2 and team_count >= 5:
-            return jsonify({"error": "To create more than five teams, please upgrade to the next version."}), 403
-
-        if tier == 2 and not is_admin:
+        if not session.get('is_admin'):
             return jsonify({"error": "You do not have administrative privileges to create a team."}), 403
 
         new_team = Team(name=data['team_name'], client_id=user.client_id)
         db.session.add(new_team)
         db.session.commit()
-        logger.debug(f"Added new team with ID: {new_team.id}")
+
         return jsonify(id=new_team.id, name=new_team.name)
     except Exception as e:
         logger.error(f"Error adding team: {e}")
@@ -91,11 +77,8 @@ def get_team_members(team_id):
 def add_team_member(team_id):
     try:
         data = request.get_json()
-        logger.debug(f"Received data for new team member: {data}")
 
         user_id = session.get('user_id')
-        tier = session.get('tier')
-
         if not user_id:
             return jsonify({"error": "User not found in session"}), 401
 
@@ -103,9 +86,10 @@ def add_team_member(team_id):
         if not team:
             return jsonify({"error": "Team not found"}), 404
 
-        member_count = TeamMember.query.filter_by(team_id=team_id).count()
-        if (tier == 1 and member_count >= 10) or (tier == 2 and member_count >= 25):
-            return jsonify({"error": "To add more team members, please upgrade to the next version."}), 403
+        # Check if the user is allowed to add members to this team
+        user = User.query.get(user_id)
+        if not user.is_admin and team not in user.teams:
+            return jsonify({"error": "You do not have permissions to add members to this team."}), 403
 
         new_member = TeamMember(
             team_id=team_id, 
@@ -115,7 +99,6 @@ def add_team_member(team_id):
         )
         db.session.add(new_member)
         db.session.commit()
-        logger.debug(f"Added new team member with ID: {new_member.id}")
         return jsonify(id=new_member.id, first_name=new_member.first_name, surname=new_member.surname, employer_id=new_member.employer_id)
     except Exception as e:
         logger.error(f"Error adding team member: {e}")
