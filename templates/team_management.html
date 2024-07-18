@@ -285,6 +285,7 @@
       try {
         const response = await fetch('/team_management/get_teams');
         const data = await response.json();
+        console.log('Fetched teams:', data);
         const teamList = document.getElementById('teamList');
         teamList.innerHTML = '';
 
