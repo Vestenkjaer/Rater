@@ -18,7 +18,6 @@ def get_current_user():
 def individual_evaluation():
     user = get_current_user()
     if not user:
-        print("User not authenticated")
         return jsonify({'error': 'User not authenticated'}), 403
 
     try:
