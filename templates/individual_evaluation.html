@@ -196,9 +196,8 @@
       width: 100%;
       height: 100%;
       background-color: rgba(0, 0, 0, 0.5);
-      z-index: 999;
+      z-index: 999.
     }
-
     .popup {
       position: fixed;
       top: 50%;
@@ -211,11 +210,9 @@
       z-index: 1000;
       text-align: center;
     }
-
     .popup h3 {
       margin-bottom: 20px;
     }
-
     .popup button {
       background-color: #007AFF;
       border: none;
@@ -225,7 +222,6 @@
       cursor: pointer;
       border-radius: 12px;
     }
-
     .popup button:hover {
       background-color: #005BB5;
     }
@@ -347,12 +343,7 @@
     function fetchTeamMembers(teamId) {
       selectedTeamId = teamId;
       fetch(`/individual_evaluation/get_team_members/${teamId}`)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-          return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
           console.log("Received team members data:", data); // Log data
           document.getElementById('team-name-container').innerHTML = `Selected Team: ${data.team_name}`;
@@ -377,12 +368,7 @@
       selectedMemberId = memberId;
       selectedMemberName = memberName;
       fetch(`/individual_evaluation/get_team_members/${selectedTeamId}`)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-          return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
           console.log("Received member data:", data); // Log data
           const member = data.members.find(m => m.id === memberId);
@@ -410,12 +396,7 @@
     function fetchHistoricalData(memberId, memberName, radarData) {
       console.log("Fetching historical data for member ID:", memberId); // Add log
       fetch(`/individual_evaluation/get_historical_data/${memberId}`)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-          return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
           console.log('Historical Data:', data); // Add log
           const labels = data.map(entry => new Date(entry.timestamp).toLocaleDateString());
