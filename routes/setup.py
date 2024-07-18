@@ -315,15 +315,20 @@ def delete_user(auth0_id, user_id):
     try:
         client_id = session.get('client_id')
         if not client_id:
+            current_app.logger.error('Client ID not found in session')
             return jsonify({'error': 'Client ID not found in session'}), 401
 
         user = User.query.filter_by(id=user_id, client_id=client_id).first()
         if not user:
+            current_app.logger.error(f'User with ID {user_id} not found')
             return jsonify({'error': 'User not found'}), 404
 
         email = user.email  # Save email before deletion
+
+        # Delete user from local database
         db.session.delete(user)
         db.session.commit()
+        current_app.logger.info(f'User {user_id} deleted from local database')
 
         # Also delete the user from Auth0
         auth0_domain = os.getenv('AUTH0_DOMAIN')
@@ -332,10 +337,20 @@ def delete_user(auth0_id, user_id):
             'Authorization': f'Bearer {auth0_token}',
             'Content-Type': 'application/json'
         }
-        response = requests.delete(f'https://{auth0_domain}/api/v2/users/{auth0_id}', headers=headers)
-        response.raise_for_status()
 
-        send_deletion_email(email)  # Send email notification of deletion
+        response = requests.delete(f'https://{auth0_domain}/api/v2/users/{auth0_id}', headers=headers)
+        if response.status_code != 204:
+            current_app.logger.error(f'Failed to delete Auth0 user: {response.content}')
+            response.raise_for_status()
+
+        current_app.logger.info(f'User {auth0_id} deleted from Auth0')
+
+        # Send email notification of deletion
+        try:
+            send_deletion_email(email)
+            current_app.logger.info(f'Deletion email sent to {email}')
+        except Exception as e:
+            current_app.logger.error(f'Failed to send deletion email: {e}')
 
         return jsonify({'status': 'success'})
     except Exception as e:
