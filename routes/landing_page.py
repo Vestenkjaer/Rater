@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, session, redirect, url_for, jsonify
 from models import Team, TeamMember, Rating, Client, User  # Ensure User model is imported
 import logging
+from sqlalchemy import func
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -10,11 +11,13 @@ def get_current_user():
     user_id = session.get('user_id')
     client_id = session.get('client_id')
     if not user_id or not client_id:
+        logging.error('User ID or Client ID not found in session.')
         return None
 
     user = User.query.get(user_id)
     client = Client.query.get(client_id)
     if not user or not client:
+        logging.error('User or Client not found in database.')
         return None
 
     user.client = client
@@ -47,7 +50,7 @@ def get_teams():
     teams = Team.query.all()
     teams_data = [{'id': team.id, 'name': team.name} for team in teams]
     logging.debug(f"Teams fetched: {teams_data}")
-    return jsonify(teams_data)
+    return jsonify({'teams': teams_data})
 
 @landing_page_bp.route('/rate_team/get_team_members/<int:team_id>', methods=['GET'])
 def get_team_members(team_id):
@@ -85,6 +88,7 @@ def get_historical_data(member_id):
 def get_last_submission(team_id):
     client_id = session.get('client_id')
     if not client_id:
+        logging.error('Client not authenticated.')
         return jsonify({'error': 'Client not authenticated'}), 403
 
     try:
@@ -110,6 +114,7 @@ def get_last_submission(team_id):
                 }
                 return jsonify(submission_data), 200
 
+        logging.debug('No submissions found.')
         return jsonify({'message': 'No submissions found'}), 200
     except Exception as e:
         logging.error(f"Error fetching last submission: {e}")
