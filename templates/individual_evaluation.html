@@ -345,7 +345,6 @@
       fetch(`/individual_evaluation/get_team_members/${teamId}`)
         .then(response => response.json())
         .then(data => {
-          console.log("Received team members data:", data); // Log data
           document.getElementById('team-name-container').innerHTML = `Selected Team: ${data.team_name}`;
           const memberList = document.getElementById('memberList');
           memberList.innerHTML = '';
@@ -370,7 +369,6 @@
       fetch(`/individual_evaluation/get_team_members/${selectedTeamId}`)
         .then(response => response.json())
         .then(data => {
-          console.log("Received member data:", data); // Log data
           const member = data.members.find(m => m.id === memberId);
           if (member) {
             document.getElementById('member-name-container').innerHTML = `Selected Member: ${member.first_name} ${member.surname}`;
@@ -394,11 +392,9 @@
     }
 
     function fetchHistoricalData(memberId, memberName, radarData) {
-      console.log("Fetching historical data for member ID:", memberId); // Add log
       fetch(`/individual_evaluation/get_historical_data/${memberId}`)
         .then(response => response.json())
         .then(data => {
-          console.log('Historical Data:', data); // Add log
           const labels = data.map(entry => new Date(entry.timestamp).toLocaleDateString());
           const dataset = {
             label: memberName,
