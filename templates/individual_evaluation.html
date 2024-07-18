@@ -252,7 +252,7 @@
   </div>
 
   <h2>Individual Evaluation</h2>
-  <div class="container">
+  <div class="container" data-usertier="{{ session['tier'] }}">
     <div class="team-members-list">
       <div class="team-member-container">
         <select id="teamList" class="dropdown" onchange="fetchTeamMembers(this.value)">
@@ -340,7 +340,9 @@
     let selectedTeamId = null;
     let selectedMemberId = null;
     let selectedMemberName = '';
-    let userTier = {{ session['tier'] }};
+
+    // Fetch user tier from the container's data attribute
+    const userTier = parseInt(document.querySelector('.container').dataset.usertier, 10);
 
     function fetchTeamMembers(teamId) {
       selectedTeamId = teamId;

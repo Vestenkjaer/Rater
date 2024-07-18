@@ -1,18 +1,36 @@
-from flask import Blueprint, render_template, jsonify, request
-from models import Team, TeamMember, Rating
+from flask import Blueprint, render_template, jsonify, request, session
+from models import Team, TeamMember, Rating, User
+from sqlalchemy import func
 
 individual_evaluation_bp = Blueprint('individual_evaluation', __name__)
 
+def get_current_user():
+    user_id = session.get('user_id')
+    if not user_id:
+        return None
+    return User.query.get(user_id)
+
 @individual_evaluation_bp.route('/')
 def individual_evaluation():
-    teams = Team.query.all()
-    return render_template('individual_evaluation.html', teams=teams)
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'User not authenticated'}), 403
+    
+    try:
+        teams = user.teams
+        return render_template('individual_evaluation.html', teams=teams)
+    except Exception as e:
+        return jsonify({'error': 'An internal error occurred'}), 500
 
 @individual_evaluation_bp.route('/get_team_members/<int:team_id>')
 def get_team_members(team_id):
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'User not authenticated'}), 403
+
     team = Team.query.get(team_id)
-    if not team:
-        return jsonify({'error': 'Team not found'}), 404
+    if not team or team not in user.teams:
+        return jsonify({'error': 'Team not found or not assigned to user'}), 404
 
     members = team.members
     members_data = []
@@ -36,7 +54,7 @@ def get_team_members(team_id):
             'id': member.id,
             'first_name': member.first_name,
             'surname': member.surname,
-            'team_id': member.team_id,  # Corrected attribute name
+            'team_id': member.team_id,
             'ratings': member_ratings,
             'avg_score': avg_score,
             'total_score': total_score
@@ -45,9 +63,13 @@ def get_team_members(team_id):
 
 @individual_evaluation_bp.route('/get_historical_data/<int:member_id>', methods=['GET'])
 def get_historical_data(member_id):
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'User not authenticated'}), 403
+
     member = TeamMember.query.get(member_id)
-    if not member:
-        return jsonify({"error": "Member not found"}), 404
+    if not member or member.team not in user.teams:
+        return jsonify({"error": "Member not found or not assigned to user"}), 404
 
     historical_data = []
     for evaluation in member.evaluations:
@@ -61,9 +83,8 @@ def get_historical_data(member_id):
             "self_motivation": evaluation.self_motivation,
             "capacity_for_learning": evaluation.capacity_for_learning,
             "adaptability": evaluation.adaptability,
-            "score": evaluation.total_score  # Assuming you have a total_score field
+            "score": evaluation.total_score
         }
         historical_data.append(data_entry)
 
-    print("Historical Data for Member {}: {}".format(member_id, historical_data))
     return jsonify(historical_data)
