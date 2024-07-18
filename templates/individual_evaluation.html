@@ -346,8 +346,7 @@
 
     function fetchTeamMembers(teamId) {
       selectedTeamId = teamId;
-      console.log(`Fetching team members for team ID: ${teamId}`); // Add log
-      fetch(`/rate_team/get_team_members/${teamId}`)
+      fetch(`/individual_evaluation/get_team_members/${teamId}`)
         .then(response => response.json())
         .then(data => {
           console.log("Received team members data:", data); // Log data
@@ -372,8 +371,7 @@
     function fetchMemberData(memberId, memberName) {
       selectedMemberId = memberId;
       selectedMemberName = memberName;
-      console.log(`Fetching data for member ID: ${memberId}, member name: ${memberName}`); // Add log
-      fetch(`/rate_team/get_team_members/${selectedTeamId}`)
+      fetch(`/individual_evaluation/get_team_members/${selectedTeamId}`)
         .then(response => response.json())
         .then(data => {
           console.log("Received member data:", data); // Log data
@@ -400,8 +398,8 @@
     }
 
     function fetchHistoricalData(memberId, memberName, radarData) {
-      console.log(`Fetching historical data for member ID: ${memberId}`); // Add log
-      fetch(`/rate_team/get_historical_data/${memberId}`)
+      console.log("Fetching historical data for member ID:", memberId); // Add log
+      fetch(`/individual_evaluation/get_historical_data/${memberId}`)
         .then(response => response.json())
         .then(data => {
           console.log('Historical Data:', data); // Add log
@@ -578,7 +576,6 @@
       console.log('Team list options:', teamList.options); // Add log
       if (teamList.options.length === 2) { // 1 option for placeholder and 1 for the team
         teamList.selectedIndex = 1; // Select the only team
-        console.log(`Auto-selecting team with ID: ${teamList.value}`); // Add log
         fetchTeamMembers(teamList.value);
       }
     });
