@@ -20,10 +20,14 @@ def get_teams():
 
     # Fetch the teams where the user is a member
     user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
     user_teams = user.teams
 
     teams = [{"id": team.id, "name": team.name} for team in user_teams]
 
+    logger.debug(f"Fetched teams for user {user_id}: {teams}")
     return jsonify({"teams": teams})
 
 @team_management_bp.route('/add_team', methods=['POST'])
