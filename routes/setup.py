@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, session, render_template, current_app
-from models import db, User, Team, user_teams, Settings  # Corrected the import
+from models import db, User, Team, user_teams, Settings
 import requests
 import json
 import os
