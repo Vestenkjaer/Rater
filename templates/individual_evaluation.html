@@ -171,7 +171,7 @@
     }
     .team-member-container {
       display: flex;
-      flex-direction: column;
+      flex-direction: column,
     }
     .dropdown {
       width: 100%;
@@ -196,7 +196,7 @@
       width: 100%;
       height: 100%;
       background-color: rgba(0, 0, 0, 0.5);
-      z-index: 999;
+      z-index: 999.
     }
 
     .popup {
@@ -257,9 +257,13 @@
       <div class="team-member-container">
         <select id="teamList" class="dropdown" onchange="fetchTeamMembers(this.value)">
           <option value="">Select Team</option>
-          {% for team in teams %}
-          <option value="{{ team.id }}">{{ team.name }}</option>
-          {% endfor %}
+          {% if teams %}
+            {% for team in teams %}
+            <option value="{{ team.id }}">{{ team.name }}</option>
+            {% endfor %}
+          {% else %}
+            <option value="">No teams available</option>
+          {% endif %}
         </select>
         <ul id="memberList">
           <!-- Members will be populated here -->
@@ -345,26 +349,38 @@
     const userTier = parseInt(document.querySelector('.container').dataset.usertier, 10);
 
     function fetchTeamMembers(teamId) {
+      console.log(`Fetching team members for team ID: ${teamId}`); // Log team ID
       selectedTeamId = teamId;
       fetch(`/individual_evaluation/get_team_members/${teamId}`)
-        .then(response => response.json())
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json();
+        })
         .then(data => {
-          console.log("Received team members data:", data); // Log data
+          console.log("Received team members data:", data); // Log received data
           document.getElementById('team-name-container').innerHTML = `Selected Team: ${data.team_name}`;
           const memberList = document.getElementById('memberList');
           memberList.innerHTML = '';
-          data.members.forEach(member => {
-            const li = document.createElement('li');
-            li.textContent = `${member.first_name} ${member.surname}`;
-            li.onclick = () => fetchMemberData(member.id, member.first_name + ' ' + member.surname);
-            memberList.appendChild(li);
-          });
-          // Automatically fetch members if there is only one team
-          if (data.members.length > 0) {
-            fetchMemberData(data.members[0].id, `${data.members[0].first_name} ${data.members[0].surname}`);
+          if (data.members.length === 0) {
+            console.log("No team members found");
+            memberList.innerHTML = '<li>No members found</li>';
+          } else {
+            data.members.forEach(member => {
+              const li = document.createElement('li');
+              li.textContent = `${member.first_name} ${member.surname}`;
+              li.onclick = () => fetchMemberData(member.id, member.first_name + ' ' + member.surname);
+              memberList.appendChild(li);
+            });
+            // Automatically fetch first member if available
+            if (data.members.length > 0) {
+              fetchMemberData(data.members[0].id, `${data.members[0].first_name} ${data.members[0].surname}`);
+            }
           }
-        }).catch(error => {
-          console.error("Error fetching team members:", error); // Add error log
+        })
+        .catch(error => {
+          console.error("Error fetching team members:", error); // Log errors
         });
     }
 
@@ -392,7 +408,8 @@
             });
             fetchHistoricalData(member.id, memberName, radarData);
           }
-        }).catch(error => {
+        })
+        .catch(error => {
           console.error("Error fetching member data:", error); // Add error log
         });
     }
@@ -573,9 +590,9 @@
 
     window.addEventListener('load', () => {
       const teamList = document.getElementById('teamList');
-      console.log('Team list options:', teamList.options); // Add log
-      if (teamList.options.length === 2) { // 1 option for placeholder and 1 for the team
-        teamList.selectedIndex = 1; // Select the only team
+      console.log('Team list options:', teamList.options); // Log team list options
+      if (teamList.options.length > 1) { // More than just the placeholder
+        teamList.selectedIndex = 1; // Select the first team
         fetchTeamMembers(teamList.value);
       }
     });
