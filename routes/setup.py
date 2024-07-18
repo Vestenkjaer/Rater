@@ -1,10 +1,10 @@
 from flask import Blueprint, request, jsonify, session, render_template, current_app
-from models import db, User, Team, UserTeam, Settings
+from models import db, User, Team, user_teams, Settings  # Corrected the import
 import requests
 import json
 import os
 import secrets
-from mail import mail
+from mail import mail  # Import mail from mail.py
 from flask_mail import Message
 import time
 
@@ -24,15 +24,14 @@ def get_users():
         users = User.query.filter_by(client_id=client_id).all()
         user_list = []
         for user in users:
-            user_teams = UserTeam.query.filter_by(user_id=user.id).all()
-            teams = [{'id': ut.team.id, 'name': ut.team.name} for ut in user_teams]
+            teams = Team.query.join(user_teams).filter_by(user_id=user.id).all()
             user_list.append({
                 'id': user.id,
                 'username': user.username,
                 'email': user.email,
                 'is_admin': user.is_admin,
-                'is_client': user.is_admin,
-                'teams': teams
+                'is_client': user.is_admin,  # Assuming is_client means is_admin in this context
+                'teams': [{'id': team.id, 'name': team.name} for team in teams]
             })
 
         return jsonify({"users": user_list})
@@ -121,78 +120,18 @@ def create_user():
     db.session.add(user)
     db.session.commit()
 
-    # Assign teams to user
     team_ids = data.get('teams', [])
     for team_id in team_ids:
-        user_team = UserTeam(user_id=user.id, team_id=team_id)
-        db.session.add(user_team)
-    db.session.commit()
+        team = Team.query.get(team_id)
+        if team and team.client_id == client_id:
+            user_team = user_teams.insert().values(user_id=user.id, team_id=team.id)
+            db.session.execute(user_team)
+            db.session.commit()
 
     send_password_email(email, temp_password)  # Send email with temporary password
 
     current_app.logger.info(f'User {username} created successfully with Auth0 ID {auth0_id}')
     return jsonify({'status': 'success'})
-
-@setup_bp.route('/edit_user/<auth0_id>/<int:user_id>', methods=['POST'])
-def edit_user(auth0_id, user_id):
-    data = request.json
-    username = data.get('username')
-    email = data.get('email')
-    client_id = session.get('client_id')
-    if not client_id:
-        return jsonify({'error': 'Client ID not found in session'}), 401
-
-    user = User.query.filter_by(id=user_id, client_id=client_id).first()
-    if not user:
-        return jsonify({'error': 'User not found'}), 404
-
-    user.username = username
-    user.email = email
-    db.session.commit()
-
-    # Update team assignments
-    UserTeam.query.filter_by(user_id=user.id).delete()
-    db.session.commit()
-
-    team_ids = data.get('teams', [])
-    for team_id in team_ids:
-        user_team = UserTeam(user_id=user.id, team_id=team_id)
-        db.session.add(user_team)
-    db.session.commit()
-
-    return jsonify({'status': 'success'})
-
-@setup_bp.route('/delete_user/<auth0_id>/<int:user_id>', methods=['POST'])
-def delete_user(auth0_id, user_id):
-    try:
-        client_id = session.get('client_id')
-        if not client_id:
-            return jsonify({'error': 'Client ID not found in session'}), 401
-
-        user = User.query.filter_by(id=user_id, client_id=client_id).first()
-        if not user:
-            return jsonify({'error': 'User not found'}), 404
-
-        email = user.email  # Save email before deletion
-        db.session.delete(user)
-        db.session.commit()
-
-        # Also delete the user from Auth0
-        auth0_domain = os.getenv('AUTH0_DOMAIN')
-        auth0_token = get_auth0_token()  # Use the token retrieval function
-        headers = {
-            'Authorization': f'Bearer {auth0_token}',
-            'Content-Type': 'application/json'
-        }
-        response = requests.delete(f'https://{auth0_domain}/api/v2/users/{auth0_id}', headers=headers)
-        response.raise_for_status()
-
-        send_deletion_email(email)  # Send email notification of deletion
-
-        return jsonify({'status': 'success'})
-    except Exception as e:
-        current_app.logger.error(f"Error deleting user: {e}")
-        return jsonify({'error': 'An unexpected error occurred while deleting the user'}), 500
 
 def get_auth0_token():
     if 'auth0_token' not in get_auth0_token.__dict__:
@@ -312,6 +251,37 @@ def send_deletion_email(email):
     except Exception as e:
         current_app.logger.error(f"Failed to send deletion email: {e}")
 
+@setup_bp.route('/edit_user/<auth0_id>/<int:user_id>', methods=['POST'])
+def edit_user(auth0_id, user_id):
+    data = request.json
+    username = data.get('username')
+    email = data.get('email')
+    client_id = session.get('client_id')
+    if not client_id:
+        return jsonify({'error': 'Client ID not found in session'}), 401
+
+    user = User.query.filter_by(id=user_id, client_id=client_id).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    user.username = username
+    user.email = email
+    db.session.commit()
+
+    # Update team assignments
+    db.session.execute(user_teams.delete().where(user_teams.c.user_id == user.id))
+    db.session.commit()
+
+    team_ids = data.get('teams', [])
+    for team_id in team_ids:
+        team = Team.query.get(team_id)
+        if team and team.client_id == client_id:
+            user_team = user_teams.insert().values(user_id=user.id, team_id=team.id)
+            db.session.execute(user_team)
+            db.session.commit()
+
+    return jsonify({'status': 'success'})
+
 @setup_bp.route('/request_password_reset', methods=['POST'])
 def request_password_reset():
     data = request.json
@@ -340,19 +310,34 @@ def request_password_reset():
 def password_reset():
     return render_template('request_password_reset.html')
 
-@setup_bp.route('/toggle_admin/<auth0_id>/<int:user_id>', methods=['POST'])
-def toggle_admin(auth0_id, user_id):
+@setup_bp.route('/delete_user/<auth0_id>/<int:user_id>', methods=['POST'])
+def delete_user(auth0_id, user_id):
     try:
-        data = request.json
-        is_admin = data.get('is_admin')
+        client_id = session.get('client_id')
+        if not client_id:
+            return jsonify({'error': 'Client ID not found in session'}), 401
 
-        user = User.query.filter_by(id=user_id).first()
+        user = User.query.filter_by(id=user_id, client_id=client_id).first()
         if not user:
             return jsonify({'error': 'User not found'}), 404
 
-        user.is_admin = is_admin
+        email = user.email  # Save email before deletion
+        db.session.delete(user)
         db.session.commit()
+
+        # Also delete the user from Auth0
+        auth0_domain = os.getenv('AUTH0_DOMAIN')
+        auth0_token = get_auth0_token()  # Use the token retrieval function
+        headers = {
+            'Authorization': f'Bearer {auth0_token}',
+            'Content-Type': 'application/json'
+        }
+        response = requests.delete(f'https://{auth0_domain}/api/v2/users/{auth0_id}', headers=headers)
+        response.raise_for_status()
+
+        send_deletion_email(email)  # Send email notification of deletion
 
         return jsonify({'status': 'success'})
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.error(f"Error deleting user: {e}")
+        return jsonify({'error': 'An unexpected error occurred while deleting the user'}), 500
