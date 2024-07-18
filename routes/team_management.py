@@ -18,7 +18,6 @@ def get_teams():
     if not user_id:
         return jsonify({"error": "User not logged in"}), 401
 
-    # Fetch the teams where the user is a member
     user = User.query.get(user_id)
     logger.debug(f"Fetched user: {user}")
 
@@ -40,10 +39,10 @@ def add_team():
         data = request.get_json()
         logger.debug(f"Received data for new team: {data}")
 
-        logger.debug(f"Session: {session}")  # Log entire session for debugging
-        user_id = session.get('user_id')  # Get user_id from session
-        tier = session.get('tier')  # Get user tier from session
-        is_admin = session.get('is_admin')  # Get user admin status from session
+        logger.debug(f"Session: {session}")
+        user_id = session.get('user_id')
+        tier = session.get('tier')
+        is_admin = session.get('is_admin')
 
         logger.debug(f"User ID: {user_id}, Tier: {tier}, Is Admin: {is_admin}")
 
@@ -54,7 +53,6 @@ def add_team():
         if not user:
             return jsonify({"error": "User not found in database"}), 404
 
-        # Tier restrictions
         team_count = Team.query.filter_by(client_id=user.client_id).count()
         logger.debug(f"Current team count for client {user.client_id}: {team_count}")
         if tier == 1 and team_count >= 1:
@@ -95,8 +93,8 @@ def add_team_member(team_id):
         data = request.get_json()
         logger.debug(f"Received data for new team member: {data}")
 
-        user_id = session.get('user_id')  # Get user_id from session
-        tier = session.get('tier')  # Get user tier from session
+        user_id = session.get('user_id')
+        tier = session.get('tier')
 
         if not user_id:
             return jsonify({"error": "User not found in session"}), 401
@@ -105,7 +103,6 @@ def add_team_member(team_id):
         if not team:
             return jsonify({"error": "Team not found"}), 404
 
-        # Tier restrictions for members
         member_count = TeamMember.query.filter_by(team_id=team_id).count()
         if (tier == 1 and member_count >= 10) or (tier == 2 and member_count >= 25):
             return jsonify({"error": "To add more team members, please upgrade to the next version."}), 403
