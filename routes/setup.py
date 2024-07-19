@@ -333,13 +333,36 @@ def delete_user(auth0_id, user_id):
         current_app.logger.info(f'User {auth0_id} deleted from Auth0')
 
         # Send email notification of deletion
-        try:
-            send_deletion_email(email)
-            current_app.logger.info(f'Deletion email sent to {email}')
-        except Exception as e:
-            current_app.logger.error(f'Failed to send deletion email: {e}')
+        send_deletion_email(email)
+        current_app.logger.info(f'Deletion email sent to {email}')
 
         return jsonify({'status': 'success'})
     except Exception as e:
         current_app.logger.error(f"Error deleting user: {e}")
         return jsonify({'error': 'An unexpected error occurred while deleting the user'}), 500
+
+def send_deletion_email(email, retries=3, delay=5):
+    msg = Message('Account Deletion Notice',
+                  recipients=[email])
+    msg.body = '''
+    Dear User,
+
+    You have been removed from Raterware.
+
+    If you have any questions or believe this is a mistake, please contact your manager or your Raterware responsible contact.
+
+    Best regards,
+    The Raterware Team
+    '''
+    attempt = 0
+    while attempt < retries:
+        try:
+            mail.send(msg)
+            current_app.logger.info(f"Deletion email sent to {email}")
+            return
+        except Exception as e:
+            attempt += 1
+            current_app.logger.error(f"Failed to send deletion email to {email}, attempt {attempt}/{retries}: {e}")
+            if attempt < retries:
+                time.sleep(delay)
+    current_app.logger.error(f"Failed to send deletion email to {email} after {retries} attempts")
