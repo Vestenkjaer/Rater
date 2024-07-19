@@ -2,11 +2,16 @@ import logging
 from flask import Blueprint, render_template, request, jsonify, session
 from models import db, Team, TeamMember, User
 
-# Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 team_management_bp = Blueprint('team_management', __name__)
+
+def get_current_user():
+    user_id = session.get('user_id')
+    if not user_id:
+        return None
+    return User.query.get(user_id)
 
 @team_management_bp.route('/')
 def team_management():
@@ -14,38 +19,31 @@ def team_management():
 
 @team_management_bp.route('/get_teams', methods=['GET'])
 def get_teams():
-    user_id = session.get('user_id')
-    client_id = session.get('client_id')
-    if not user_id or not client_id:
-        return jsonify({"error": "User not logged in"}), 401
-
-    user = User.query.get(user_id)
+    user = get_current_user()
     if not user:
-        return jsonify({"error": "User not found in database"}), 404
+        return jsonify({"error": "User not authenticated"}), 403
 
-    teams = Team.query.filter_by(client_id=client_id).all()
-    teams_list = [{"id": team.id, "name": team.name} for team in teams]
-
-    return jsonify({"teams": teams_list})
+    try:
+        teams = Team.query.filter_by(client_id=user.client_id).all()
+        teams_list = [{"id": team.id, "name": team.name} for team in teams]
+        return jsonify({"teams": teams_list})
+    except Exception as e:
+        logger.error(f"Error fetching teams: {e}")
+        return jsonify({"error": "An internal error occurred"}), 500
 
 @team_management_bp.route('/add_team', methods=['POST'])
 def add_team():
     try:
         data = request.get_json()
-        user_id = session.get('user_id')
-        client_id = session.get('client_id')
+        user = get_current_user()
 
-        if not user_id or not client_id:
-            return jsonify({"error": "User not found in session"}), 401
-
-        user = User.query.get(user_id)
         if not user:
-            return jsonify({"error": "User not found in database"}), 404
+            return jsonify({"error": "User not authenticated"}), 403
 
-        if not session.get('is_admin'):
+        if not user.is_admin:
             return jsonify({"error": "You do not have administrative privileges to create a team."}), 403
 
-        new_team = Team(name=data['team_name'], client_id=client_id)
+        new_team = Team(name=data['team_name'], client_id=user.client_id)
         db.session.add(new_team)
         db.session.commit()
 
@@ -56,36 +54,42 @@ def add_team():
 
 @team_management_bp.route('/get_team_members/<int:team_id>')
 def get_team_members(team_id):
-    team = Team.query.get(team_id)
-    if team is None or team.client_id != session.get('client_id'):
-        return jsonify({"error": "Team not found"}), 404
-    members = [
-        {
-            'id': member.id,
-            'first_name': member.first_name,
-            'surname': member.surname,
-            'employer_id': member.employer_id
-        } for member in team.members
-    ]
-    return jsonify(team_name=team.name, members=members)
+    user = get_current_user()
+    if not user:
+        return jsonify({"error": "User not authenticated"}), 403
+
+    try:
+        team = Team.query.filter_by(id=team_id, client_id=user.client_id).first()
+        if not team:
+            return jsonify({"error": "Team not found"}), 404
+
+        members = [
+            {
+                'id': member.id,
+                'first_name': member.first_name,
+                'surname': member.surname,
+                'employer_id': member.employer_id
+            } for member in team.members
+        ]
+        return jsonify(team_name=team.name, members=members)
+    except Exception as e:
+        logger.error(f"Error fetching team members: {e}")
+        return jsonify({"error": "An internal error occurred"}), 500
 
 @team_management_bp.route('/add_team_member/<int:team_id>', methods=['POST'])
 def add_team_member(team_id):
     try:
         data = request.get_json()
+        user = get_current_user()
 
-        user_id = session.get('user_id')
-        client_id = session.get('client_id')
-        if not user_id or not client_id:
-            return jsonify({"error": "User not found in session"}), 401
+        if not user:
+            return jsonify({"error": "User not authenticated"}), 403
 
-        team = Team.query.get(team_id)
-        if not team or team.client_id != client_id:
+        team = Team.query.filter_by(id=team_id, client_id=user.client_id).first()
+        if not team:
             return jsonify({"error": "Team not found"}), 404
 
-        # Check if the user is allowed to add members to this team
-        user = User.query.get(user_id)
-        if not user.is_admin and team not in user.teams.filter_by(client_id=client_id).all():
+        if not user.is_admin and team not in user.teams:
             return jsonify({"error": "You do not have permissions to add members to this team."}), 403
 
         new_member = TeamMember(
@@ -107,9 +111,17 @@ def update_team_member(member_id):
         data = request.get_json()
         logger.debug(f"Received data to update team member ID {member_id}: {data}")
         member = TeamMember.query.get(member_id)
-        team = Team.query.get(member.team_id)
-        if member is None or team.client_id != session.get('client_id'):
+        user = get_current_user()
+
+        if not user:
+            return jsonify({"error": "User not authenticated"}), 403
+
+        if member.team.client_id != user.client_id:
+            return jsonify({"error": "You do not have permissions to update this team member."}), 403
+
+        if member is None:
             return "Team member not found", 404
+
         member.first_name = data['first_name']
         member.surname = data['surname']
         member.employer_id = data['employer_id']
@@ -124,9 +136,17 @@ def update_team_member(member_id):
 def delete_team_member(member_id):
     try:
         member = TeamMember.query.get(member_id)
-        team = Team.query.get(member.team_id)
-        if member is None or team.client_id != session.get('client_id'):
+        user = get_current_user()
+
+        if not user:
+            return jsonify({"error": "User not authenticated"}), 403
+
+        if member.team.client_id != user.client_id:
+            return jsonify({"error": "You do not have permissions to delete this team member."}), 403
+
+        if member is None:
             return "Team member not found", 404
+
         db.session.delete(member)
         db.session.commit()
         logger.debug(f"Deleted team member with ID: {member.id}")
@@ -141,8 +161,17 @@ def update_team(team_id):
         data = request.get_json()
         logger.debug(f"Received data to update team ID {team_id}: {data}")
         team = Team.query.get(team_id)
-        if team is None or team.client_id != session.get('client_id'):
+        user = get_current_user()
+
+        if not user:
+            return jsonify({"error": "User not authenticated"}), 403
+
+        if team.client_id != user.client_id:
+            return jsonify({"error": "You do not have permissions to update this team."}), 403
+
+        if team is None:
             return "Team not found", 404
+
         team.name = data['team_name']
         db.session.commit()
         logger.debug(f"Updated team with ID: {team.id}")
@@ -155,8 +184,17 @@ def update_team(team_id):
 def delete_team(team_id):
     try:
         team = Team.query.get(team_id)
-        if team is None or team.client_id != session.get('client_id'):
+        user = get_current_user()
+
+        if not user:
+            return jsonify({"error": "User not authenticated"}), 403
+
+        if team.client_id != user.client_id:
+            return jsonify({"error": "You do not have permissions to delete this team."}), 403
+
+        if team is None:
             return "Team not found", 404
+
         db.session.delete(team)
         db.session.commit()
         logger.debug(f"Deleted team with ID: {team.id}")
