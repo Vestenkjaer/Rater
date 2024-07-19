@@ -437,7 +437,10 @@ function renderRadarChart(radarData, canvasId) {
             beginAtZero: true,
             min: 0,
             max: 10,
-            stepSize: 1
+            stepSize: 1,
+            callback: function(value) {
+              return value.toFixed(1); // Show decimal values
+            }
           }
         }
       }
