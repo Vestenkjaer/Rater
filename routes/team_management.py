@@ -15,6 +15,7 @@ def team_management():
 @team_management_bp.route('/get_teams', methods=['GET'])
 def get_teams():
     user_id = session.get('user_id')
+    client_id = session.get('client_id')
     if not user_id:
         return jsonify({"error": "User not logged in"}), 401
 
@@ -24,7 +25,7 @@ def get_teams():
 
     if session.get('is_admin'):
         # Admin sees all teams within their client tenant
-        teams = Team.query.filter_by(client_id=user.client_id).all()
+        teams = Team.query.filter_by(client_id=client_id).all()
     else:
         # Regular users see only the teams assigned to them
         teams = user.teams
@@ -38,6 +39,7 @@ def add_team():
     try:
         data = request.get_json()
         user_id = session.get('user_id')
+        client_id = session.get('client_id')
 
         if not user_id:
             return jsonify({"error": "User not found in session"}), 401
@@ -49,7 +51,7 @@ def add_team():
         if not session.get('is_admin'):
             return jsonify({"error": "You do not have administrative privileges to create a team."}), 403
 
-        new_team = Team(name=data['team_name'], client_id=user.client_id)
+        new_team = Team(name=data['team_name'], client_id=client_id)
         db.session.add(new_team)
         db.session.commit()
 
@@ -61,8 +63,8 @@ def add_team():
 @team_management_bp.route('/get_team_members/<int:team_id>')
 def get_team_members(team_id):
     team = Team.query.get(team_id)
-    if team is None:
-        return jsonify({"error": "Team not found"}), 404
+    if team is None or team.client_id != session.get('client_id'):
+        return jsonify({"error": "Team not found or you do not have access"}), 404
     members = [
         {
             'id': member.id,
@@ -83,8 +85,8 @@ def add_team_member(team_id):
             return jsonify({"error": "User not found in session"}), 401
 
         team = Team.query.get(team_id)
-        if not team:
-            return jsonify({"error": "Team not found"}), 404
+        if not team or team.client_id != session.get('client_id'):
+            return jsonify({"error": "Team not found or you do not have access"}), 404
 
         # Check if the user is allowed to add members to this team
         user = User.query.get(user_id)
@@ -110,8 +112,9 @@ def update_team_member(member_id):
         data = request.get_json()
         logger.debug(f"Received data to update team member ID {member_id}: {data}")
         member = TeamMember.query.get(member_id)
-        if member is None:
-            return "Team member not found", 404
+        team = Team.query.get(member.team_id)
+        if member is None or team.client_id != session.get('client_id'):
+            return "Team member not found or you do not have access", 404
         member.first_name = data['first_name']
         member.surname = data['surname']
         member.employer_id = data['employer_id']
@@ -126,8 +129,9 @@ def update_team_member(member_id):
 def delete_team_member(member_id):
     try:
         member = TeamMember.query.get(member_id)
-        if member is None:
-            return "Team member not found", 404
+        team = Team.query.get(member.team_id)
+        if member is None or team.client_id != session.get('client_id'):
+            return "Team member not found or you do not have access", 404
         db.session.delete(member)
         db.session.commit()
         logger.debug(f"Deleted team member with ID: {member.id}")
@@ -142,8 +146,8 @@ def update_team(team_id):
         data = request.get_json()
         logger.debug(f"Received data to update team ID {team_id}: {data}")
         team = Team.query.get(team_id)
-        if team is None:
-            return "Team not found", 404
+        if team is None or team.client_id != session.get('client_id'):
+            return "Team not found or you do not have access", 404
         team.name = data['team_name']
         db.session.commit()
         logger.debug(f"Updated team with ID: {team.id}")
@@ -156,8 +160,8 @@ def update_team(team_id):
 def delete_team(team_id):
     try:
         team = Team.query.get(team_id)
-        if team is None:
-            return "Team not found", 404
+        if team is None or team.client_id != session.get('client_id'):
+            return "Team not found or you do not have access", 404
         db.session.delete(team)
         db.session.commit()
         logger.debug(f"Deleted team with ID: {team.id}")

@@ -288,98 +288,84 @@ def create_app():
 
     @app.route('/register', methods=['POST'])
     def register():
-        try:
-            data = request.get_json()
-            email = data.get('email')
-            username = data.get('username')  # Get the username from the request if provided
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        username = data.get('username')
 
-            if not email:
-                return jsonify({'error': 'Email is required'}), 400
+        if not email:
+            return jsonify({'error': 'Email is required'}), 400
 
-            client_id = session.get('client_id')
-            if not client_id:
-                client = Client.query.filter_by(email=email).first()
-                if not client:
-                    client = Client(name='default_client_name', email=email, tier=0, is_admin=True)  # Set is_admin to True
-                    db.session.add(client)
-                    db.session.commit()
-                client_id = client.id
+        # Create new client if not in session
+        client_id = session.get('client_id')
+        if not client_id:
+            client = Client.query.filter_by(email=email).first()
+            if not client:
+                client = Client(name='default_client_name', email=email, tier=0, is_admin=True)
+                db.session.add(client)
+                db.session.commit()
+            client_id = client.id
+            session['client_id'] = client_id  # Ensure client_id is set in session
 
-            # Check if user already exists
-            existing_user = User.query.filter_by(email=email).first()
-            if existing_user:
-                return jsonify({'error': 'User already exists'}), 400
+        # Check if user already exists
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            return jsonify({'error': 'User already exists'}), 400
 
-            # Ensure unique username
-            if not username:
-                username = 'default_username'
-            if User.query.filter_by(username=username).first():
-                suffix = 1
+        # Ensure unique username
+        if not username:
+            username = 'default_username'
+        if User.query.filter_by(username=username).first():
+            suffix = 1
+            new_username = f"{username}{suffix}"
+            while User.query.filter_by(username=new_username).first():
+                suffix += 1
                 new_username = f"{username}{suffix}"
-                while User.query.filter_by(username=new_username).first():
-                    suffix += 1
-                    new_username = f"{username}{suffix}"
-                username = new_username
+            username = new_username
 
-            # Generate a password
-            password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(10))
-            hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+        # Generate a password
+        password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(10))
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
 
-            # Create a new user
-            new_user = User(username=username, email=email, password_hash=hashed_password, client_id=client_id, is_admin=True)  # Set is_admin to True
-            db.session.add(new_user)
-            db.session.commit()
+        # Create a new user
+        new_user = User(username=username, email=email, password_hash=hashed_password, client_id=client_id, is_admin=True)
+        db.session.add(new_user)
+        db.session.commit()
 
-            # Create user in Auth0
-            auth0_domain = os.getenv('AUTH0_DOMAIN')
-            auth0_token = get_auth0_token()
-            auth0_headers = {
-                'Authorization': f'Bearer {auth0_token}',
-                'Content-Type': 'application/json'
-            }
-            auth0_data = {
-                'email': email,
-                'password': password,
-                'connection': 'Username-Password-Authentication'
-            }
-            auth0_response = requests.post(f'https://{auth0_domain}/api/v2/users', headers=auth0_headers, json=auth0_data)
-            if auth0_response.status_code != 201:
-                raise Exception('Auth0 user creation failed')
+        # Create user in Auth0
+        auth0_domain = os.getenv('AUTH0_DOMAIN')
+        auth0_token = get_auth0_token()
+        auth0_headers = {
+            'Authorization': f'Bearer {auth0_token}',
+            'Content-Type': 'application/json'
+        }
+        auth0_data = {
+            'email': email,
+            'password': password,
+            'connection': 'Username-Password-Authentication'
+        }
+        auth0_response = requests.post(f'https://{auth0_domain}/api/v2/users', headers=auth0_headers, json=auth0_data)
+        if auth0_response.status_code != 201:
+            raise Exception('Auth0 user creation failed')
 
-            # Inside the register route where the email is constructed and sent
-            msg = Message('Welcome to Raterware!', recipients=[email])
-            msg.html = f"""
-              <p>Hi {username},</p>
+        # Send welcome email
+        msg = Message('Welcome to Raterware!', recipients=[email])
+        msg.html = f"""
+          <p>Hi {username},</p>
+          <p>Welcome to Raterware! We're thrilled to have you on board.</p>
+          <p>Here is your password to get started:</p>
+          <p><strong style="font-size: 18px; color: blue;">{password}</strong></p>
+          <p>Please log in using your email and this password. You can change your password in the login dialog box.</p>
+          <p>Best regards,<br>The Raterware Team</p>
+        """
+        mail.send(msg)
 
-             <p>Welcome to Raterware! We're thrilled to have you on board.</p>
+        return jsonify({'message': 'Registration successful. A password has been sent to your email.'}), 200
+    except Exception as e:
+        logger.error(f"Error during registration: {str(e)}")
+        logger.exception("Exception during registration")
+        return jsonify({'error': 'Registration failed.'}), 500
 
-             <p>Raterware is your ultimate tool for objectively rating and monitoring the progress of your team members.
-             Whether you’re managing a business team, a sports team, or any group of individuals that require regular evaluation,
-             Raterware adapts to your unique requirements.</p>
-
-             <p>Here is your password to get started:</p>
-             <p><strong style="font-size: 18px; color: blue;">{password}</strong></p>
-
-             <p>Please log in using your email and this password. In the log in dialog box, you can change your password to something more secure and personal.</p>
-
-             <p>We're here to help you unlock the true potential of your team. If you have any questions or need assistance, feel free to reach out to our support team.</p>
-             <p> </p>
-              <p> </p>
-
-             <p>Best regards,
-             <p>The Raterware Team</p>
-             <p><strong style="font-size: 14px; color: darkred;">support@raterware.com</p>  
-            
-             <p>Empowering Your Team with Data-Driven Insights</p>
-            """
-
-            mail.send(msg)
-
-            return jsonify({'message': 'Registration successful. A password has been sent to your email.'}), 200
-        except Exception as e:
-            logger.error(f"Error during registration: {str(e)}")
-            logger.exception("Exception during registration")
-            return jsonify({'error': 'Registration failed.'}), 500
 
     @app.route('/stripe-webhook', methods=['POST'])
     def stripe_webhook():
