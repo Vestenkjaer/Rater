@@ -289,17 +289,16 @@
       "capacity_for_learning",
       "adaptability"
     ];
-
+  
     let historicalChart;
     let radarChart;
     let radarChartModal;
     let selectedTeamId = null;
     let selectedMemberId = null;
     let selectedMemberName = '';
-
-    // Fetch user tier from the container's data attribute
+  
     const userTier = parseInt(document.querySelector('.container').dataset.usertier, 10);
-
+  
     function fetchTeamMembers(teamId) {
       selectedTeamId = teamId;
       fetch(`/individual_evaluation/get_team_members/${teamId}`)
@@ -315,7 +314,6 @@
             li.onclick = () => fetchMemberData(member.id, member.first_name + ' ' + member.surname);
             memberList.appendChild(li);
           });
-          // Automatically fetch members if there is only one team
           if (data.members.length > 0) {
             fetchMemberData(data.members[0].id, `${data.members[0].first_name} ${data.members[0].surname}`);
           }
@@ -323,7 +321,7 @@
           console.error("Error fetching team members:", error); // Add error log
         });
     }
-
+  
     function fetchMemberData(memberId, memberName) {
       selectedMemberId = memberId;
       selectedMemberName = memberName;
@@ -351,7 +349,7 @@
           console.error("Error fetching member data:", error); // Add error log
         });
     }
-
+  
     function fetchHistoricalData(memberId, memberName, radarData) {
       fetch(`/individual_evaluation/get_historical_data/${memberId}`)
         .then(response => response.json())
@@ -374,7 +372,7 @@
           console.error('Error fetching historical data:', error); // Add error log
         });
     }
-
+  
     function renderChart(labels, dataset) {
       const ctx = document.getElementById('historicalChart').getContext('2d');
       if (historicalChart instanceof Chart) {
@@ -409,7 +407,7 @@
         }
       });
     }
-
+  
     function renderRadarChart(radarData, canvasId) {
       const canvas = document.getElementById(canvasId);
       if (canvas && canvas.getContext) {
@@ -447,7 +445,7 @@
         console.error(`Canvas with ID ${canvasId} not found or does not support 2D context.`); // Add error log
       }
     }
-
+  
     function getRandomColor() {
       const letters = '0123456789ABCDEF';
       let color = '#';
@@ -456,7 +454,7 @@
       }
       return color;
     }
-
+  
     function checkTierAndGenerateAIRecommendation() {
       if (userTier < 2) {
         showPopup(
@@ -468,20 +466,20 @@
         aiRecommendation();
       }
     }
-
+  
     function aiRecommendation() {
       if (!selectedMemberId) {
         alert('Please select a member to get AI recommendation.');
         return;
       }
-
+  
       document.getElementById('spinnerContainer').style.display = 'block';
-
+  
       fetch(`/rate_team/get_ai_recommendation/${selectedMemberId}`)
         .then(response => response.json())
         .then(data => {
           document.getElementById('spinnerContainer').style.display = 'none';
-
+  
           if (data.error) {
             alert(data.error);
           } else {
@@ -497,12 +495,12 @@
           alert('An error occurred while fetching the AI recommendation.');
         });
     }
-
+  
     function saveAsPDF() {
       const memberName = document.getElementById('member-name-container').innerText.replace('Selected Member: ', '');
       const today = new Date().toISOString().slice(0, 10);
       const fileName = `AI_Recommendation_${memberName}_${today}.pdf`;
-
+  
       const element = document.createElement('div');
       element.style.margin = '20mm';
       element.innerHTML = `
@@ -514,7 +512,7 @@
         <div>${document.getElementById('aiRecommendationContent').innerHTML}</div>
         <div>${document.getElementById('futurePredictionContent').innerHTML}</div>
       `;
-
+  
       html2pdf().set({
         margin: 15,
         filename: fileName,
@@ -523,7 +521,7 @@
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       }).from(element).save();
     }
-
+  
     window.addEventListener('load', () => {
       const teamList = document.getElementById('teamList');
       fetch('/individual_evaluation/get_assigned_teams')
@@ -535,7 +533,6 @@
             option.textContent = team.name;
             teamList.appendChild(option);
           });
-          // Automatically fetch the first team members if there is only one team
           if (teamList.options.length === 2) { // 1 option for placeholder and 1 for the team
             teamList.selectedIndex = 1; // Select the only team
             fetchTeamMembers(teamList.value);
@@ -544,7 +541,7 @@
           console.error("Error fetching teams:", error); // Add error log
         });
     });
-
+  
     function showPopup(title, message, redirectUrl) {
       document.getElementById('popupTitle').innerText = title;
       document.getElementById('popupMessage').innerText = message;
@@ -557,11 +554,12 @@
         }
       };
     }
-
+  
     function closePopup() {
       document.getElementById('popupOverlay').style.display = 'none';
       document.getElementById('popup').style.display = 'none';
     }
   </script>
+  
 </body>
 </html>
