@@ -4,7 +4,7 @@ import requests
 import json
 import os
 import secrets
-from mail import mail
+from mail import mail  # Import mail from mail.py
 from flask_mail import Message
 import time
 
@@ -30,8 +30,8 @@ def get_users():
                 'username': user.username,
                 'email': user.email,
                 'is_admin': user.is_admin,
-                'auth0_id': user.auth0_id,
-                'is_client': user.is_admin,
+                'auth0_id': user.auth0_id,  # Ensure auth0_id is included in the response
+                'is_client': user.is_admin,  # Assuming is_client means is_admin in this context
                 'teams': [{'id': team.id, 'name': team.name} for team in teams]
             })
 
@@ -341,6 +341,7 @@ def delete_user(auth0_id, user_id):
     except Exception as e:
         current_app.logger.error(f"Error deleting user: {e}")
         return jsonify({'error': 'An unexpected error occurred while deleting the user'}), 500
+
 
 def send_deletion_email(email, retries=3, delay=5):
     msg = Message('Account Deletion Notice',

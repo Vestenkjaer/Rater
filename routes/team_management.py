@@ -15,8 +15,8 @@ def team_management():
 @team_management_bp.route('/get_teams', methods=['GET'])
 def get_teams():
     user_id = session.get('user_id')
-    client_id = session.get('client_id')
-    if not user_id:
+    client_id = session.get('client_id')  # Ensure client_id is retrieved from the session
+    if not user_id or not client_id:
         return jsonify({"error": "User not logged in"}), 401
 
     user = User.query.get(user_id)
@@ -39,9 +39,9 @@ def add_team():
     try:
         data = request.get_json()
         user_id = session.get('user_id')
-        client_id = session.get('client_id')
+        client_id = session.get('client_id')  # Ensure client_id is retrieved from the session
 
-        if not user_id:
+        if not user_id or not client_id:
             return jsonify({"error": "User not found in session"}), 401
 
         user = User.query.get(user_id)
@@ -51,7 +51,7 @@ def add_team():
         if not session.get('is_admin'):
             return jsonify({"error": "You do not have administrative privileges to create a team."}), 403
 
-        new_team = Team(name=data['team_name'], client_id=client_id)
+        new_team = Team(name=data['team_name'], client_id=client_id)  # Assign the team to the client's ID
         db.session.add(new_team)
         db.session.commit()
 
@@ -60,11 +60,12 @@ def add_team():
         logger.error(f"Error adding team: {e}")
         return jsonify(error=str(e)), 500
 
-@team_management_bp.route('/get_team_members/<int:team_id>')
+@team_management_bp.route('/get_team_members/<int:team_id>', methods=['GET'])
 def get_team_members(team_id):
-    team = Team.query.get(team_id)
-    if team is None or team.client_id != session.get('client_id'):
-        return jsonify({"error": "Team not found or you do not have access"}), 404
+    client_id = session.get('client_id')  # Ensure client_id is retrieved from the session
+    team = Team.query.filter_by(id=team_id, client_id=client_id).first()  # Ensure the team belongs to the client
+    if team is None:
+        return jsonify({"error": "Team not found"}), 404
     members = [
         {
             'id': member.id,
@@ -81,12 +82,13 @@ def add_team_member(team_id):
         data = request.get_json()
 
         user_id = session.get('user_id')
-        if not user_id:
+        client_id = session.get('client_id')  # Ensure client_id is retrieved from the session
+        if not user_id or not client_id:
             return jsonify({"error": "User not found in session"}), 401
 
-        team = Team.query.get(team_id)
-        if not team or team.client_id != session.get('client_id'):
-            return jsonify({"error": "Team not found or you do not have access"}), 404
+        team = Team.query.filter_by(id=team_id, client_id=client_id).first()  # Ensure the team belongs to the client
+        if not team:
+            return jsonify({"error": "Team not found"}), 404
 
         # Check if the user is allowed to add members to this team
         user = User.query.get(user_id)
@@ -112,9 +114,8 @@ def update_team_member(member_id):
         data = request.get_json()
         logger.debug(f"Received data to update team member ID {member_id}: {data}")
         member = TeamMember.query.get(member_id)
-        team = Team.query.get(member.team_id)
-        if member is None or team.client_id != session.get('client_id'):
-            return "Team member not found or you do not have access", 404
+        if member is None:
+            return "Team member not found", 404
         member.first_name = data['first_name']
         member.surname = data['surname']
         member.employer_id = data['employer_id']
@@ -129,9 +130,8 @@ def update_team_member(member_id):
 def delete_team_member(member_id):
     try:
         member = TeamMember.query.get(member_id)
-        team = Team.query.get(member.team_id)
-        if member is None or team.client_id != session.get('client_id'):
-            return "Team member not found or you do not have access", 404
+        if member is None:
+            return "Team member not found", 404
         db.session.delete(member)
         db.session.commit()
         logger.debug(f"Deleted team member with ID: {member.id}")
@@ -146,8 +146,8 @@ def update_team(team_id):
         data = request.get_json()
         logger.debug(f"Received data to update team ID {team_id}: {data}")
         team = Team.query.get(team_id)
-        if team is None or team.client_id != session.get('client_id'):
-            return "Team not found or you do not have access", 404
+        if team is None:
+            return "Team not found", 404
         team.name = data['team_name']
         db.session.commit()
         logger.debug(f"Updated team with ID: {team.id}")
@@ -160,8 +160,8 @@ def update_team(team_id):
 def delete_team(team_id):
     try:
         team = Team.query.get(team_id)
-        if team is None or team.client_id != session.get('client_id'):
-            return "Team not found or you do not have access", 404
+        if team is None:
+            return "Team not found", 404
         db.session.delete(team)
         db.session.commit()
         logger.debug(f"Deleted team with ID: {team.id}")
