@@ -78,435 +78,438 @@
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            fetchUsersAndTeams();
-            fetchSettings();
+    fetchUsersAndTeams();
+    fetchSettings();
 
-            document.querySelectorAll('input, select').forEach(element => {
-                element.addEventListener('change', saveSettings);
+    document.querySelectorAll('input, select').forEach(element => {
+        element.addEventListener('change', saveSettings);
+    });
+
+    document.getElementById('redRangeMax').addEventListener('input', updateScoreRanges);
+    document.getElementById('orangeRangeMin').addEventListener('input', updateScoreRanges);
+    document.getElementById('orangeRangeMax').addEventListener('input', updateScoreRanges);
+    document.getElementById('whiteRangeMin').addEventListener('input', updateScoreRanges);
+    document.getElementById('whiteRangeMax').addEventListener('input', updateScoreRanges);
+    document.getElementById('greenRangeMin').addEventListener('input', updateScoreRanges);
+
+    document.querySelectorAll('input[name="ratingFrequency"]').forEach(element => {
+        element.addEventListener('change', function () {
+            document.querySelectorAll('input[name="ratingFrequency"]').forEach(checkbox => {
+                checkbox.checked = false;
             });
-
-            document.getElementById('redRangeMax').addEventListener('input', updateScoreRanges);
-            document.getElementById('orangeRangeMin').addEventListener('input', updateScoreRanges);
-            document.getElementById('orangeRangeMax').addEventListener('input', updateScoreRanges);
-            document.getElementById('whiteRangeMin').addEventListener('input', updateScoreRanges);
-            document.getElementById('whiteRangeMax').addEventListener('input', updateScoreRanges);
-            document.getElementById('greenRangeMin').addEventListener('input', updateScoreRanges);
-
-            document.querySelectorAll('input[name="ratingFrequency"]').forEach(element => {
-                element.addEventListener('change', function () {
-                    document.querySelectorAll('input[name="ratingFrequency"]').forEach(checkbox => {
-                        checkbox.checked = false;
-                    });
-                    this.checked = true;
-                });
-            });
+            this.checked = true;
         });
+    });
+});
 
-        function updateScoreRanges() {
-            const redMax = parseInt(document.getElementById('redRangeMax').value);
-            const orangeMin = redMax + 1;
-            document.getElementById('orangeRangeMin').value = orangeMin;
+function updateScoreRanges() {
+    const redMax = parseInt(document.getElementById('redRangeMax').value);
+    const orangeMin = redMax + 1;
+    document.getElementById('orangeRangeMin').value = orangeMin;
 
-            const orangeMax = parseInt(document.getElementById('orangeRangeMax').value);
-            const whiteMin = orangeMax + 1;
-            document.getElementById('whiteRangeMin').value = whiteMin;
+    const orangeMax = parseInt(document.getElementById('orangeRangeMax').value);
+    const whiteMin = orangeMax + 1;
+    document.getElementById('whiteRangeMin').value = whiteMin;
 
-            const whiteMax = parseInt(document.getElementById('whiteRangeMax').value);
-            const greenMin = whiteMax + 1;
-            document.getElementById('greenRangeMin').value = greenMin;
+    const whiteMax = parseInt(document.getElementById('whiteRangeMax').value);
+    const greenMin = whiteMax + 1;
+    document.getElementById('greenRangeMin').value = greenMin;
 
-            document.getElementById('orangeRangeMin').disabled = true;
-            document.getElementById('whiteRangeMin').disabled = true;
-            document.getElementById('greenRangeMin').disabled = true;
+    document.getElementById('orangeRangeMin').disabled = true;
+    document.getElementById('whiteRangeMin').disabled = true;
+    document.getElementById('greenRangeMin').disabled = true;
 
-            saveSettings();
-        }
+    saveSettings();
+}
 
-        function fetchUsersAndTeams() {
-            fetch('/setup/get_users').then(response => response.json()).then(data => {
-                const users = data.users;
-                const userList = document.getElementById('userList');
-                userList.innerHTML = '';
-                users.forEach(user => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${user.username}</td>
-                        <td>${user.email}</td>
-                        <td>
-                            <input type="checkbox" ${user.is_admin ? 'checked' : ''} onchange="toggleAdmin('${user.auth0_id}', ${user.id}, this.checked)">
-                        </td>
-                        <td>${user.is_client ? 'Client' : user.teams.map(t => t.name).join(', ')}</td>
-                        <td>
-                            <button class="btn btn-sm btn-primary" onclick="populateFormForEdit('${user.auth0_id}', ${user.id})">Edit</button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteUser('${user.auth0_id}', ${user.id})">Delete</button>
-                        </td>
-                    `;
-                    userList.appendChild(row);
-                });
-            });
+function fetchUsersAndTeams() {
+    fetch('/setup/get_users').then(response => response.json()).then(data => {
+        console.log('Users fetched from backend:', data.users); // Log the users to debug
 
-            fetch('/setup/get_teams').then(response => response.json()).then(data => {
-                const teams = data.teams;
-                const availableTeamsList = document.getElementById('available-teams');
-                availableTeamsList.innerHTML = '';
-                teams.forEach(team => {
-                    const listItem = document.createElement('li');
-                    listItem.textContent = team.name;
-                    listItem.dataset.teamId = team.id;
-                    listItem.addEventListener('click', () => assignTeam(team.id, team.name));
-                    availableTeamsList.appendChild(listItem);
-                });
-            });
-        }
+        const users = data.users;
+        const userList = document.getElementById('userList');
+        userList.innerHTML = '';
+        users.forEach(user => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${user.username}</td>
+                <td>${user.email}</td>
+                <td>
+                    <input type="checkbox" ${user.is_admin ? 'checked' : ''} onchange="toggleAdmin('${user.auth0_id}', ${user.id}, this.checked)">
+                </td>
+                <td>${user.is_client ? 'Client' : user.teams.map(t => t.name).join(', ')}</td>
+                <td>
+                    <button class="btn btn-sm btn-primary" onclick="populateFormForEdit('${user.auth0_id}', ${user.id})">Edit</button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteUser('${user.auth0_id}', ${user.id})">Delete</button>
+                </td>
+            `;
+            userList.appendChild(row);
+        });
+    });
 
-        function fetchSettings() {
-            fetch('/setup/get_settings').then(response => response.json()).then(data => {
-                const defaultSettings = {
-                    score_ranges: {
-                        red: { min: 0, max: 40 },
-                        orange: { min: 41, max: 47 },
-                        white: { min: 48, max: 69 },
-                        green: { min: 70, max: 80 }
-                    },
-                    email_notifications: {
-                        "1_week": false,
-                        "3_days": true,
-                        "1_day": false
-                    },
-                    rating_frequency: {
-                        "weekly": false,
-                        "bi_weekly": false,
-                        "monthly": true,
-                        "quarterly": false
-                    }
-                };
-
-                const settings = data.settings || defaultSettings;
-
-                document.getElementById('redRangeMin').value = settings.score_ranges.red.min;
-                document.getElementById('redRangeMax').value = settings.score_ranges.red.max;
-                document.getElementById('orangeRangeMin').value = settings.score_ranges.orange.min;
-                document.getElementById('orangeRangeMax').value = settings.score_ranges.orange.max;
-                document.getElementById('whiteRangeMin').value = settings.score_ranges.white.min;
-                document.getElementById('whiteRangeMax').value = settings.score_ranges.white.max;
-                document.getElementById('greenRangeMin').value = settings.score_ranges.green.min;
-                document.getElementById('greenRangeMax').value = settings.score_ranges.green.max;
-
-                document.getElementById('notify1Week').checked = settings.email_notifications['1_week'];
-                document.getElementById('notify3Days').checked = settings.email_notifications['3_days'];
-                document.getElementById('notify1Day').checked = settings.email_notifications['1_day'];
-
-                document.getElementById('weekly').checked = settings.rating_frequency.weekly;
-                document.getElementById('bi_weekly').checked = settings.rating_frequency.bi_weekly;
-                document.getElementById('monthly').checked = settings.rating_frequency.monthly;
-                document.getElementById('quarterly').checked = settings.rating_frequency.quarterly;
-            }).catch(error => {
-                console.error('Error fetching settings:', error);
-            });
-        }
-
-        function assignTeam(teamId, teamName) {
-            const assignedTeamsList = document.getElementById('assigned-teams');
-            const availableTeamsList = document.getElementById('available-teams');
+    fetch('/setup/get_teams').then(response => response.json()).then(data => {
+        const teams = data.teams;
+        const availableTeamsList = document.getElementById('available-teams');
+        availableTeamsList.innerHTML = '';
+        teams.forEach(team => {
             const listItem = document.createElement('li');
-            listItem.textContent = teamName;
-            listItem.dataset.teamId = teamId;
-            listItem.addEventListener('click', () => unassignTeam(teamId, teamName));
-            assignedTeamsList.appendChild(listItem);
-
-            const availableItem = availableTeamsList.querySelector(`li[data-team-id='${teamId}']`);
-            if (availableItem) {
-                availableItem.remove();
-            }
-        }
-
-        function unassignTeam(teamId, teamName) {
-            const assignedTeamsList = document.getElementById('assigned-teams');
-            const availableTeamsList = document.getElementById('available-teams');
-            const listItem = document.createElement('li');
-            listItem.textContent = teamName;
-            listItem.dataset.teamId = teamId;
-            listItem.addEventListener('click', () => assignTeam(teamId, teamName));
+            listItem.textContent = team.name;
+            listItem.dataset.teamId = team.id;
+            listItem.addEventListener('click', () => assignTeam(team.id, team.name));
             availableTeamsList.appendChild(listItem);
+        });
+    });
+}
 
-            const assignedItem = assignedTeamsList.querySelector(`li[data-team-id='${teamId}']`);
-            if (assignedItem) {
-                assignedItem.remove();
+function fetchSettings() {
+    fetch('/setup/get_settings').then(response => response.json()).then(data => {
+        const defaultSettings = {
+            score_ranges: {
+                red: { min: 0, max: 40 },
+                orange: { min: 41, max: 47 },
+                white: { min: 48, max: 69 },
+                green: { min: 70, max: 80 }
+            },
+            email_notifications: {
+                "1_week": false,
+                "3_days": true,
+                "1_day": false
+            },
+            rating_frequency: {
+                "weekly": false,
+                "bi_weekly": false,
+                "monthly": true,
+                "quarterly": false
             }
-        }
+        };
 
-        function createUser() {
-            const username = document.getElementById('username').value;
-            const email = document.getElementById('email').value;
+        const settings = data.settings || defaultSettings;
+
+        document.getElementById('redRangeMin').value = settings.score_ranges.red.min;
+        document.getElementById('redRangeMax').value = settings.score_ranges.red.max;
+        document.getElementById('orangeRangeMin').value = settings.score_ranges.orange.min;
+        document.getElementById('orangeRangeMax').value = settings.score_ranges.orange.max;
+        document.getElementById('whiteRangeMin').value = settings.score_ranges.white.min;
+        document.getElementById('whiteRangeMax').value = settings.score_ranges.white.max;
+        document.getElementById('greenRangeMin').value = settings.score_ranges.green.min;
+        document.getElementById('greenRangeMax').value = settings.score_ranges.green.max;
+
+        document.getElementById('notify1Week').checked = settings.email_notifications['1_week'];
+        document.getElementById('notify3Days').checked = settings.email_notifications['3_days'];
+        document.getElementById('notify1Day').checked = settings.email_notifications['1_day'];
+
+        document.getElementById('weekly').checked = settings.rating_frequency.weekly;
+        document.getElementById('bi_weekly').checked = settings.rating_frequency.bi_weekly;
+        document.getElementById('monthly').checked = settings.rating_frequency.monthly;
+        document.getElementById('quarterly').checked = settings.rating_frequency.quarterly;
+    }).catch(error => {
+        console.error('Error fetching settings:', error);
+    });
+}
+
+function assignTeam(teamId, teamName) {
+    const assignedTeamsList = document.getElementById('assigned-teams');
+    const availableTeamsList = document.getElementById('available-teams');
+    const listItem = document.createElement('li');
+    listItem.textContent = teamName;
+    listItem.dataset.teamId = teamId;
+    listItem.addEventListener('click', () => unassignTeam(teamId, teamName));
+    assignedTeamsList.appendChild(listItem);
+
+    const availableItem = availableTeamsList.querySelector(`li[data-team-id='${teamId}']`);
+    if (availableItem) {
+        availableItem.remove();
+    }
+}
+
+function unassignTeam(teamId, teamName) {
+    const assignedTeamsList = document.getElementById('assigned-teams');
+    const availableTeamsList = document.getElementById('available-teams');
+    const listItem = document.createElement('li');
+    listItem.textContent = teamName;
+    listItem.dataset.teamId = teamId;
+    listItem.addEventListener('click', () => assignTeam(teamId, teamName));
+    availableTeamsList.appendChild(listItem);
+
+    const assignedItem = assignedTeamsList.querySelector(`li[data-team-id='${teamId}']`);
+    if (assignedItem) {
+        assignedItem.remove();
+    }
+}
+
+function createUser() {
+    const username = document.getElementById('username').value;
+    const email = document.getElementById('email').value;
+    const assignedTeamsList = document.getElementById('assigned-teams');
+    const teams = Array.from(assignedTeamsList.children).map(item => item.dataset.teamId);
+
+    const data = {
+        username: username,
+        email: email,
+        teams: teams
+    };
+
+    fetch('/setup/create_user', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    }).then(response => response.json()).then(result => {
+        if (result.status === 'success') {
+            alert('User created successfully');
+            document.getElementById('username').value = '';
+            document.getElementById('email').value = '';
+            assignedTeamsList.innerHTML = '';
+            fetchUsersAndTeams();
+        } else {
+            alert('Error creating user: ' + result.error);
+        }
+    });
+}
+
+function populateFormForEdit(auth0Id, userId) {
+    fetch(`/setup/get_users`).then(response => response.json()).then(data => {
+        const user = data.users.find(u => u.id === userId);
+        if (user) {
+            document.getElementById('username').value = user.username;
+            document.getElementById('email').value = user.email;
             const assignedTeamsList = document.getElementById('assigned-teams');
-            const teams = Array.from(assignedTeamsList.children).map(item => item.dataset.teamId);
+            assignedTeamsList.innerHTML = '';
+            user.teams.forEach(team => {
+                const listItem = document.createElement('li');
+                listItem.textContent = team.name;
+                listItem.dataset.teamId = team.id;
+                listItem.addEventListener('click', () => unassignTeam(team.id, team.name));
+                assignedTeamsList.appendChild(listItem);
+            });
 
-            const data = {
-                username: username,
-                email: email,
-                teams: teams
+            const createButton = document.getElementById('createUserButton');
+            createButton.textContent = 'Save Changes';
+            createButton.onclick = function() {
+                editUser(auth0Id, userId);
             };
-
-            fetch('/setup/create_user', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            }).then(response => response.json()).then(result => {
-                if (result.status === 'success') {
-                    alert('User created successfully');
-                    document.getElementById('username').value = '';
-                    document.getElementById('email').value = '';
-                    assignedTeamsList.innerHTML = '';
-                    fetchUsersAndTeams();
-                } else {
-                    alert('Error creating user: ' + result.error);
-                }
-            });
         }
+    });
+}
 
-        function populateFormForEdit(auth0Id, userId) {
-            fetch(`/setup/get_users`).then(response => response.json()).then(data => {
-                const user = data.users.find(u => u.id === userId);
-                if (user) {
-                    document.getElementById('username').value = user.username;
-                    document.getElementById('email').value = user.email;
-                    const assignedTeamsList = document.getElementById('assigned-teams');
-                    assignedTeamsList.innerHTML = '';
-                    user.teams.forEach(team => {
-                        const listItem = document.createElement('li');
-                        listItem.textContent = team.name;
-                        listItem.dataset.teamId = team.id;
-                        listItem.addEventListener('click', () => unassignTeam(team.id, team.name));
-                        assignedTeamsList.appendChild(listItem);
-                    });
+function editUser(auth0Id, userId) {
+    const username = document.getElementById('username').value;
+    const email = document.getElementById('email').value;
+    const assignedTeamsList = document.getElementById('assigned-teams');
+    const teams = Array.from(assignedTeamsList.children).map(item => item.dataset.teamId);
 
-                    const createButton = document.getElementById('createUserButton');
-                    createButton.textContent = 'Save Changes';
-                    createButton.onclick = function() {
-                        editUser(auth0Id, userId);
-                    };
-                }
-            });
+    const data = {
+        username: username,
+        email: email,
+        teams: teams
+    };
+
+    fetch(`/setup/edit_user/${auth0Id}/${userId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    }).then(response => response.json()).then(result => {
+        if (result.status === 'success') {
+            alert('User updated successfully');
+            document.getElementById('username').value = '';
+            document.getElementById('email').value = '';
+            assignedTeamsList.innerHTML = '';
+            fetchUsersAndTeams();
+
+            const createButton = document.getElementById('createUserButton');
+            createButton.textContent = 'Create User';
+            createButton.onclick = createUser;
+        } else {
+            alert('Error updating user: ' + result.error);
         }
+    });
+}
 
-        function editUser(auth0Id, userId) {
-            const username = document.getElementById('username').value;
-            const email = document.getElementById('email').value;
-            const assignedTeamsList = document.getElementById('assigned-teams');
-            const teams = Array.from(assignedTeamsList.children).map(item => item.dataset.teamId);
-
-            const data = {
-                username: username,
-                email: email,
-                teams: teams
-            };
-
-            fetch(`/setup/edit_user/${auth0Id}/${userId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            }).then(response => response.json()).then(result => {
-                if (result.status === 'success') {
-                    alert('User updated successfully');
-                    document.getElementById('username').value = '';
-                    document.getElementById('email').value = '';
-                    assignedTeamsList.innerHTML = '';
-                    fetchUsersAndTeams();
-
-                    const createButton = document.getElementById('createUserButton');
-                    createButton.textContent = 'Create User';
-                    createButton.onclick = createUser;
-                } else {
-                    alert('Error updating user: ' + result.error);
-                }
-            });
+function deleteUser(auth0Id, userId) {
+    console.log('Deleting user:', auth0Id, userId); // Log the auth0Id and userId to debug
+    fetch(`/setup/delete_user/${auth0Id}/${userId}`, {
+        method: 'POST'
+    }).then(response => response.json()).then(result => {
+        if (result.status === 'success') {
+            alert('User deleted successfully');
+            window.location.reload();
+        } else {
+            alert('Error deleting user: ' + result.error);
         }
+    }).catch(error => {
+        alert('Error deleting user: ' + error.message);
+    });
+}
 
-        function deleteUser(auth0Id, userId) {
-            fetch(`/setup/delete_user/${auth0Id}/${userId}`, {
-                method: 'POST'
-            }).then(response => response.json()).then(result => {
-                if (result.status === 'success') {
-                    alert('User deleted successfully');
-                    window.location.reload();
-                } else {
-                    alert('Error deleting user: ' + result.error);
-                }
-            }).catch(error => {
-                alert('Error deleting user: ' + error.message);
-            });
+function saveSettings() {
+    const settings = {
+        score_ranges: {
+            red: { min: parseInt(document.getElementById('redRangeMin').value), max: parseInt(document.getElementById('redRangeMax').value) },
+            orange: { min: parseInt(document.getElementById('orangeRangeMin').value), max: parseInt(document.getElementById('orangeRangeMax').value) },
+            white: { min: parseInt(document.getElementById('whiteRangeMin').value), max: parseInt(document.getElementById('whiteRangeMax').value) },
+            green: { min: parseInt(document.getElementById('greenRangeMin').value), max: 80 }
+        },
+        email_notifications: {
+            "1_week": document.getElementById('notify1Week').checked,
+            "3_days": document.getElementById('notify3Days').checked,
+            "1_day": document.getElementById('notify1Day').checked
+        },
+        rating_frequency: {
+            "weekly": document.getElementById('weekly').checked,
+            "bi_weekly": document.getElementById('bi_weekly').checked,
+            "monthly": document.getElementById('monthly').checked,
+            "quarterly": document.getElementById('quarterly').checked
         }
+    };
 
-        function saveSettings() {
-            const settings = {
-                score_ranges: {
-                    red: { min: parseInt(document.getElementById('redRangeMin').value), max: parseInt(document.getElementById('redRangeMax').value) },
-                    orange: { min: parseInt(document.getElementById('orangeRangeMin').value), max: parseInt(document.getElementById('orangeRangeMax').value) },
-                    white: { min: parseInt(document.getElementById('whiteRangeMin').value), max: parseInt(document.getElementById('whiteRangeMax').value) },
-                    green: { min: parseInt(document.getElementById('greenRangeMin').value), max: 80 }
-                },
-                email_notifications: {
-                    "1_week": document.getElementById('notify1Week').checked,
-                    "3_days": document.getElementById('notify3Days').checked,
-                    "1_day": document.getElementById('notify1Day').checked
-                },
-                rating_frequency: {
-                    "weekly": document.getElementById('weekly').checked,
-                    "bi_weekly": document.getElementById('bi_weekly').checked,
-                    "monthly": document.getElementById('monthly').checked,
-                    "quarterly": document.getElementById('quarterly').checked
-                }
-            };
+    fetch('/setup/save_settings', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(settings)
+    }).then(response => response.json()).then(data => console.log(data));
+}
 
-            fetch('/setup/save_settings', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(settings)
-            }).then(response => response.json()).then(data => console.log(data));
+function toggleAdmin(auth0Id, userId, isAdmin) {
+    fetch(`/setup/toggle_admin/${auth0Id}/${userId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ is_admin: isAdmin })
+    }).then(response => response.json()).then(result => {
+        if (result.status === 'success') {
+            alert('Admin status updated successfully');
+        } else {
+            alert('Error updating admin status: ' + result.error);
         }
-
-        function toggleAdmin(auth0Id, userId, isAdmin) {
-            fetch(`/setup/toggle_admin/${auth0Id}/${userId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ is_admin: isAdmin })
-            }).then(response => response.json()).then(result => {
-                if (result.status === 'success') {
-                    alert('Admin status updated successfully');
-                } else {
-                    alert('Error updating admin status: ' + result.error);
-                }
-            });
-        }
-    </script>
+    });
+}
+</script>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg">
-        <a class="navbar-brand" href="#">RATER - Empowering teams with Data-Driven Insights</a>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ml-auto">
-                <li class="nav-item">
-                    <a class="nav-link btn-custom btn-custom-thin-border" href="/dashboard">Home</a>
-                </li>
-            </ul>
-        </div>
-    </nav>
+<nav class="navbar navbar-expand-lg">
+    <a class="navbar-brand" href="#">RATER - Empowering teams with Data-Driven Insights</a>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+                <a class="nav-link btn-custom btn-custom-thin-border" href="/dashboard">Home</a>
+            </li>
+        </ul>
+    </div>
+</nav>
 
-    <div class="container">
-        <div class="container-box">
-            <h3>User Management</h3>
+<div class="container">
+    <div class="container-box">
+        <h3>User Management</h3>
+        <div>
+            <label for="username">Username:</label>
+            <input type="text" id="username" class="form-control" required>
+            <label for="email">Email:</label>
+            <input type="email" id="email" class="form-control" required>
+        </div>
+        <div class="team-container">
             <div>
-                <label for="username">Username:</label>
-                <input type="text" id="username" class="form-control" required>
-                <label for="email">Email:</label>
-                <input type="email" id="email" class="form-control" required>
+                <h4>Available Teams</h4>
+                <ul id="available-teams" class="team-list"></ul>
             </div>
-            <div class="team-container">
-                <div>
-                    <h4>Available Teams</h4>
-                    <ul id="available-teams" class="team-list"></ul>
-                </div>
-                <div>
-                    <h4>Assigned Teams</h4>
-                    <ul id="assigned-teams" class="team-list"></ul>
-                </div>
-            </div>
-            <button class="btn-custom" id="createUserButton" onclick="createUser()">Create User</button>
-        </div>
-
-        <div class="container-box">
-            <h3>Existing Users</h3>
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Username</th>
-                        <th>Email</th>
-                        <th>Is Admin</th>
-                        <th>Teams</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="userList"></tbody>
-            </table>
-        </div>
-
-        <div class="container-box">
-            <h3>Define Score Ranges</h3>
-            <div class="score-range-container">
-                <label for="redRange">Red (Critical):</label>
-                <input type="number" id="redRangeMin" class="range-input" value="0" min="0" max="80" disabled>
-                <span> - </span>
-                <input type="number" id="redRangeMax" class="range-input" value="40" min="0" max="80">
-            </div>
-            <div class="score-range-container">
-                <label for="orangeRange">Orange (Below Acceptable Performance):</label>
-                <input type="number" id="orangeRangeMin" class="range-input" value="41" min="0" max="80" disabled>
-                <span> - </span>
-                <input type="number" id="orangeRangeMax" class="range-input" value="55" min="0" max="80">
-            </div>
-            <div class="score-range-container">
-                <label for="whiteRange">White (On Track):</label>
-                <input type="number" id="whiteRangeMin" class="range-input" value="56" min="0" max="80" disabled>
-                <span> - </span>
-                <input type="number" id="whiteRangeMax" class="range-input" value="70" min="0" max="80">
-            </div>
-            <div class="score-range-container">
-                <label for="greenRange">Green (Above Expectations):</label>
-                <input type="number" id="greenRangeMin" class="range-input" value="71" min="0" max="80" disabled>
-                <span> - </span>
-                <input type="number" id="greenRangeMax" class="range-input" value="80" min="0" max="80" disabled>
-            </div>
-        </div>
-
-        <div class="container-box">
-            <h3>Email Notifications</h3>
             <div>
-                <label for="notificationTime">Notify users:</label>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="1_week" id="notify1Week">
-                    <label class="form-check-label" for="notify1Week">One week prior</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="3_days" id="notify3Days" checked>
-                    <label class="form-check-label" for="notify3Days">Three days prior</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="1_day" id="notify1Day">
-                    <label class="form-check-label" for="notify1Day">One day prior</label>
-                </div>
+                <h4>Assigned Teams</h4>
+                <ul id="assigned-teams" class="team-list"></ul>
             </div>
         </div>
+        <button class="btn-custom" id="createUserButton" onclick="createUser()">Create User</button>
+    </div>
 
-        <div class="container-box">
-            <h3>Rating Frequency</h3>
-            <div>
-                <label for="ratingFrequency">Frequency:</label>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="ratingFrequency" value="weekly" id="weekly">
-                    <label class="form-check-label" for="weekly">Weekly</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="ratingFrequency" value="bi_weekly" id="bi_weekly">
-                    <label class="form-check-label" for="bi_weekly">Bi-Weekly</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="ratingFrequency" value="monthly" id="monthly" checked>
-                    <label class="form-check-label" for="monthly">Monthly</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="ratingFrequency" value="quarterly" id="quarterly">
-                    <label class="form-check-label" for="quarterly">Quarterly</label>
-                </div>
+    <div class="container-box">
+        <h3>Existing Users</h3>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Is Admin</th>
+                    <th>Teams</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="userList"></tbody>
+        </table>
+    </div>
+
+    <div class="container-box">
+        <h3>Define Score Ranges</h3>
+        <div class="score-range-container">
+            <label for="redRange">Red (Critical):</label>
+            <input type="number" id="redRangeMin" class="range-input" value="0" min="0" max="80" disabled>
+            <span> - </span>
+            <input type="number" id="redRangeMax" class="range-input" value="40" min="0" max="80">
+        </div>
+        <div class="score-range-container">
+            <label for="orangeRange">Orange (Below Acceptable Performance):</label>
+            <input type="number" id="orangeRangeMin" class="range-input" value="41" min="0" max="80" disabled>
+            <span> - </span>
+            <input type="number" id="orangeRangeMax" class="range-input" value="55" min="0" max="80">
+        </div>
+        <div class="score-range-container">
+            <label for="whiteRange">White (On Track):</label>
+            <input type="number" id="whiteRangeMin" class="range-input" value="56" min="0" max="80" disabled>
+            <span> - </span>
+            <input type="number" id="whiteRangeMax" class="range-input" value="70" min="0" max="80">
+        </div>
+        <div class="score-range-container">
+            <label for="greenRange">Green (Above Expectations):</label>
+            <input type="number" id="greenRangeMin" class="range-input" value="71" min="0" max="80" disabled>
+            <span> - </span>
+            <input type="number" id="greenRangeMax" class="range-input" value="80" min="0" max="80" disabled>
+        </div>
+    </div>
+
+    <div class="container-box">
+        <h3>Email Notifications</h3>
+        <div>
+            <label for="notificationTime">Notify users:</label>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="1_week" id="notify1Week">
+                <label class="form-check-label" for="notify1Week">One week prior</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="3_days" id="notify3Days" checked>
+                <label class="form-check-label" for="notify3Days">Three days prior</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="1_day" id="notify1Day">
+                <label class="form-check-label" for="notify1Day">One day prior</label>
             </div>
         </div>
     </div>
+
+    <div class="container-box">
+        <h3>Rating Frequency</h3>
+        <div>
+            <label for="ratingFrequency">Frequency:</label>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="ratingFrequency" value="weekly" id="weekly">
+                <label class="form-check-label" for="weekly">Weekly</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="ratingFrequency" value="bi_weekly" id="bi_weekly">
+                <label class="form-check-label" for="bi_weekly">Bi-Weekly</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="ratingFrequency" value="monthly" id="monthly" checked>
+                <label class="form-check-label" for="monthly">Monthly</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="ratingFrequency" value="quarterly" id="quarterly">
+                <label class="form-check-label" for="quarterly">Quarterly</label>
+            </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>

@@ -30,6 +30,7 @@ def get_users():
                 'username': user.username,
                 'email': user.email,
                 'is_admin': user.is_admin,
+                'auth0_id': user.auth0_id,  # Ensure auth0_id is included in the response
                 'is_client': user.is_admin,  # Assuming is_client means is_admin in this context
                 'teams': [{'id': team.id, 'name': team.name} for team in teams]
             })
