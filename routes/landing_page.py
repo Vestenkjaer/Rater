@@ -46,19 +46,24 @@ def dashboard():
 
 @landing_page_bp.route('/team_management/get_teams', methods=['GET'])
 def get_teams():
-    logging.debug("Fetching teams.")
-    teams = Team.query.all()
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'User not authenticated'}), 403
+
+    client_id = session.get('client_id')
+    teams = Team.query.filter_by(client_id=client_id).all()
     teams_data = [{'id': team.id, 'name': team.name} for team in teams]
-    logging.debug(f"Teams fetched: {teams_data}")
     return jsonify({'teams': teams_data})
 
 @landing_page_bp.route('/rate_team/get_team_members/<int:team_id>', methods=['GET'])
 def get_team_members(team_id):
-    logging.debug(f"Fetching team members for team ID: {team_id}")
-    team = Team.query.get(team_id)
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'User not authenticated'}), 403
+
+    team = Team.query.filter_by(id=team_id, client_id=user.client_id).first()
     if not team:
-        logging.error(f"Team not found for ID: {team_id}")
-        return jsonify({'error': 'Team not found'}), 404
+        return jsonify({'error': 'Team not found or not assigned to user'}), 404
 
     members = TeamMember.query.filter_by(team_id=team_id).all()
     members_data = []
@@ -73,26 +78,29 @@ def get_team_members(team_id):
             'total_score': total_score,
             'avg_score': avg_score
         })
-    logging.debug(f"Members fetched: {members_data}")
     return jsonify({'members': members_data})
 
 @landing_page_bp.route('/rate_team/get_historical_data/<int:member_id>', methods=['GET'])
 def get_historical_data(member_id):
-    logging.debug(f"Fetching historical data for member ID: {member_id}")
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'User not authenticated'}), 403
+
     ratings = Rating.query.filter_by(team_member_id=member_id).all()
     data = [{'timestamp': rating.timestamp, 'total_score': rating.total_score, 'avg_score': rating.avg_score} for rating in ratings]
-    logging.debug(f"Historical data fetched: {data}")
     return jsonify(data)
 
 @landing_page_bp.route('/rate_team/get_last_submission/<int:team_id>', methods=['GET'])
 def get_last_submission(team_id):
-    client_id = session.get('client_id')
-    if not client_id:
-        logging.error('Client not authenticated.')
-        return jsonify({'error': 'Client not authenticated'}), 403
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'User not authenticated'}), 403
 
     try:
-        # Fetch the latest rating timestamp for the members of the given team
+        team = Team.query.filter_by(id=team_id, client_id=user.client_id).first()
+        if not team:
+            return jsonify({'error': 'Team not found or team not assigned to user'}), 404
+
         latest_submission = db.session.query(
             Rating.team_member_id,
             func.max(Rating.timestamp).label('latest_submission')
