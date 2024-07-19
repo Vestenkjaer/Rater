@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 import os
 import logging
+import openai
 from flask import Blueprint, render_template, jsonify, request, session
 from models import Team, TeamMember, Rating, db, User
 from sqlalchemy import func
@@ -53,7 +54,7 @@ def get_team_members(team_id):
     try:
         team = Team.query.filter_by(id=team_id, client_id=user.client_id).first()
         if not team:
-            return jsonify({'error': 'Team not assigned to user'}), 403
+            return jsonify({'error': 'Team not found or not assigned to user'}), 403
 
         members = team.members
         members_data = []
@@ -289,7 +290,7 @@ def get_ai_recommendation(member_id):
         # Call the OpenAI API
         try:
             response = openai.ChatCompletion.create(
-                model="gpt-4o-mini",
+                model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You are an expert HR advisor."},
                     {"role": "user", "content": prompt}
