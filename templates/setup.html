@@ -335,7 +335,7 @@ function deleteUser(auth0Id, userId) {
     }).then(response => response.json()).then(result => {
         if (result.status === 'success') {
             alert('User deleted successfully');
-            window.location.reload();
+            fetchUsersAndTeams(); // Refresh the user list to reflect the changes
         } else {
             alert('Error deleting user: ' + result.error);
         }
@@ -343,6 +343,7 @@ function deleteUser(auth0Id, userId) {
         alert('Error deleting user: ' + error.message);
     });
 }
+
 
 function saveSettings() {
     const settings = {
