@@ -289,7 +289,7 @@ def get_ai_recommendation(member_id):
         # Call the OpenAI API
         try:
             response = openai.ChatCompletion.create(
-                model="gpt-4o",
+                model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": "You are an expert HR advisor."},
                     {"role": "user", "content": prompt}
