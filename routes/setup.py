@@ -122,14 +122,16 @@ def create_user():
     db.session.commit()
 
     team_ids = data.get('teams', [])
+    team_names = []
     for team_id in team_ids:
         team = Team.query.get(team_id)
         if team and team.client_id == client_id:
             user_team = user_teams.insert().values(user_id=user.id, team_id=team.id)
             db.session.execute(user_team)
+            team_names.append(team.name)
             db.session.commit()
 
-    send_password_email(email, temp_password)  # Send email with temporary password
+    send_password_email(email, temp_password, team_names)  # Send email with temporary password and team names
 
     current_app.logger.info(f'User {username} created successfully with Auth0 ID {auth0_id}')
     return jsonify({'status': 'success'})
@@ -205,7 +207,8 @@ def create_auth0_user(email):
 
     return auth0_user["user_id"], temp_password
 
-def send_password_email(email, password):
+def send_password_email(email, password, team_names):
+    teams_str = ', '.join(team_names) if team_names else 'No teams assigned'
     msg = Message('Your New Account Password',
                   recipients=[email])
     msg.html = f'''
@@ -219,7 +222,9 @@ def send_password_email(email, password):
 
     <p>Here is your password to get started:</p>
     <p><strong style="font-size: 18px; color: blue;">{password}</strong></p>
-    <p>Please log in using your email and this password. In the log in dialog box, you can change your password to something more secure and personal.</p>
+    <p>Please log in using your email and this password. In the login dialog box, you can change your password to something more secure and personal.</p>
+
+    <p>You have been assigned to the following team(s): {teams_str}</p>
 
     <p>Please visit the following link to log in with your new password:</p>
     <p><a href="http://raterware.com/login">http://raterware.com/login</a></p>
@@ -232,25 +237,6 @@ def send_password_email(email, password):
         current_app.logger.info(f"Password email sent to {email}")
     except Exception as e:
         current_app.logger.error(f"Failed to send email: {e}")
-
-def send_deletion_email(email):
-    msg = Message('Account Deletion Notice',
-                  recipients=[email])
-    msg.body = '''
-    Dear User,
-
-    You have been removed from Raterware.
-
-    If you have any questions or believe this is a mistake, please contact your manager or your Raterware responsible contact.
-
-    Best regards,
-    The Raterware Team
-    '''
-    try:
-        mail.send(msg)
-        current_app.logger.info(f"Deletion email sent to {email}")
-    except Exception as e:
-        current_app.logger.error(f"Failed to send deletion email: {e}")
 
 @setup_bp.route('/edit_user/<auth0_id>/<int:user_id>', methods=['POST'])
 def edit_user(auth0_id, user_id):

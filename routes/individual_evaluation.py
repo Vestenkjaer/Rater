@@ -17,7 +17,6 @@ def individual_evaluation():
 
     try:
         assigned_teams = user.teams
-        print(f"Assigned teams: {assigned_teams}")  # Debug print
         return render_template('individual_evaluation.html', tier=session.get('tier', 0), teams=assigned_teams)
     except Exception as e:
         print(f"Error loading individual evaluation page: {e}")
