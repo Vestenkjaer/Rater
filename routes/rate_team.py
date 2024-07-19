@@ -1,14 +1,7 @@
-from dotenv import load_dotenv
-import os
-import logging
-import openai
 from flask import Blueprint, render_template, jsonify, request, session
 from models import Team, TeamMember, Rating, db, User
 from sqlalchemy import func
-
-load_dotenv()  # Load variables from .env file
-
-logging.basicConfig(level=logging.DEBUG)
+import logging
 
 rate_team_bp = Blueprint('rate_team', __name__)
 
@@ -25,7 +18,8 @@ def rate_team():
         return jsonify({'error': 'User not authenticated'}), 403
 
     try:
-        assigned_teams = Team.query.filter_by(client_id=user.client_id).all()
+        client_id = user.client_id
+        assigned_teams = Team.query.filter_by(client_id=client_id).all()
         return render_template('rate_team.html', teams=assigned_teams, tier=session.get('tier', 0))
     except Exception as e:
         logging.error(f"Error in rate_team: {e}")
@@ -38,7 +32,8 @@ def get_assigned_teams():
         return jsonify({'error': 'User not authenticated'}), 403
 
     try:
-        assigned_teams = Team.query.filter_by(client_id=user.client_id).all()
+        client_id = user.client_id
+        assigned_teams = Team.query.filter_by(client_id=client_id).all()
         teams_data = [{'id': team.id, 'name': team.name} for team in assigned_teams]
         return jsonify({'teams': teams_data})
     except Exception as e:
@@ -54,7 +49,7 @@ def get_team_members(team_id):
     try:
         team = Team.query.filter_by(id=team_id, client_id=user.client_id).first()
         if not team:
-            return jsonify({'error': 'Team not found or not assigned to user'}), 403
+            return jsonify({'error': 'Team not assigned to user'}), 403
 
         members = team.members
         members_data = []

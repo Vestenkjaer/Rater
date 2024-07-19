@@ -17,7 +17,8 @@ def individual_evaluation():
         return jsonify({'error': 'User not authenticated'}), 403
 
     try:
-        assigned_teams = Team.query.filter_by(client_id=user.client_id).all()
+        client_id = user.client_id
+        assigned_teams = Team.query.filter_by(client_id=client_id).all()
         return render_template('individual_evaluation.html', tier=session.get('tier', 0), teams=assigned_teams)
     except Exception as e:
         logging.error(f"Error in individual_evaluation: {e}")
@@ -30,7 +31,8 @@ def get_assigned_teams():
         return jsonify({'error': 'User not authenticated'}), 403
 
     try:
-        assigned_teams = Team.query.filter_by(client_id=user.client_id).all()
+        client_id = user.client_id
+        assigned_teams = Team.query.filter_by(client_id=client_id).all()
         teams_data = [{'id': team.id, 'name': team.name} for team in assigned_teams]
         return jsonify({'teams': teams_data})
     except Exception as e:
