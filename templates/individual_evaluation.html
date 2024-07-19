@@ -432,14 +432,21 @@ function renderRadarChart(radarData, canvasId) {
         }]
       },
       options: {
-        scale: {
-          ticks: {
-            beginAtZero: true,
-            min: 0,
-            max: 10,
-            stepSize: 1,
-            callback: function(value) {
-              return value.toFixed(1); // Show decimal values
+        scales: {
+          r: {
+            angleLines: {
+              display: true
+            },
+            suggestedMin: 0,
+            suggestedMax: 10,
+            ticks: {
+              beginAtZero: true,
+              min: 0,
+              max: 10,
+              stepSize: 1,
+              callback: function(value) {
+                return value.toFixed(1); // Show decimal values
+              }
             }
           }
         }
