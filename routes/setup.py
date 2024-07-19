@@ -24,7 +24,7 @@ def get_users():
         users = User.query.filter_by(client_id=client_id).all()
         user_list = []
         for user in users:
-            teams = Team.query.join(user_teams).filter_by(user_id=user.id).all()
+            teams = Team.query.join(user_teams).filter_by(user_id=user.id, client_id=client_id).all()
             user_list.append({
                 'id': user.id,
                 'username': user.username,
