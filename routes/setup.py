@@ -312,12 +312,7 @@ def delete_user(auth0_id, user_id):
 
         email = user.email  # Save email before deletion
 
-        # Delete user from local database
-        db.session.delete(user)
-        db.session.commit()
-        current_app.logger.info(f'User {user_id} deleted from local database')
-
-        # Also delete the user from Auth0
+        # Attempt to delete the user from Auth0 first
         auth0_domain = os.getenv('AUTH0_DOMAIN')
         auth0_token = get_auth0_token()  # Use the token retrieval function
         headers = {
@@ -328,18 +323,25 @@ def delete_user(auth0_id, user_id):
         response = requests.delete(f'https://{auth0_domain}/api/v2/users/{auth0_id}', headers=headers)
         if response.status_code != 204:
             current_app.logger.error(f'Failed to delete Auth0 user: {response.content}')
-            response.raise_for_status()
+            return jsonify({'error': 'Failed to delete user from Auth0'}), response.status_code
 
-        current_app.logger.info(f'User {auth0_id} deleted from Auth0')
+        # Delete user from local database if Auth0 deletion was successful
+        db.session.delete(user)
+        db.session.commit()
+        current_app.logger.info(f'User {user_id} deleted from local database')
 
         # Send email notification of deletion
         send_deletion_email(email)
         current_app.logger.info(f'Deletion email sent to {email}')
 
         return jsonify({'status': 'success'})
+    except requests.RequestException as e:
+        current_app.logger.error(f"Error deleting Auth0 user: {e}")
+        return jsonify({'error': 'Failed to delete user from Auth0'}), 500
     except Exception as e:
         current_app.logger.error(f"Error deleting user: {e}")
         return jsonify({'error': 'An unexpected error occurred while deleting the user'}), 500
+
 
 def send_deletion_email(email, retries=3, delay=5):
     msg = Message('Account Deletion Notice',
