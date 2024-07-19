@@ -10,28 +10,35 @@ import time
 
 setup_bp = Blueprint('setup', __name__)
 
+def get_current_user():
+    user_id = session.get('user_id')
+    if not user_id:
+        return None
+    return User.query.get(user_id)
+
 @setup_bp.route('/', methods=['GET'])
 def setup():
     return render_template('setup.html')
 
 @setup_bp.route('/get_users')
 def get_users():
-    try:
-        client_id = session.get('client_id')
-        if not client_id:
-            return jsonify({"error": "Client not found in session"}), 401
+    user = get_current_user()
+    if not user:
+        return jsonify({"error": "User not authenticated"}), 403
 
+    try:
+        client_id = user.client_id
         users = User.query.filter_by(client_id=client_id).all()
         user_list = []
         for user in users:
-            teams = Team.query.join(user_teams).filter_by(user_id=user.id).filter(Team.client_id == client_id).all()
+            teams = Team.query.join(user_teams).filter_by(user_id=user.id).all()
             user_list.append({
                 'id': user.id,
                 'username': user.username,
                 'email': user.email,
                 'is_admin': user.is_admin,
-                'auth0_id': user.auth0_id,  # Ensure auth0_id is included in the response
-                'is_client': user.is_admin,  # Assuming is_client means is_admin in this context
+                'auth0_id': user.auth0_id,
+                'is_client': user.is_admin,
                 'teams': [{'id': team.id, 'name': team.name} for team in teams]
             })
 
@@ -41,100 +48,117 @@ def get_users():
 
 @setup_bp.route('/get_teams', methods=['GET'])
 def get_teams():
-    client_id = session.get('client_id')
-    if not client_id:
-        return jsonify({'error': 'Client ID not found in session'}), 401
+    user = get_current_user()
+    if not user:
+        return jsonify({"error": "User not authenticated"}), 403
 
-    teams = Team.query.filter_by(client_id=client_id).all()
-    teams_data = [{'id': team.id, 'name': team.name} for team in teams]
-    return jsonify({'teams': teams_data})
+    try:
+        client_id = user.client_id
+        teams = Team.query.filter_by(client_id=client_id).all()
+        teams_data = [{'id': team.id, 'name': team.name} for team in teams]
+        return jsonify({'teams': teams_data})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @setup_bp.route('/get_settings', methods=['GET'])
 def get_settings():
-    client_id = session.get('client_id')
-    if not client_id:
-        return jsonify({'error': 'Client ID not found in session'}), 401
+    user = get_current_user()
+    if not user:
+        return jsonify({"error": "User not authenticated"}), 403
 
-    settings = Settings.query.filter_by(client_id=client_id).first()
-    if settings:
-        return jsonify({'settings': settings.to_dict()})
-    else:
-        return jsonify({'settings': None})
+    try:
+        client_id = user.client_id
+        settings = Settings.query.filter_by(client_id=client_id).first()
+        if settings:
+            return jsonify({'settings': settings.to_dict()})
+        else:
+            return jsonify({'settings': None})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @setup_bp.route('/save_settings', methods=['POST'])
 def save_settings():
-    client_id = session.get('client_id')
-    if not client_id:
-        return jsonify({'error': 'Client ID not found in session'}), 401
+    user = get_current_user()
+    if not user:
+        return jsonify({"error": "User not authenticated"}), 403
 
-    data = request.json
-    settings = Settings.query.filter_by(client_id=client_id).first()
-    if not settings:
-        settings = Settings(client_id=client_id)
+    try:
+        client_id = user.client_id
+        data = request.json
+        settings = Settings.query.filter_by(client_id=client_id).first()
+        if not settings:
+            settings = Settings(client_id=client_id)
 
-    settings.red_min = data['score_ranges']['red']['min']
-    settings.red_max = data['score_ranges']['red']['max']
-    settings.orange_min = data['score_ranges']['orange']['min']
-    settings.orange_max = data['score_ranges']['orange']['max']
-    settings.white_min = data['score_ranges']['white']['min']
-    settings.white_max = data['score_ranges']['white']['max']
-    settings.green_min = data['score_ranges']['green']['min']
-    settings.green_max = data['score_ranges']['green']['max']
-    settings.notify_1_week = data['email_notifications']['1_week']
-    settings.notify_3_days = data['email_notifications']['3_days']
-    settings.notify_1_day = data['email_notifications']['1_day']
-    settings.frequency_weekly = data['rating_frequency']['weekly']
-    settings.frequency_bi_weekly = data['rating_frequency']['bi_weekly']
-    settings.frequency_monthly = data['rating_frequency']['monthly']
-    settings.frequency_quarterly = data['rating_frequency']['quarterly']
+        settings.red_min = data['score_ranges']['red']['min']
+        settings.red_max = data['score_ranges']['red']['max']
+        settings.orange_min = data['score_ranges']['orange']['min']
+        settings.orange_max = data['score_ranges']['orange']['max']
+        settings.white_min = data['score_ranges']['white']['min']
+        settings.white_max = data['score_ranges']['white']['max']
+        settings.green_min = data['score_ranges']['green']['min']
+        settings.green_max = data['score_ranges']['green']['max']
+        settings.notify_1_week = data['email_notifications']['1_week']
+        settings.notify_3_days = data['email_notifications']['3_days']
+        settings.notify_1_day = data['email_notifications']['1_day']
+        settings.frequency_weekly = data['rating_frequency']['weekly']
+        settings.frequency_bi_weekly = data['rating_frequency']['bi_weekly']
+        settings.frequency_monthly = data['rating_frequency']['monthly']
+        settings.frequency_quarterly = data['rating_frequency']['quarterly']
 
-    db.session.add(settings)
-    db.session.commit()
+        db.session.add(settings)
+        db.session.commit()
 
-    return jsonify({'status': 'success', 'settings': data})
+        return jsonify({'status': 'success', 'settings': data})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @setup_bp.route('/create_user', methods=['POST'])
 def create_user():
-    data = request.json
-    username = data.get('username')
-    email = data.get('email')
-    client_id = session.get('client_id')
-    if not client_id:
-        current_app.logger.error('Client ID not found in session')
-        return jsonify({'error': 'Client ID not found in session'}), 401
-
-    # Check if user already exists
-    existing_user = User.query.filter_by(email=email).first()
-    if existing_user:
-        current_app.logger.error('User with this email already exists')
-        return jsonify({'error': 'User with this email already exists'}), 400
-
-    # Create Auth0 user and get auth0_id
     try:
-        auth0_id, temp_password = create_auth0_user(email)
+        data = request.json
+        username = data.get('username')
+        email = data.get('email')
+        user = get_current_user()
+
+        if not user:
+            return jsonify({"error": "User not authenticated"}), 403
+
+        client_id = user.client_id
+
+        # Check if user already exists
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            current_app.logger.error('User with this email already exists')
+            return jsonify({'error': 'User with this email already exists'}), 400
+
+        # Create Auth0 user and get auth0_id
+        try:
+            auth0_id, temp_password = create_auth0_user(email)
+        except Exception as e:
+            current_app.logger.error(f'Error creating Auth0 user: {e}')
+            return jsonify({'error': str(e)}), 500
+
+        # Store user with auth0_id in local database
+        user = User(username=username, email=email, client_id=client_id, auth0_id=auth0_id)
+        db.session.add(user)
+        db.session.commit()
+
+        team_ids = data.get('teams', [])
+        team_names = []
+        for team_id in team_ids:
+            team = Team.query.get(team_id)
+            if team and team.client_id == client_id:
+                user_team = user_teams.insert().values(user_id=user.id, team_id=team.id)
+                db.session.execute(user_team)
+                team_names.append(team.name)
+                db.session.commit()
+
+        send_password_email(email, temp_password, team_names)  # Send email with temporary password and team names
+
+        current_app.logger.info(f'User {username} created successfully with Auth0 ID {auth0_id}')
+        return jsonify({'status': 'success'})
     except Exception as e:
-        current_app.logger.error(f'Error creating Auth0 user: {e}')
         return jsonify({'error': str(e)}), 500
-
-    # Store user with auth0_id in local database
-    user = User(username=username, email=email, client_id=client_id, auth0_id=auth0_id)
-    db.session.add(user)
-    db.session.commit()
-
-    team_ids = data.get('teams', [])
-    team_names = []
-    for team_id in team_ids:
-        team = Team.query.get(team_id)
-        if team and team.client_id == client_id:
-            user_team = user_teams.insert().values(user_id=user.id, team_id=team.id)
-            db.session.execute(user_team)
-            team_names.append(team.name)
-            db.session.commit()
-
-    send_password_email(email, temp_password, team_names)  # Send email with temporary password and team names
-
-    current_app.logger.info(f'User {username} created successfully with Auth0 ID {auth0_id}')
-    return jsonify({'status': 'success'})
 
 def get_auth0_token():
     if 'auth0_token' not in get_auth0_token.__dict__:
@@ -243,31 +267,36 @@ def edit_user(auth0_id, user_id):
     data = request.json
     username = data.get('username')
     email = data.get('email')
-    client_id = session.get('client_id')
-    if not client_id:
-        return jsonify({'error': 'Client ID not found in session'}), 401
+    user = get_current_user()
 
-    user = User.query.filter_by(id=user_id, client_id=client_id).first()
     if not user:
-        return jsonify({'error': 'User not found'}), 404
+        return jsonify({"error": "User not authenticated"}), 403
 
-    user.username = username
-    user.email = email
-    db.session.commit()
+    client_id = user.client_id
 
-    # Update team assignments
-    db.session.execute(user_teams.delete().where(user_teams.c.user_id == user.id))
-    db.session.commit()
+    try:
+        user = User.query.filter_by(id=user_id, client_id=client_id).first()
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
 
-    team_ids = data.get('teams', [])
-    for team_id in team_ids:
-        team = Team.query.get(team_id)
-        if team and team.client_id == client_id:
-            user_team = user_teams.insert().values(user_id=user.id, team_id=team.id)
-            db.session.execute(user_team)
-            db.session.commit()
+        user.username = username
+        user.email = email
+        db.session.commit()
 
-    return jsonify({'status': 'success'})
+        db.session.execute(user_teams.delete().where(user_teams.c.user_id == user.id))
+        db.session.commit()
+
+        team_ids = data.get('teams', [])
+        for team_id in team_ids:
+            team = Team.query.get(team_id)
+            if team and team.client_id == client_id:
+                user_team = user_teams.insert().values(user_id=user.id, team_id=team.id)
+                db.session.execute(user_team)
+                db.session.commit()
+
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @setup_bp.route('/request_password_reset', methods=['POST'])
 def request_password_reset():
@@ -300,10 +329,12 @@ def password_reset():
 @setup_bp.route('/delete_user/<auth0_id>/<int:user_id>', methods=['POST'])
 def delete_user(auth0_id, user_id):
     try:
-        client_id = session.get('client_id')
-        if not client_id:
-            current_app.logger.error('Client ID not found in session')
-            return jsonify({'error': 'Client ID not found in session'}), 401
+        user = get_current_user()
+
+        if not user:
+            return jsonify({"error": "User not authenticated"}), 403
+
+        client_id = user.client_id
 
         user = User.query.filter_by(id=user_id, client_id=client_id).first()
         if not user:
@@ -330,7 +361,6 @@ def delete_user(auth0_id, user_id):
         db.session.commit()
         current_app.logger.info(f'User {user_id} deleted from local database')
 
-        # Send email notification of deletion
         send_deletion_email(email)
         current_app.logger.info(f'Deletion email sent to {email}')
 
@@ -341,7 +371,6 @@ def delete_user(auth0_id, user_id):
     except Exception as e:
         current_app.logger.error(f"Error deleting user: {e}")
         return jsonify({'error': 'An unexpected error occurred while deleting the user'}), 500
-
 
 def send_deletion_email(email, retries=3, delay=5):
     msg = Message('Account Deletion Notice',
