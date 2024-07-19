@@ -280,286 +280,288 @@
 
   <script>
     const criteria = [
-      "ability_to_impart_knowledge",
-      "approachable",
-      "necessary_skills",
-      "trained",
-      "absence",
-      "self_motivation",
-      "capacity_for_learning",
-      "adaptability"
-    ];
-  
-    let historicalChart;
-    let radarChart;
-    let radarChartModal;
-    let selectedTeamId = null;
-    let selectedMemberId = null;
-    let selectedMemberName = '';
-  
-    const userTier = parseInt(document.querySelector('.container').dataset.usertier, 10);
-  
-    function fetchTeamMembers(teamId) {
-      selectedTeamId = teamId;
-      fetch(`/individual_evaluation/get_team_members/${teamId}`)
-        .then(response => response.json())
-        .then(data => {
-          console.log('Team members data:', data); // Debug print
-          document.getElementById('team-name-container').innerHTML = `Selected Team: ${data.team_name}`;
-          const memberList = document.getElementById('memberList');
-          memberList.innerHTML = '';
-          data.members.forEach(member => {
-            const li = document.createElement('li');
-            li.textContent = `${member.first_name} ${member.surname}`;
-            li.onclick = () => fetchMemberData(member.id, member.first_name + ' ' + member.surname);
-            memberList.appendChild(li);
-          });
-          if (data.members.length > 0) {
-            fetchMemberData(data.members[0].id, `${data.members[0].first_name} ${data.members[0].surname}`);
-          }
-        }).catch(error => {
-          console.error("Error fetching team members:", error); // Add error log
-        });
-    }
-  
-    function fetchMemberData(memberId, memberName) {
-      selectedMemberId = memberId;
-      selectedMemberName = memberName;
-      fetch(`/individual_evaluation/get_team_members/${selectedTeamId}`)
-        .then(response => response.json())
-        .then(data => {
-          const member = data.members.find(m => m.id === memberId);
-          if (member) {
-            document.getElementById('member-name-container').innerHTML = `Selected Member: ${member.first_name} ${member.surname}`;
-            const container = document.getElementById('member-ratings-container');
-            container.innerHTML = '';
-            const radarData = [];
-            criteria.forEach(criterion => {
-              const tr = document.createElement('tr');
-              tr.innerHTML = `
-                <td class="team-member-name">${criterion.replace(/_/g, ' ')}</td>
-                <td>${member.ratings[criterion]}</td>
-              `;
-              container.appendChild(tr);
-              radarData.push(member.ratings[criterion]);
-            });
-            fetchHistoricalData(member.id, memberName, radarData);
-          }
-        }).catch(error => {
-          console.error("Error fetching member data:", error); // Add error log
-        });
-    }
-  
-    function fetchHistoricalData(memberId, memberName, radarData) {
-      fetch(`/individual_evaluation/get_historical_data/${memberId}`)
-        .then(response => response.json())
-        .then(data => {
-          const labels = data.map(entry => new Date(entry.timestamp).toLocaleDateString());
-          const dataset = {
-            label: memberName,
-            data: data.map(entry => entry.score),
-            borderColor: getRandomColor(),
-            borderWidth: 1,
-            fill: false,
-            tension: 0.4,
-            pointRadius: 0
-          };
-          renderChart(labels, dataset);
-          renderRadarChart(radarData, 'radarChart');
-          renderRadarChart(radarData, 'radarChartModal');
-        })
-        .catch(error => {
-          console.error('Error fetching historical data:', error); // Add error log
-        });
-    }
-  
-    function renderChart(labels, dataset) {
-      const ctx = document.getElementById('historicalChart').getContext('2d');
-      if (historicalChart instanceof Chart) {
-        historicalChart.destroy();
-      }
-      historicalChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [dataset]
-        },
-        options: {
-          responsive: true,
-          scales: {
-            x: {
-              type: 'category',
-              reverse: true,
-              ticks: {
-                maxTicksLimit: 12,
-                autoSkip: false
-              }
-            },
-            y: {
-              beginAtZero: true,
-              min: 0,
-              max: 100,
-              ticks: {
-                stepSize: 10
-              }
-            }
-          }
-        }
+  "ability_to_impart_knowledge",
+  "approachable",
+  "necessary_skills",
+  "trained",
+  "absence",
+  "self_motivation",
+  "capacity_for_learning",
+  "adaptability"
+];
+
+let historicalChart;
+let radarChart;
+let radarChartModal;
+let selectedTeamId = null;
+let selectedMemberId = null;
+let selectedMemberName = '';
+
+const userTier = parseInt(document.querySelector('.container').dataset.usertier, 10);
+
+function fetchTeamMembers(teamId) {
+  selectedTeamId = teamId;
+  fetch(`/individual_evaluation/get_team_members/${teamId}`)
+    .then(response => response.json())
+    .then(data => {
+      console.log('Team members data:', data); // Debug print
+      document.getElementById('team-name-container').innerHTML = `Selected Team: ${data.team_name}`;
+      const memberList = document.getElementById('memberList');
+      memberList.innerHTML = '';
+      data.members.forEach(member => {
+        const li = document.createElement('li');
+        li.textContent = `${member.first_name} ${member.surname}`;
+        li.onclick = () => fetchMemberData(member.id, member.first_name + ' ' + member.surname);
+        memberList.appendChild(li);
       });
-    }
-  
-    function renderRadarChart(radarData, canvasId) {
-      const canvas = document.getElementById(canvasId);
-      if (canvas && canvas.getContext) {
-        const ctx = canvas.getContext('2d');
-        if (window[canvasId] instanceof Chart) {
-          window[canvasId].destroy();
-        }
-        window[canvasId] = new Chart(ctx, {
-          type: 'radar',
-          data: {
-            labels: criteria.map(criterion => criterion.replace(/_/g, ' ')),
-            datasets: [{
-              label: selectedMemberName,
-              data: radarData,
-              backgroundColor: 'rgba(179,181,198,0.2)',
-              borderColor: 'rgba(179,181,198,1)',
-              pointBackgroundColor: 'rgba(179,181,198,1)',
-              pointBorderColor: '#fff',
-              pointHoverBackgroundColor: '#fff',
-              pointHoverBorderColor: 'rgba(179,181,198,1)'
-            }]
-          },
-          options: {
-            scale: {
-              ticks: {
-                beginAtZero: true,
-                min: 0,
-                max: 100,
-                stepSize: 10
-              }
-            }
-          }
-        });
-      } else {
-        console.error(`Canvas with ID ${canvasId} not found or does not support 2D context.`); // Add error log
+      if (data.members.length > 0) {
+        fetchMemberData(data.members[0].id, `${data.members[0].first_name} ${data.members[0].surname}`);
       }
-    }
-  
-    function getRandomColor() {
-      const letters = '0123456789ABCDEF';
-      let color = '#';
-      for (let i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
-      }
-      return color;
-    }
-  
-    function checkTierAndGenerateAIRecommendation() {
-      if (userTier < 2) {
-        showPopup(
-          "To get the full experience of Raterware, please upgrade to the Professional version",
-          "",
-          "/pricing"
-        );
-      } else {
-        aiRecommendation();
-      }
-    }
-  
-    function aiRecommendation() {
-      if (!selectedMemberId) {
-        alert('Please select a member to get AI recommendation.');
-        return;
-      }
-  
-      document.getElementById('spinnerContainer').style.display = 'block';
-  
-      fetch(`/rate_team/get_ai_recommendation/${selectedMemberId}`)
-        .then(response => response.json())
-        .then(data => {
-          document.getElementById('spinnerContainer').style.display = 'none';
-  
-          if (data.error) {
-            alert(data.error);
-          } else {
-            document.getElementById('aiRecommendationContent').innerText = data.recommendation;
-            document.getElementById('futurePredictionContent').innerText = data.future_prediction;
-            $('#aiModal').modal('show');
-            renderRadarChart(data.radar_data, 'radarChartModal');
-          }
-        })
-        .catch(error => {
-          document.getElementById('spinnerContainer').style.display = 'none';
-          console.error('Error fetching AI recommendation:', error);
-          alert('An error occurred while fetching the AI recommendation.');
-        });
-    }
-  
-    function saveAsPDF() {
-      const memberName = document.getElementById('member-name-container').innerText.replace('Selected Member: ', '');
-      const today = new Date().toISOString().slice(0, 10);
-      const fileName = `AI_Recommendation_${memberName}_${today}.pdf`;
-  
-      const element = document.createElement('div');
-      element.style.margin = '20mm';
-      element.innerHTML = `
-        <h1>Individual Evaluation Report</h1>
-        <h2>${today} - ${memberName}</h2>
-        <p>Confidential GDPR material</p>
-        <img src="/static/images/raterware.png" style="width: 125%; height: auto;" />
-        <p></p>
-        <div>${document.getElementById('aiRecommendationContent').innerHTML}</div>
-        <div>${document.getElementById('futurePredictionContent').innerHTML}</div>
-      `;
-  
-      html2pdf().set({
-        margin: 15,
-        filename: fileName,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      }).from(element).save();
-    }
-  
-    window.addEventListener('load', () => {
-      const teamList = document.getElementById('teamList');
-      fetch('/individual_evaluation/get_assigned_teams')
-        .then(response => response.json())
-        .then(data => {
-          data.teams.forEach(team => {
-            const option = document.createElement('option');
-            option.value = team.id;
-            option.textContent = team.name;
-            teamList.appendChild(option);
-          });
-          if (teamList.options.length === 2) { // 1 option for placeholder and 1 for the team
-            teamList.selectedIndex = 1; // Select the only team
-            fetchTeamMembers(teamList.value);
-          }
-        }).catch(error => {
-          console.error("Error fetching teams:", error); // Add error log
-        });
+    }).catch(error => {
+      console.error("Error fetching team members:", error); // Add error log
     });
-  
-    function showPopup(title, message, redirectUrl) {
-      document.getElementById('popupTitle').innerText = title;
-      document.getElementById('popupMessage').innerText = message;
-      document.getElementById('popupOverlay').style.display = 'block';
-      document.getElementById('popup').style.display = 'block';
-      document.getElementById('popupButton').onclick = () => {
-        closePopup();
-        if (redirectUrl) {
-          window.location.href = redirectUrl;
-        }
+}
+
+function fetchMemberData(memberId, memberName) {
+  selectedMemberId = memberId;
+  selectedMemberName = memberName;
+  fetch(`/individual_evaluation/get_team_members/${selectedTeamId}`)
+    .then(response => response.json())
+    .then(data => {
+      const member = data.members.find(m => m.id === memberId);
+      if (member) {
+        document.getElementById('member-name-container').innerHTML = `Selected Member: ${member.first_name} ${member.surname}`;
+        const container = document.getElementById('member-ratings-container');
+        container.innerHTML = '';
+        const radarData = [];
+        criteria.forEach(criterion => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="team-member-name">${criterion.replace(/_/g, ' ')}</td>
+            <td>${member.ratings[criterion]}</td>
+          `;
+          container.appendChild(tr);
+          radarData.push(member.ratings[criterion]);
+        });
+        console.log('Radar Data:', radarData); // Debug print
+        fetchHistoricalData(member.id, memberName, radarData);
+      }
+    }).catch(error => {
+      console.error("Error fetching member data:", error); // Add error log
+    });
+}
+
+function fetchHistoricalData(memberId, memberName, radarData) {
+  fetch(`/individual_evaluation/get_historical_data/${memberId}`)
+    .then(response => response.json())
+    .then(data => {
+      const labels = data.map(entry => new Date(entry.timestamp).toLocaleDateString());
+      const dataset = {
+        label: memberName,
+        data: data.map(entry => entry.score),
+        borderColor: getRandomColor(),
+        borderWidth: 1,
+        fill: false,
+        tension: 0.4,
+        pointRadius: 0
       };
+      renderChart(labels, dataset);
+      renderRadarChart(radarData, 'radarChart');
+      renderRadarChart(radarData, 'radarChartModal');
+    })
+    .catch(error => {
+      console.error('Error fetching historical data:', error); // Add error log
+    });
+}
+
+function renderChart(labels, dataset) {
+  const ctx = document.getElementById('historicalChart').getContext('2d');
+  if (historicalChart instanceof Chart) {
+    historicalChart.destroy();
+  }
+  historicalChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [dataset]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        x: {
+          type: 'category',
+          reverse: true,
+          ticks: {
+            maxTicksLimit: 12,
+            autoSkip: false
+          }
+        },
+        y: {
+          beginAtZero: true,
+          min: 0,
+          max: 100,
+          ticks: {
+            stepSize: 10
+          }
+        }
+      }
     }
-  
-    function closePopup() {
-      document.getElementById('popupOverlay').style.display = 'none';
-      document.getElementById('popup').style.display = 'none';
+  });
+}
+
+function renderRadarChart(radarData, canvasId) {
+  const canvas = document.getElementById(canvasId);
+  if (canvas && canvas.getContext) {
+    const ctx = canvas.getContext('2d');
+    if (window[canvasId] instanceof Chart) {
+      window[canvasId].destroy();
     }
-  </script>
+    window[canvasId] = new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: criteria.map(criterion => criterion.replace(/_/g, ' ')),
+        datasets: [{
+          label: selectedMemberName,
+          data: radarData,
+          backgroundColor: 'rgba(179,181,198,0.2)',
+          borderColor: 'rgba(179,181,198,1)',
+          pointBackgroundColor: 'rgba(179,181,198,1)',
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: 'rgba(179,181,198,1)'
+        }]
+      },
+      options: {
+        scale: {
+          ticks: {
+            beginAtZero: true,
+            min: 0,
+            max: 100,
+            stepSize: 10
+          }
+        }
+      }
+    });
+  } else {
+    console.error(`Canvas with ID ${canvasId} not found or does not support 2D context.`); // Add error log
+  }
+}
+
+function getRandomColor() {
+  const letters = '0123456789ABCDEF';
+  let color = '#';
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
+
+function checkTierAndGenerateAIRecommendation() {
+  if (userTier < 2) {
+    showPopup(
+      "To get the full experience of Raterware, please upgrade to the Professional version",
+      "",
+      "/pricing"
+    );
+  } else {
+    aiRecommendation();
+  }
+}
+
+function aiRecommendation() {
+  if (!selectedMemberId) {
+    alert('Please select a member to get AI recommendation.');
+    return;
+  }
+
+  document.getElementById('spinnerContainer').style.display = 'block';
+
+  fetch(`/rate_team/get_ai_recommendation/${selectedMemberId}`)
+    .then(response => response.json())
+    .then(data => {
+      document.getElementById('spinnerContainer').style.display = 'none';
+
+      if (data.error) {
+        alert(data.error);
+      } else {
+        document.getElementById('aiRecommendationContent').innerText = data.recommendation;
+        document.getElementById('futurePredictionContent').innerText = data.future_prediction;
+        $('#aiModal').modal('show');
+        renderRadarChart(data.radar_data, 'radarChartModal');
+      }
+    })
+    .catch(error => {
+      document.getElementById('spinnerContainer').style.display = 'none';
+      console.error('Error fetching AI recommendation:', error);
+      alert('An error occurred while fetching the AI recommendation.');
+    });
+}
+
+function saveAsPDF() {
+  const memberName = document.getElementById('member-name-container').innerText.replace('Selected Member: ', '');
+  const today = new Date().toISOString().slice(0, 10);
+  const fileName = `AI_Recommendation_${memberName}_${today}.pdf`;
+
+  const element = document.createElement('div');
+  element.style.margin = '20mm';
+  element.innerHTML = `
+    <h1>Individual Evaluation Report</h1>
+    <h2>${today} - ${memberName}</h2>
+    <p>Confidential GDPR material</p>
+    <img src="/static/images/raterware.png" style="width: 125%; height: auto;" />
+    <p></p>
+    <div>${document.getElementById('aiRecommendationContent').innerHTML}</div>
+    <div>${document.getElementById('futurePredictionContent').innerHTML}</div>
+  `;
+
+  html2pdf().set({
+    margin: 15,
+    filename: fileName,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  }).from(element).save();
+}
+
+window.addEventListener('load', () => {
+  const teamList = document.getElementById('teamList');
+  fetch('/individual_evaluation/get_assigned_teams')
+    .then(response => response.json())
+    .then(data => {
+      data.teams.forEach(team => {
+        const option = document.createElement('option');
+        option.value = team.id;
+        option.textContent = team.name;
+        teamList.appendChild(option);
+      });
+      if (teamList.options.length === 2) { // 1 option for placeholder and 1 for the team
+        teamList.selectedIndex = 1; // Select the only team
+        fetchTeamMembers(teamList.value);
+      }
+    }).catch(error => {
+      console.error("Error fetching teams:", error); // Add error log
+    });
+});
+
+function showPopup(title, message, redirectUrl) {
+  document.getElementById('popupTitle').innerText = title;
+  document.getElementById('popupMessage').innerText = message;
+  document.getElementById('popupOverlay').style.display = 'block';
+  document.getElementById('popup').style.display = 'block';
+  document.getElementById('popupButton').onclick = () => {
+    closePopup();
+    if (redirectUrl) {
+      window.location.href = redirectUrl;
+    }
+  };
+}
+
+function closePopup() {
+  document.getElementById('popupOverlay').style.display = 'none';
+  document.getElementById('popup').style.display = 'none';
+}
+</script>
+
   
 </body>
 </html>
