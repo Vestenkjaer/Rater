@@ -133,10 +133,10 @@
       white-space: normal;
     }
     .modal-content {
-      text-align: center.
+      text-align: center;
     }
     .chart-container {
-      margin-top: 40px.
+      margin-top: 40px;
     }
     .spinner {
       border: 8px solid #f3f3f3;
@@ -341,28 +341,28 @@
     const userTier = parseInt(document.querySelector('.container').dataset.usertier, 10);
 
     function fetchTeamMembers(teamId) {
-      selectedTeamId = teamId;
-      fetch(`/individual_evaluation/get_team_members/${teamId}`)
+    selectedTeamId = teamId;
+    fetch(`/individual_evaluation/get_team_members/${teamId}`)
         .then(response => response.json())
         .then(data => {
-          console.log('Team members data:', data); // Debug print
-          document.getElementById('team-name-container').innerHTML = `Selected Team: ${data.team_name}`;
-          const memberList = document.getElementById('memberList');
-          memberList.innerHTML = '';
-          data.members.forEach(member => {
-            const li = document.createElement('li');
-            li.textContent = `${member.first_name} ${member.surname}`;
-            li.onclick = () => fetchMemberData(member.id, member.first_name + ' ' + member.surname);
-            memberList.appendChild(li);
-          });
-          // Automatically fetch members if there is only one team
-          if (data.members.length > 0) {
-            fetchMemberData(data.members[0].id, `${data.members[0].first_name} ${data.members[0].surname}`);
-          }
+            console.log('Team members data:', data); // Debug print
+            document.getElementById('team-name-container').innerHTML = `Selected Team: ${data.team_name}`;
+            const memberList = document.getElementById('memberList');
+            memberList.innerHTML = '';
+            data.members.forEach(member => {
+                const li = document.createElement('li');
+                li.textContent = `${member.first_name} ${member.surname}`;
+                li.onclick = () => fetchMemberData(member.id, member.first_name + ' ' + member.surname);
+                memberList.appendChild(li);
+            });
+            // Automatically fetch members if there is only one team
+            if (data.members.length > 0) {
+                fetchMemberData(data.members[0].id, `${data.members[0].first_name} ${data.members[0].surname}`);
+            }
         }).catch(error => {
-          console.error("Error fetching team members:", error); // Add error log
+            console.error("Error fetching team members:", error); // Add error log
         });
-    }
+}
 
     function fetchMemberData(memberId, memberName) {
       selectedMemberId = memberId;

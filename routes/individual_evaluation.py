@@ -17,6 +17,7 @@ def individual_evaluation():
 
     try:
         assigned_teams = user.teams
+        print(f"Assigned teams: {assigned_teams}")  # Debug print
         return render_template('individual_evaluation.html', tier=session.get('tier', 0), teams=assigned_teams)
     except Exception as e:
         print(f"Error loading individual evaluation page: {e}")
@@ -33,6 +34,8 @@ def get_team_members(team_id):
         return jsonify({'error': 'Team not found or not assigned to user'}), 404
 
     members = team.members
+    print(f"Team: {team.name}, Members: {members}")  # Debug print
+
     members_data = []
     for member in members:
         latest_ratings = Rating.query.filter_by(team_member_id=member.id).order_by(Rating.timestamp.desc()).first()
