@@ -250,7 +250,9 @@ def create_app():
     def dashboard():
         if 'user' not in session:
             return redirect(url_for('login'))
-        return render_template('landing_page.html')
+        client_id = session.get('client_id')
+        teams = Team.query.filter_by(client_id=client_id).all()
+        return render_template('landing_page.html', teams=teams)
 
     @app.route('/logout')
     def logout():
