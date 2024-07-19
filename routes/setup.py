@@ -1,7 +1,5 @@
 from flask import Blueprint, request, jsonify, session, render_template, current_app
 from models import db, User, Team, user_teams, Settings
-import requests
-import json
 import os
 import secrets
 from mail import mail  # Import mail from mail.py
@@ -336,28 +334,15 @@ def delete_user(auth0_id, user_id):
 
         client_id = user.client_id
 
-        user = User.query.filter_by(id=user_id, client_id=client_id).first()
-        if not user:
+        user_to_delete = User.query.filter_by(id=user_id, client_id=client_id).first()
+        if not user_to_delete:
             current_app.logger.error(f'User with ID {user_id} not found')
             return jsonify({'error': 'User not found'}), 404
 
-        email = user.email  # Save email before deletion
+        email = user_to_delete.email  # Save email before deletion
 
-        # Attempt to delete the user from Auth0 first
-        auth0_domain = os.getenv('AUTH0_DOMAIN')
-        auth0_token = get_auth0_token()  # Use the token retrieval function
-        headers = {
-            'Authorization': f'Bearer {auth0_token}',
-            'Content-Type': 'application/json'
-        }
-
-        response = requests.delete(f'https://{auth0_domain}/api/v2/users/{auth0_id}', headers=headers)
-        if response.status_code != 204:
-            current_app.logger.error(f'Failed to delete Auth0 user: {response.content}')
-            return jsonify({'error': 'Failed to delete user from Auth0'}), response.status_code
-
-        # Delete user from local database if Auth0 deletion was successful
-        db.session.delete(user)
+        # Skip Auth0 deletion and proceed to local database deletion
+        db.session.delete(user_to_delete)
         db.session.commit()
         current_app.logger.info(f'User {user_id} deleted from local database')
 
@@ -365,9 +350,6 @@ def delete_user(auth0_id, user_id):
         current_app.logger.info(f'Deletion email sent to {email}')
 
         return jsonify({'status': 'success'})
-    except requests.RequestException as e:
-        current_app.logger.error(f"Error deleting Auth0 user: {e}")
-        return jsonify({'error': 'Failed to delete user from Auth0'}), 500
     except Exception as e:
         current_app.logger.error(f"Error deleting user: {e}")
         return jsonify({'error': 'An unexpected error occurred while deleting the user'}), 500
